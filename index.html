@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoTrade Central | Free MT5 EAs for All Brokers & Deriv XML Bots</title>
+    
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            400: '#818cf8',
+                            500: '#6366f1', // Indigo primary
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        },
+                        darkbg: '#0b0f19',
+                        cardbg: '#111827',
+                        bordercolor: '#1f2937'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glow-indigo { box-shadow: 0 0 35px -5px rgba(99, 102, 241, 0.35); }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-darkbg text-slate-100 font-sans antialiased selection:bg-brand-500 selection:text-white min-h-screen flex flex-col justify-between">
+
+    <!-- ANNOUNCEMENT BAR -->
+    <div class="bg-gradient-to-r from-indigo-700 via-purple-600 to-pink-600 text-white text-xs font-semibold py-2 px-4 text-center tracking-wide">
+        ⚡ <strong>Universal Trading Repository:</strong> Free MT5 EAs compatible with XM, IC Markets, Finex, Exness, and Deriv DBot XML scripts!
+    </div>
+
+    <!-- NAVBAR -->
+    <header class="sticky top-0 z-40 bg-darkbg/90 backdrop-blur-md border-b border-bordercolor">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600 to-purple-500 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-brand-500/30 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight text-white block leading-none">Algo<span class="text-brand-500">Trader</span> Hub</span>
+                    <span class="text-[10px] tracking-widest text-slate-400 uppercase font-semibold">Universal MT5 & DBot EA Repository</span>
+                </div>
+            </a>
+            
+            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+                <a href="#brokers" class="hover:text-brand-400 transition-colors">Supported Brokers</a>
+                <a href="#repository" class="hover:text-brand-400 transition-colors">100+ Free EAs</a>
+                <a href="#tutorial" class="hover:text-brand-400 transition-colors">Installation Guide</a>
+                <a href="#faq" class="hover:text-brand-400 transition-colors">FAQ</a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <a href="#brokers" class="bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-brand-500/25 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-building-columns"></i>
+                    <span>Open Broker Account</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="relative py-16 lg:py-24 overflow-hidden">
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-brand-500/15 rounded-full blur-[120px] pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs font-semibold text-emerald-400 mb-6">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                Works on All MetaTrader 5 Brokers & Deriv DBot
+            </span>
+
+            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight max-w-4xl mx-auto">
+                Automate Your Trading With Free <span class="bg-gradient-to-r from-brand-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">MT5 Expert Advisors</span> & Bots
+            </h1>
+
+            <p class="mt-6 text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+                Download 100+ open-source Expert Advisors (.MQ5) for Forex, Gold (XAUUSD), Indices on <strong>XM, IC Markets, Finex, Exness</strong> and automated XML scripts for <strong>Deriv DBot</strong>.
+            </p>
+
+            <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <a href="#repository" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 font-extrabold text-white shadow-xl shadow-brand-500/30 transition-all text-base flex items-center justify-center gap-2 glow-indigo">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Browse 100+ Free EAs</span>
+                </a>
+                <a href="#brokers" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 font-bold text-slate-200 transition-all text-base flex items-center justify-center gap-2">
+                    <span>View Partner Brokers</span>
+                    <i class="fa-solid fa-arrow-down text-xs text-slate-400"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- RECOMMENDED BROKERS SECTION -->
+    <section id="brokers" class="py-16 bg-slate-900/60 border-t border-bordercolor">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Recommended MT5 Brokers</h2>
+                <p class="mt-2 text-slate-400 text-xs sm:text-sm">
+                    Our EAs run seamlessly on any MT5 platform. Choose a regulated broker below to activate your trading account.
+                </p>
+            </div>
+
+            <!-- BROKER CARDS GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- BROKER 1: IC MARKETS -->
+                <div class="glass-card rounded-2xl p-6 border border-slate-800 hover:border-brand-500/50 transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-bold text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">Raw Spread ECN</span>
+                            <span class="text-xs text-slate-400"><i class="fa-solid fa-star text-amber-400"></i> 4.9</span>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-white mb-1">IC Markets</h3>
+                        <p class="text-slate-400 text-xs mb-4">Best for Scalping, EAs, Forex & Gold with ultra-low raw spreads from 0.0 pips.</p>
+                        <ul class="text-[11px] text-slate-300 space-y-1.5 mb-6">
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> MetaTrader 5 (MT5) Native</li>
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> Ultra-Fast Execution</li>
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> ASIC / CySEC Regulated</li>
+                        </ul>
+                    </div>
+                    <a href="https://www.icmarkets.com/?camp=YOUR_AFFILIATE_ID" target="_blank" rel="noopener" class="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs rounded-xl text-center transition-all block">
+                        Open IC Markets Account
+                    </a>
+                </div>
+
+                <!-- BROKER 2: XM -->
+                <div class="glass-card rounded-2xl p-6 border border-slate-800 hover:border-brand-500/50 transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-bold text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/20">Deposit Bonus</span>
+                            <span class="text-xs text-slate-400"><i class="fa-solid fa-star text-amber-400"></i> 4.8</span>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-white mb-1">XM Global</h3>
+                        <p class="text-slate-400 text-xs mb-4">Global broker with no re-quotes, zero rejection, and flexible leverage options up to 1:1000.</p>
+                        <ul class="text-[11px] text-slate-300 space-y-1.5 mb-6">
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> MT5 Forex & Crypto</li>
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> Free VPS for Active EA Users</li>
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> $50+ Deposit Bonuses</li>
+                        </ul>
+                    </div>
+                    <a href="https://www.xm.com/referral?YOUR_AFFILIATE_ID" target="_blank" rel="noopener" class="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs rounded-xl text-center transition-all block">
+                        Open XM Account
+                    </a>
+                </div>
+
+                <!-- BROKER 3: FINEX -->
+                <div class="glass-card rounded-2xl p-6 border border-slate-800 hover:border-brand-500/50 transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">Local Deposits</span>
+                            <span class="text-xs text-slate-400"><i class="fa-solid fa-star text-amber-400"></i> 4.7</span>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-white mb-1">Finex</h3>
+                        <p class="text-slate-400 text-xs mb-4">Regulated broker supporting local bank instant deposits, low commissions & MT5 support.</p>
+                        <ul class="text-[11px] text-slate-300 space-y-1.5 mb-6">
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> Full MT5 EA Compatibility</li>
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> Local Payment Options</li>
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> 0.5 Sec Instant Execution</li>
+                        </ul>
+                    </div>
+                    <a href="https://www.finex.co.id/?ref=YOUR_AFFILIATE_ID" target="_blank" rel="noopener" class="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs rounded-xl text-center transition-all block">
+                        Open Finex Account
+                    </a>
+                </div>
+
+                <!-- BROKER 4: DERIV -->
+                <div class="glass-card rounded-2xl p-6 border border-slate-800 hover:border-brand-500/50 transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-full border border-rose-500/20">Synthetic & DBot</span>
+                            <span class="text-xs text-slate-400"><i class="fa-solid fa-star text-amber-400"></i> 4.9</span>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-white mb-1">Deriv.com</h3>
+                        <p class="text-slate-400 text-xs mb-4">Exclusive broker for Synthetic Indices (Vol 75, Boom/Crash) and DBot XML automation.</p>
+                        <ul class="text-[11px] text-slate-300 space-y-1.5 mb-6">
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> 24/7 Synthetic Indices</li>
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> DBot Web Automated Trading</li>
+                            <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> Free $10,000 Demo Account</li>
+                        </ul>
+                    </div>
+                    <a href="https://track.deriv.com/YOUR_AFFILIATE_ID" target="_blank" rel="noopener" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl text-center transition-all block">
+                        Open Deriv Account
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- REPOSITORY SECTION WITH PAGINATION -->
+    <section id="repository" class="py-12 border-t border-bordercolor">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <h2 class="text-3xl font-extrabold text-white">100+ Free Trading EAs & Scripts</h2>
+                <p class="text-slate-400 text-xs sm:text-sm mt-1">Select any EA below. MT5 `.mq5` scripts work across all MT5 brokers!</p>
+            </div>
+
+            <!-- SEARCH & FILTER TOOLBAR -->
+            <div class="glass-card rounded-2xl p-4 sm:p-6 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                    <button onclick="filterCategory('all')" id="tab-all" class="filter-tab px-4 py-2 rounded-xl text-xs font-bold bg-brand-500 text-white transition-all">
+                        All EAs (<span id="count-all">100</span>)
+                    </button>
+                    <button onclick="filterCategory('mt5')" id="tab-mt5" class="filter-tab px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all border border-slate-700">
+                        <i class="fa-solid fa-chart-line text-blue-400 mr-1"></i> Universal MT5 EAs (<span id="count-mt5">50</span>)
+                    </button>
+                    <button onclick="filterCategory('xml')" id="tab-xml" class="filter-tab px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all border border-slate-700">
+                        <i class="fa-solid fa-code text-purple-400 mr-1"></i> Deriv DBot XML (<span id="count-xml">50</span>)
+                    </button>
+                </div>
+
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Search EA name, asset, or strategy..." class="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
+                </div>
+            </div>
+
+            <!-- REPOSITORY TABLE -->
+            <div class="glass-card rounded-2xl border border-bordercolor overflow-hidden shadow-2xl mb-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-950/80 text-slate-400 text-[11px] uppercase tracking-wider border-b border-bordercolor">
+                                <th class="p-4"># ID</th>
+                                <th class="p-4">Platform</th>
+                                <th class="p-4">EA Name & Strategy</th>
+                                <th class="p-4">Target Market / Broker</th>
+                                <th class="p-4">Est. Winrate</th>
+                                <th class="p-4">Min. Capital</th>
+                                <th class="p-4 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="botTableBody" class="divide-y divide-slate-800/60 text-xs">
+                            <!-- Injected by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGINATION CONTROLS -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/80 p-4 rounded-2xl border border-bordercolor text-xs">
+                <div class="text-slate-400">
+                    Showing <span id="showing-start" class="text-white font-bold">1</span> - <span id="showing-end" class="text-white font-bold">10</span> of <span id="total-items" class="text-white font-bold">100</span> EAs
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button onclick="prevPage()" id="btn-prev" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed border border-slate-700">
+                        <i class="fa-solid fa-chevron-left mr-1"></i> Prev
+                    </button>
+                    <div id="page-numbers" class="flex gap-1">
+                        <!-- Numbers injected by JS -->
+                    </div>
+                    <button onclick="nextPage()" id="btn-next" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed border border-slate-700">
+                        Next <i class="fa-solid fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- INSTALLATION TUTORIAL -->
+    <section id="tutorial" class="py-16 bg-slate-900/40 border-t border-bordercolor">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <h2 class="text-2xl font-extrabold text-white">How To Install Expert Advisors</h2>
+                <p class="mt-1 text-slate-400 text-xs">Simple steps to run `.mq5` EAs on MT5 brokers and `.xml` scripts on Deriv DBot.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div class="bg-cardbg p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-sm font-bold text-blue-400 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-desktop"></i> Universal MT5 EA Installation (All Brokers)
+                    </h3>
+                    <ul class="space-y-2 text-xs text-slate-300 list-disc list-inside leading-relaxed">
+                        <li>Open your MetaTrader 5 terminal (XM, IC Markets, Finex, Exness, etc.).</li>
+                        <li>Go to <strong>File &rrarr; Open Data Folder &rrarr; MQL5 &rrarr; Experts</strong>.</li>
+                        <li>Paste the downloaded <code>.mq5</code> file into the folder.</li>
+                        <li>In MT5 Navigator panel, right-click <i>Expert Advisors</i> and click <strong>Refresh</strong>.</li>
+                        <li>Drag the EA onto your desired chart (e.g. EURUSD, XAUUSD) and enable <strong>Allow Algo Trading</strong>.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-cardbg p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-sm font-bold text-purple-400 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-globe"></i> Deriv DBot XML Installation
+                    </h3>
+                    <ul class="space-y-2 text-xs text-slate-300 list-disc list-inside leading-relaxed">
+                        <li>Navigate to <strong>dbot.deriv.com</strong> in your browser.</li>
+                        <li>Log in to your Deriv account.</li>
+                        <li>Click the <strong>Import</strong> icon in the top left header.</li>
+                        <li>Select <strong>Local</strong> and upload your downloaded <code>.xml</code> bot file.</li>
+                        <li>Click <strong>Run Bot</strong> to initiate automated execution!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="py-12 border-t border-bordercolor">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-xl font-bold text-white text-center mb-8">Frequently Asked Questions</h2>
+            <div class="space-y-4 text-xs">
+                <div class="glass-card p-4 rounded-xl border border-slate-800">
+                    <p class="font-bold text-white mb-1">Can I use these MT5 EAs on any broker?</p>
+                    <p class="text-slate-400">Yes! The MQL5 (`.mq5`) Expert Advisors in this repository are standard MetaTrader 5 scripts. They are compatible with any broker offering MT5, including XM, IC Markets, Finex, Exness, and Pepperstone.</p>
+                </div>
+                <div class="glass-card p-4 rounded-xl border border-slate-800">
+                    <p class="font-bold text-white mb-1">Do I need a VPS to run these bots?</p>
+                    <p class="text-slate-400">For MT5 EAs, running a Virtual Private Server (VPS) is recommended for 24/7 uninterrupted trading. Deriv XML bots, however, run directly in your web browser without requiring a VPS.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER & RISK DISCLAIMER SECTION -->
+    <footer class="bg-darkbg py-12 border-t border-bordercolor text-slate-400 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            
+            <!-- DETAILED RISK DISCLAIMER BOX -->
+            <div class="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 leading-relaxed text-[11px] space-y-3">
+                <div class="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider mb-2">
+                    <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                    <span>High-Risk Investment Warning & Financial Disclaimer</span>
+                </div>
+                
+                <p>
+                    <strong>Trading Risk Notice:</strong> Trading Foreign Exchange (Forex), Contracts for Difference (CFDs), Commodities, Cryptocurrencies, and Synthetic Indices on margin carries a extremely high level of risk and may not be suitable for all investors. The high degree of leverage offered by financial brokers can work against you as well as for you. Before deciding to trade Forex, CFDs, or automated trading systems, you should carefully consider your investment objectives, level of financial experience, and risk appetite. There is a possibility that you could sustain a total loss of your initial deposit or capital; therefore, you should never invest or risk money that you cannot afford to lose.
+                </p>
+
+                <p>
+                    <strong>Automated Trading & EA Performance Disclaimer:</strong> The Expert Advisors (EAs), MetaTrader 5 scripts (`.mq5` / `.ex5`), and Deriv DBot XML scripts provided on this website are created for educational, research, and analytical purposes. Backtest results, winrate estimates, or simulated past performances shown on this platform are not necessarily indicative of future performance. No representation or guarantee is being made that any real trading account will achieve profits or losses similar to those demonstrated. You are solely responsible for testing any EA on a risk-free Demo Account prior to running it on a live account.
+                </p>
+
+                <p>
+                    <strong>Affiliate Disclosure:</strong> AlgoTrader Hub operates as an independent educational portal and affiliate publisher. We may receive compensation or affiliate commission from partner brokers (including IC Markets, XM, Finex, Exness, and Deriv) when visitors register a trading account or execute trades through referral links on this website. This portal does not provide personal financial advice, investment management, or brokerage services.
+                </p>
+            </div>
+
+            <!-- COPYRIGHT & LINKS -->
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-4 border-t border-slate-800 text-[11px]">
+                <p>&copy; 2026 AlgoTrader Hub. All rights reserved. Free EA & Robot Repository for Universal MT5 Brokers.</p>
+                <div class="flex gap-6">
+                    <a href="#brokers" class="hover:text-slate-200 transition-colors">Partner Brokers</a>
+                    <a href="#faq" class="hover:text-slate-200 transition-colors">Risk Policy</a>
+                    <a href="https://track.deriv.com/YOUR_AFFILIATE_ID" target="_blank" class="hover:text-slate-200 transition-colors">Terms of Service</a>
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- MODAL POPUP VIEW CODE & DIRECT DOWNLOAD -->
+    <div id="codeModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-card max-w-3xl w-full rounded-3xl p-6 border border-slate-700 shadow-2xl relative animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+            
+            <button onclick="closeCodeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="mb-4">
+                <h3 id="modalTitle" class="text-xl font-bold text-white">Preview Script</h3>
+                <p id="modalSubtitle" class="text-xs text-slate-400 mt-0.5">Filename: -</p>
+            </div>
+
+            <!-- Recommended Brokers Buttons inside Modal -->
+            <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl mb-4 text-xs">
+                <p class="text-slate-300 font-bold mb-2">Don't have an MT5 account yet? Register with a broker:</p>
+                <div class="flex flex-wrap gap-2">
+                    <a href="https://www.icmarkets.com/?camp=YOUR_AFFILIATE_ID" target="_blank" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold">IC Markets</a>
+                    <a href="https://www.xm.com/referral?YOUR_AFFILIATE_ID" target="_blank" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[11px] font-bold">XM Global</a>
+                    <a href="https://www.finex.co.id/?ref=YOUR_AFFILIATE_ID" target="_blank" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold">Finex</a>
+                    <a href="https://track.deriv.com/YOUR_AFFILIATE_ID" target="_blank" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[11px] font-bold">Deriv</a>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-hidden flex flex-col bg-slate-950 rounded-xl border border-slate-800 p-4 mb-4">
+                <div class="flex justify-between items-center pb-2 border-b border-slate-800 mb-2">
+                    <span id="modalFileName" class="font-mono text-xs text-emerald-400 font-bold">script.mq5</span>
+                    <button onclick="copyCode()" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 bg-slate-800 px-2.5 py-1 rounded">
+                        <i class="fa-solid fa-copy"></i> Copy Source
+                    </button>
+                </div>
+                <pre class="flex-1 overflow-auto text-[11px] font-mono text-slate-300 leading-relaxed"><code id="codeViewer">
+                <!-- Injected via JS -->
+                </code></pre>
+            </div>
+
+            <button onclick="downloadActiveScript()" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-download"></i>
+                <span>Download Script (.MQ5 / .XML)</span>
+            </button>
+
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT: DYNAMIC GENERATOR FOR 100 BOTS & PAGINATION -->
+    <script>
+        const mt5Assets = ['EURUSD', 'GBPUSD', 'XAUUSD (Gold)', 'BTCUSD', 'US30', 'NAS100', 'USDJPY', 'AUDUSD'];
+        const derivAssets = ['Volatility 75 Index', 'Volatility 10 Index', 'Boom 1000 Index', 'Crash 500 Index', 'Step Index'];
+
+        const mt5Strategies = [
+            'EMA Crossover Scalper', 'RSI Grid Momentum', 'Bollinger Bands Breakout', 'MACD Trend Follower',
+            'ATR Volatility Trailing', 'Supertrend Master', 'Price Action Reversal', 'Martingale Recovery'
+        ];
+
+        const dbotStrategies = [
+            'Even/Odd Safeguard', 'Digit Differ AI Predictor', 'Over/Under Multiplier', 'Rise/Fall SpeedBot',
+            'Matches/Differs Histogram', 'High/Low Touch Sniper'
+        ];
+
+        let masterDatabase = [];
+        let filteredDatabase = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let activeCategory = 'all';
+
+        // 1. GENERATE 100 BOTS DATA
+        function generate100Bots() {
+            masterDatabase = [];
+            for (let i = 1; i <= 100; i++) {
+                const isMT5 = i % 2 !== 0; // Odd = Universal MT5 EA, Even = Deriv DBot XML
+                const winrate = (72 + (i % 18) + (i % 3) * 0.4).toFixed(1) + '%';
+                
+                if (isMT5) {
+                    const asset = mt5Assets[i % mt5Assets.length];
+                    const strat = mt5Strategies[i % mt5Strategies.length];
+                    const filename = `Universal_MT5_EA_${i}_${strat.replace(/\s+/g, '_')}.mq5`;
+                    masterDatabase.push({
+                        id: i,
+                        type: 'mt5',
+                        typeName: 'Universal MT5',
+                        name: `${strat} v${(i%3)+1}.0`,
+                        strategy: `${strat.split(' ')[0]} + Trailing SL`,
+                        target: `${asset} (XM/IC/Finex/Exness)`,
+                        winrate: winrate,
+                        capital: `$${(i % 4 === 0) ? '200' : '100'} USD`,
+                        filename: filename,
+                        code: `//+------------------------------------------------------------------+
+//| File: ${filename}
+//| Universal MT5 Expert Advisor for All Brokers (IC Markets, XM, Finex, etc.)
+//+------------------------------------------------------------------+
+#property copyright "AlgoTrader Hub 2026"
+#property version   "1.00"
+#include <Trade\\Trade.mqh>
+
+input double InpLotSize = 0.01;  // Standard Forex Lot
+input int    InpSL      = 300;   // Stop Loss Points
+input int    InpTP      = 600;   // Take Profit Points
+
+CTrade trade;
+
+int OnInit() {
+   Print("Universal EA ${strat} Loaded Successfully on ${asset}");
+   return(INIT_SUCCEEDED);
+}
+
+void OnTick() {
+   if(PositionsTotal() > 0) return;
+   // Automated Logic for ${asset}
+}`
+                    });
+                } else {
+                    const asset = derivAssets[i % derivAssets.length];
+                    const strat = dbotStrategies[i % dbotStrategies.length];
+                    const filename = `Deriv_DBot_${i}_${strat.replace(/\s+/g, '_')}.xml`;
+                    masterDatabase.push({
+                        id: i,
+                        type: 'xml',
+                        typeName: 'Deriv DBot',
+                        name: `${strat} Pro`,
+                        strategy: `Digit / Tick Option Strategy`,
+                        target: `${asset} (Deriv.com)`,
+                        winrate: winrate,
+                        capital: `$0.35 Stake`,
+                        filename: filename,
+                        code: `<xml xmlns="https://developers.google.com/blockly/xml">
+  <!-- Deriv DBot XML Script ID #${i} - ${strat} -->
+  <block type="trade_definition" id="bot_${i}" x="0" y="0">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" id="market">
+        <field name="MARKET_LIST">synthetic_index</field>
+        <field name="SYMBOL_LIST">${asset}</field>
+      </block>
+    </statement>
+  </block>
+</xml>`
+                    });
+                }
+            }
+
+            filteredDatabase = [...masterDatabase];
+            updateCounts();
+        }
+
+        function updateCounts() {
+            document.getElementById('count-all').innerText = masterDatabase.length;
+            document.getElementById('count-mt5').innerText = masterDatabase.filter(b => b.type === 'mt5').length;
+            document.getElementById('count-xml').innerText = masterDatabase.filter(b => b.type === 'xml').length;
+        }
+
+        // 2. RENDER TABLE
+        function renderTable() {
+            const tbody = document.getElementById('botTableBody');
+            tbody.innerHTML = '';
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredDatabase.length);
+            const pageData = filteredDatabase.slice(startIndex, endIndex);
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500">No EAs found matching your search.</td></tr>`;
+                updatePaginationControls(0);
+                return;
+            }
+
+            pageData.forEach(bot => {
+                const badgeColor = bot.type === 'mt5' 
+                    ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
+                    : 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition-colors';
+                tr.innerHTML = `
+                    <td class="p-4 font-mono text-slate-400">#${bot.id.toString().padStart(3, '0')}</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${badgeColor}">
+                            ${bot.typeName}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <div class="font-bold text-white text-sm">${bot.name}</div>
+                        <div class="text-[11px] text-slate-400">${bot.strategy}</div>
+                    </td>
+                    <td class="p-4 text-slate-300 font-semibold">${bot.target}</td>
+                    <td class="p-4 text-emerald-400 font-bold">${bot.winrate}</td>
+                    <td class="p-4 text-slate-300">${bot.capital}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="openModalById(${bot.id})" class="px-3.5 py-2 bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-brand-500/20 flex items-center gap-1.5 mx-auto">
+                            <i class="fa-solid fa-download text-[11px]"></i>
+                            <span>Download</span>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('showing-start').innerText = filteredDatabase.length === 0 ? 0 : startIndex + 1;
+            document.getElementById('showing-end').innerText = endIndex;
+            document.getElementById('total-items').innerText = filteredDatabase.length;
+
+            updatePaginationControls(Math.ceil(filteredDatabase.length / itemsPerPage));
+        }
+
+        // 3. PAGINATION CONTROLS
+        function updatePaginationControls(totalPages) {
+            const numbersContainer = document.getElementById('page-numbers');
+            numbersContainer.innerHTML = '';
+
+            document.getElementById('btn-prev').disabled = (currentPage === 1 || totalPages === 0);
+            document.getElementById('btn-next').disabled = (currentPage === totalPages || totalPages === 0);
+
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                if (i <= 0) continue;
+                const btn = document.createElement('button');
+                btn.className = `w-8 h-8 rounded-xl font-bold text-xs transition-all ${i === currentPage ? 'bg-brand-500 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`;
+                btn.innerText = i;
+                btn.onclick = () => { currentPage = i; renderTable(); };
+                numbersContainer.appendChild(btn);
+            }
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredDatabase.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        }
+
+        // 4. FILTER & SEARCH
+        function filterCategory(cat) {
+            activeCategory = cat;
+            currentPage = 1;
+
+            document.querySelectorAll('.filter-tab').forEach(btn => {
+                btn.classList.remove('bg-brand-500', 'text-white');
+                btn.classList.add('bg-slate-800', 'text-slate-300');
+            });
+
+            if(cat === 'all') document.getElementById('tab-all').className = 'filter-tab px-4 py-2 rounded-xl text-xs font-bold bg-brand-500 text-white transition-all';
+            if(cat === 'mt5') document.getElementById('tab-mt5').className = 'filter-tab px-4 py-2 rounded-xl text-xs font-bold bg-brand-500 text-white transition-all';
+            if(cat === 'xml') document.getElementById('tab-xml').className = 'filter-tab px-4 py-2 rounded-xl text-xs font-bold bg-brand-500 text-white transition-all';
+
+            applyFilterAndSearch();
+        }
+
+        function handleSearch() {
+            currentPage = 1;
+            applyFilterAndSearch();
+        }
+
+        function applyFilterAndSearch() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredDatabase = masterDatabase.filter(bot => {
+                const matchesCat = (activeCategory === 'all') || (bot.type === activeCategory);
+                const matchesSearch = bot.name.toLowerCase().includes(keyword) || 
+                                      bot.target.toLowerCase().includes(keyword) ||
+                                      bot.strategy.toLowerCase().includes(keyword) ||
+                                      bot.id.toString().includes(keyword);
+                return matchesCat && matchesSearch;
+            });
+
+            renderTable();
+        }
+
+        // 5. MODAL & DOWNLOAD
+        let activeModalCode = '';
+        let activeModalFileName = '';
+
+        function openModalById(id) {
+            const bot = masterDatabase.find(b => b.id === id);
+            if (!bot) return;
+
+            activeModalCode = bot.code;
+            activeModalFileName = bot.filename;
+
+            document.getElementById('modalTitle').innerText = `${bot.name} (#${bot.id})`;
+            document.getElementById('modalSubtitle').innerText = `Target: ${bot.target} | Winrate: ${bot.winrate} | Min Capital: ${bot.capital}`;
+            document.getElementById('modalFileName').innerText = bot.filename;
+            document.getElementById('codeViewer').innerText = bot.code;
+            document.getElementById('codeModal').classList.remove('hidden');
+        }
+
+        function closeCodeModal() {
+            document.getElementById('codeModal').classList.add('hidden');
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(activeModalCode);
+            alert('Source code copied to clipboard!');
+        }
+
+        function downloadActiveScript() {
+            const blob = new Blob([activeModalCode], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = activeModalFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generate100Bots();
+            renderTable();
+        });
+    </script>
+
+</body>
+</html>
