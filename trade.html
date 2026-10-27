@@ -72,7 +72,6 @@
 
             if (savedClientId) document.getElementById('client_id').value = savedClientId;
 
-            // Jika token sudah ada, hubungkan WebSocket menggunakan token OAuth
             if (accessToken && savedClientId) {
                 connectDerivWebSocket(accessToken, savedClientId);
             }
@@ -87,13 +86,11 @@
 
             localStorage.setItem('deriv_client_id', clientId);
 
-            // 1. Generate PKCE code_verifier
             const array = crypto.getRandomValues(new Uint8Array(64));
             const codeVerifier = Array.from(array)
                 .map(v => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[v % 66])
                 .join('');
 
-            // 2. Generate code_challenge (SHA-256)
             const encoder = new TextEncoder();
             const data = encoder.encode(codeVerifier);
             const digest = await crypto.subtle.digest('SHA-256', data);
@@ -104,13 +101,12 @@
 
             const state = crypto.randomUUID();
 
-            // 3. Simpan parameter keamanan ke sessionStorage agar bisa dibaca callback
             sessionStorage.setItem('pkce_code_verifier', codeVerifier);
             sessionStorage.setItem('oauth_state', state);
             sessionStorage.setItem('pending_client_id', clientId);
 
-            // 4. Redirect URI tetap sesuai permintaan
-            const redirectUri = "https://alsbinary.github.io/advanced-bot/oauth-callback.html";
+            // Menetapkan redirect_uri baru sesuai domain tradelib.net
+            const redirectUri = "https://tradelib.net/trade-callback";
 
             const params = new URLSearchParams({
                 client_id: clientId,
