@@ -145,7 +145,7 @@
                         </table>
                     </div>
 
-                    <!-- Tombol Kontrol Dinamis (Lampiran 3: Terletak di bawah baris & bergeser otomatis) -->
+                    <!-- Tombol Kontrol Dinamis (Di bawah baris & bergeser otomatis) -->
                     <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
                         <div class="flex items-center space-x-2">
                             <button onclick="openAddModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm">Add Level (+)</button>
@@ -170,7 +170,7 @@
                     </div>
                 </div>
 
-                <!-- CONTRACT TABLE / HISTORY TRADE (Lampiran 4) -->
+                <!-- CONTRACT TABLE / HISTORY TRADE -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col flex-1">
                     <div class="bg-slate-200 text-slate-800 font-bold px-4 py-2 text-center text-xs tracking-wider uppercase border-b border-slate-300">
                         CONTRACT TABLE
@@ -198,7 +198,6 @@
                         </table>
                     </div>
 
-                    <!-- Footer Contract Table (Rekapitulasi Sesuai Lampiran 4) -->
                     <div class="p-3 bg-slate-50 border-t border-slate-300 flex flex-wrap items-center justify-between text-xs font-semibold">
                         <button onclick="clearContractTable()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded shadow-sm">Clear Contract Table</button>
                         <div class="flex items-center space-x-6">
@@ -216,10 +215,10 @@
 
             </main>
 
-            <!-- PANEL KANAN: BERUBAH MENJADI PORTFOLIO TRADING SAAT RUN BOT (Lampiran 1 & 2) -->
+            <!-- PANEL KANAN: PORTFOLIO & TOMBOL RUN BOT -->
             <aside id="right-panel" class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
                 
-                <!-- STATE 1: PARAMETER AWAL (Lampiran 1) -->
+                <!-- STATE 1: PARAMETER AWAL -->
                 <div id="panel-params" class="space-y-4 flex flex-col h-full">
                     <div class="flex justify-between items-center border-b border-slate-100 pb-2">
                         <span class="font-bold text-slate-700">Strategy Parameters</span>
@@ -247,13 +246,14 @@
 
                     <div class="flex-1"></div>
 
+                    <!-- Tombol Run Bot -->
                     <button onclick="startBotEngine()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg transition tracking-wider flex items-center justify-center space-x-2">
                         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                         <span>Run Bot</span>
                     </button>
                 </div>
 
-                <!-- STATE 2: PORTFOLIO & PROSES TRADING (Lampiran 2 - Tampil Setelah Run Bot) -->
+                <!-- STATE 2: PORTFOLIO & KONTROL TRADING -->
                 <div id="panel-portfolio" class="space-y-3 hidden flex flex-col h-full">
                     <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-xs tracking-wider uppercase rounded">
                         PORTFOLIO
@@ -280,9 +280,9 @@
                         </table>
                     </div>
 
-                    <!-- Tombol Kontrol Trading Sesuai Lampiran 2 -->
+                    <!-- Tombol Kontrol Portfolio: RUN BOT, SELL & CONTINUE, dll -->
                     <div class="grid grid-cols-2 gap-1.5 pt-1">
-                        <button onclick="botAction('start')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[11px]">START</button>
+                        <button onclick="botAction('run_bot')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[11px]">RUN BOT</button>
                         <button onclick="botAction('sell_continue')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[10px]">SELL & CONTINUE</button>
                         <button onclick="botAction('sell_stop')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[10px]">SELL & STOP</button>
                         <button onclick="botAction('stop_level')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[11px]">STOP LEVEL</button>
@@ -409,12 +409,10 @@
             });
         }
 
-        // FUNGSI RUN BOT & TRANSISI PANEL KANAN KE PORTFOLIO (Lampiran 2)
         function startBotEngine() {
             document.getElementById('panel-params').classList.add('hidden');
             document.getElementById('panel-portfolio').classList.remove('hidden');
             
-            // Simulasi data portfolio aktif & penambahan ke Contract Table (Lampiran 4)
             setTimeout(() => {
                 addContractHistoryRow("Won", "Level 1", "Higher", "0.68", "0.35", "0.68", "+0.33");
             }, 3000);
@@ -429,7 +427,6 @@
             alert(`Aksi Bot: ${action.toUpperCase()} dieksekusi.`);
         }
 
-        // TAMBAH RIWAYAT KE CONTRACT TABLE (Lampiran 4)
         let contractHistoryData = [];
         function addContractHistoryRow(status, level, purchaseType, payout, buyPrice, sellPrice, profit) {
             contractHistoryData.push({ status, level, purchaseType, payout, buyPrice, sellPrice, profit });
