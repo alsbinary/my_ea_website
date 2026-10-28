@@ -226,8 +226,8 @@
                         <table class="w-full border-collapse">
                             <tbody>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-2 font-bold text-slate-800">Level 1</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">Volatility 100 (1s)</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Up/Down (Rise)</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">Volatility 25 (1s)</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Higher / Lower</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start time</td><td id="pf-starttime" class="p-2 font-mono text-slate-600">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-2 font-mono text-slate-600">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">0s</td></tr>
@@ -285,7 +285,7 @@
                 </div>
                 <div>
                     <label class="font-medium text-slate-600">Trade Type</label>
-                    <select id="modal-trade-type" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
+                    <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
                         <option value="Rise/Fall">Rise / Fall</option>
                         <option value="Higher/Lower">Higher / Lower</option>
                         <option value="Digit">Digit Match / Diff</option>
@@ -294,12 +294,30 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
                     <div>
-                        <label class="font-medium text-slate-600">Duration (Ticks)</label>
-                        <input type="number" id="modal-duration" value="5" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
+                        <label id="duration-label" class="font-medium text-slate-600">Duration (Ticks)</label>
+                        <div class="flex space-x-1 mt-1">
+                            <input type="number" id="modal-duration" value="5" class="w-full bg-white border border-slate-300 rounded p-2">
+                            <select id="modal-duration-unit" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
+                                <option value="t">Ticks</option>
+                                <option value="s">Seconds</option>
+                                <option value="m">Minutes</option>
+                                <option value="h">Hours</option>
+                            </select>
+                        </div>
                     </div>
                     <div>
                         <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
                         <input type="number" step="0.01" id="modal-amount" value="0.35" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
+                    </div>
+                </div>
+                <div id="barrier-container" class="hidden pt-2 border-t border-slate-200 grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-medium text-slate-600">Barrier / Offset (High)</label>
+                        <input type="text" id="modal-high" placeholder="+1.0" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
+                    </div>
+                    <div>
+                        <label class="font-medium text-slate-600">Barrier / Offset (Low)</label>
+                        <input type="text" id="modal-low" placeholder="-1.0" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
                     </div>
                 </div>
             </div>
@@ -311,7 +329,6 @@
     </div>
 
     <script>
-        // Data komprehensif disesuaikan dengan standar Deriv API Active Symbols (active_symbols)
         const marketSymbolsData = {
             derived: [
                 { name: "Volatility 10 (1s) Index", symbol: "1HZ10V" },
@@ -351,8 +368,8 @@
         };
 
         let defaultStrategyData = [
-            { level: 1, contract_type: "Up/Down", market: "Volatility", submarket: "Volatility 100 (1s) Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.35 },
-            { level: 2, contract_type: "Up/Down", market: "Volatility", submarket: "Volatility 75 Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.60 }
+            { level: 1, contract_type: "Rise/Fall", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.35 },
+            { level: 2, contract_type: "Higher/Lower", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Higher", high: "+0.5", low: "-0.5", last_digit: "", duration_amount: 15, duration_unit: "Minutes", amount: 0.60 }
         ];
 
         let accountsData = {
@@ -395,8 +412,8 @@
                     <td><input type="text" value="${item.high || ''}"></td>
                     <td><input type="text" value="${item.low || ''}"></td>
                     <td><input type="text" value="${item.last_digit || ''}"></td>
-                    <td><input type="number" value="${item.duration_amount}"></td>
-                    <td><select><option>Tick</option><option>Seconds</option></select></td>
+                    <td><input type="text" value="${item.duration_amount} ${item.duration_unit}"></td>
+                    <td><select><option>Tick</option><option>Seconds</option><option>Minutes</option><option>Hours</option></select></td>
                     <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
                 `;
                 tbody.appendChild(tr);
@@ -466,6 +483,7 @@
         function openAddModal() {
             document.getElementById('add-strategy-modal').classList.remove('hidden');
             onMarketCategoryChange();
+            onTradeTypeChange();
         }
 
         function closeAddModal() {
@@ -484,11 +502,31 @@
             });
         }
 
+        function onTradeTypeChange() {
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const unitSelect = document.getElementById('modal-duration-unit');
+            const barrierContainer = document.getElementById('barrier-container');
+
+            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
+                unitSelect.value = 'm'; // Default ke Minutes untuk Higher/Lower
+                barrierContainer.classList.remove('hidden');
+            } else {
+                unitSelect.value = 't'; // Default ke Ticks untuk Rise/Fall atau Digit
+                barrierContainer.classList.add('hidden');
+            }
+        }
+
         function confirmAddStrategy() {
             const marketCat = document.getElementById('modal-market-cat').value;
             const subMarketSelect = document.getElementById('modal-submarket');
             const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex].text;
             const tradeType = document.getElementById('modal-trade-type').value;
+            const durationAmount = document.getElementById('modal-duration').value;
+            const durationUnitEl = document.getElementById('modal-duration-unit');
+            const durationUnitText = durationUnitEl.options[durationUnitEl.selectedIndex].text;
+
+            const highVal = document.getElementById('modal-high').value;
+            const lowVal = document.getElementById('modal-low').value;
 
             const newItem = {
                 level: defaultStrategyData.length + 1,
@@ -496,11 +534,11 @@
                 market: marketCat === 'derived' ? 'Volatility' : (marketCat === 'forex' ? 'Forex' : 'Crypto'),
                 submarket: subMarketText,
                 purchase_type: "Higher",
-                high: "",
-                low: "-0.2",
+                high: highVal,
+                low: lowVal || "-0.2",
                 last_digit: "",
-                duration_amount: document.getElementById('modal-duration').value,
-                duration_unit: "Tick",
+                duration_amount: durationAmount,
+                duration_unit: durationUnitText,
                 amount: parseFloat(document.getElementById('modal-amount').value)
             };
             defaultStrategyData.push(newItem);
