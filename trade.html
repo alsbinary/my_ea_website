@@ -55,7 +55,6 @@
             </div>
 
             <div class="flex items-center space-x-4">
-                <!-- DROPDOWN PILIHAN AKUN REAL / DEMO -->
                 <div class="relative">
                     <button onclick="toggleAccountDropdown()" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold">
                         <div class="text-right">
@@ -185,6 +184,7 @@
                     <select class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700">
                         <option>Rise / Fall</option>
                         <option>Higher / Lower</option>
+                        <option>Touch / No Touch</option>
                         <option>Digit Match / Diff</option>
                     </select>
                 </div>
@@ -214,7 +214,7 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: ADD LEVEL DENGAN PILIHAN TRADE TYPE & MARKET API -->
+    <!-- MODAL POPUP: ADD LEVEL DENGAN PILIHAN MARKET API & TRADE TYPES LENGKAP -->
     <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
             
@@ -225,25 +225,35 @@
 
             <div class="p-6 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
                 
-                <!-- Pilih Market & Submarket -->
-                <div class="space-y-1">
-                    <label class="font-medium text-slate-600">Market & Submarket (API Reference)</label>
-                    <select id="modal-market" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-slate-700">
-                        <option value="Volatility 100 (1s) Index|1HZ100V">Volatility 100 (1s) Index (1HZ100V)</option>
-                        <option value="Volatility 75 Index|R_75">Volatility 75 Index (R_75)</option>
-                        <option value="Boom 1000 Index|BOOM1000">Boom 1000 Index (BOOM1000)</option>
-                        <option value="Crash 1000 Index|CRASH1000">Crash 1000 Index (CRASH1000)</option>
-                    </select>
+                <!-- Pilih Kategori Market API -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="font-medium text-slate-600">Market Category (API)</label>
+                        <select id="modal-market-cat" onchange="onMarketCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-slate-700">
+                            <option value="derived">Derived (Synthetics)</option>
+                            <option value="forex">Forex (Major/Minor)</option>
+                            <option value="stocks">Stocks & Indices</option>
+                            <option value="commodities">Commodities</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="font-medium text-slate-600">Submarket / Asset Symbol</label>
+                        <select id="modal-submarket" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-slate-700">
+                            <!-- Diisi via JS -->
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Pilih Trade Type -->
+                <!-- Pilih Trade Type Lengkap -->
                 <div class="space-y-1">
-                    <label class="font-medium text-slate-600">Trade Types (Lampiran 1)</label>
+                    <label class="font-medium text-slate-600">Trade Types</label>
                     <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
-                        <option value="rise_fall">Rise / Fall (Lampiran 2)</option>
-                        <option value="matches_differs">Matches / Differs (Lampiran 3)</option>
-                        <option value="over_under">Over / Under (Lampiran 3)</option>
-                        <option value="even_odd">Even / Odd (Lampiran 4)</option>
+                        <option value="rise_fall">Rise / Fall</option>
+                        <option value="higher_lower">Higher / Lower</option>
+                        <option value="touch_notouch">Touch / No Touch</option>
+                        <option value="matches_differs">Matches / Differs</option>
+                        <option value="over_under">Over / Under</option>
+                        <option value="even_odd">Even / Odd</option>
                     </select>
                 </div>
 
@@ -282,9 +292,37 @@
     </div>
 
     <script>
+        // Referensi market sesuai API Deriv active_symbols
+        const marketSymbolsData = {
+            derived: [
+                { name: "Volatility 100 (1s) Index", symbol: "1HZ100V" },
+                { name: "Volatility 75 Index", symbol: "R_75" },
+                { name: "Volatility 50 (1s) Index", symbol: "1HZ50V" },
+                { name: "Volatility 10 Index", symbol: "R_10" },
+                { name: "Boom 1000 Index", symbol: "BOOM1000" },
+                { name: "Crash 1000 Index", symbol: "CRASH1000" }
+            ],
+            forex: [
+                { name: "EUR/USD", symbol: "frxEURUSD" },
+                { name: "GBP/USD", symbol: "frxGBPUSD" },
+                { name: "AUD/USD", symbol: "frxAUDUSD" },
+                { name: "USD/JPY", symbol: "frxUSDJPY" }
+            ],
+            stocks: [
+                { name: "Wall Street Index", symbol: "W20USD" },
+                { name: "US Tech 100", symbol: "USTEC" },
+                { name: "UK 100", symbol: "FTSE" }
+            ],
+            commodities: [
+                { name: "Gold / USD", symbol: "frxXAUUSD" },
+                { name: "Silver / USD", symbol: "frxXAGUSD" },
+                { name: "Oil / USD", symbol: "WTIUSD" }
+            ]
+        };
+
         let defaultStrategyData = [
-            { level: 1, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.35 },
-            { level: 2, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.60 }
+            { level: 1, contract_type: "Up/Down", market: "Volatility", submarket: "Volatility 100 (1s) Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.35 },
+            { level: 2, contract_type: "Higher/Lower", market: "Volatility", submarket: "Volatility 75 Index", purchase_type: "Higher", high: "+0.19", low: "", last_digit: "", duration_amount: 10, duration_unit: "Tick", amount: 0.60 }
         ];
 
         let accountsData = {
@@ -339,6 +377,7 @@
 
         function openAddModal() {
             document.getElementById('add-strategy-modal').classList.remove('hidden');
+            onMarketCategoryChange();
             onTradeTypeChange();
         }
 
@@ -346,7 +385,19 @@
             document.getElementById('add-strategy-modal').classList.add('hidden');
         }
 
-        // RENDER OPSI DINAMIS DALAM MODAL SESUAI LAMPIRAN 2, 3, DAN 4
+        function onMarketCategoryChange() {
+            const cat = document.getElementById('modal-market-cat').value;
+            const subSelect = document.getElementById('modal-submarket');
+            subSelect.innerHTML = '';
+            
+            marketSymbolsData[cat].forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.name + "|" + item.symbol;
+                opt.innerText = item.name + " (" + item.symbol + ")";
+                subSelect.appendChild(opt);
+            });
+        }
+
         function onTradeTypeChange() {
             const type = document.getElementById('modal-trade-type').value;
             const container = document.getElementById('trade-type-dynamic-options');
@@ -355,7 +406,7 @@
                 container.innerHTML = `
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="font-medium text-slate-600 block mb-1">Action (Lampiran 2)</label>
+                            <label class="font-medium text-slate-600 block mb-1">Direction</label>
                             <select id="dyn-purchase" class="w-full bg-white border border-slate-300 rounded p-2">
                                 <option value="Rise">Rise</option>
                                 <option value="Fall">Fall</option>
@@ -366,6 +417,22 @@
                                 <input type="checkbox" id="dyn-allow-equals" class="w-4 h-4 accent-teal-600">
                                 <span class="font-medium text-slate-700">Allow equals</span>
                             </label>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'higher_lower' || type === 'touch_notouch') {
+                container.innerHTML = `
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="font-medium text-slate-600 block mb-1">Action Type</label>
+                            <select id="dyn-purchase" class="w-full bg-white border border-slate-300 rounded p-2">
+                                <option value="${type === 'higher_lower' ? 'Higher' : 'Touch'}">${type === 'higher_lower' ? 'Higher' : 'Touch'}</option>
+                                <option value="${type === 'higher_lower' ? 'Lower' : 'No Touch'}">${type === 'higher_lower' ? 'Lower' : 'No Touch'}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="font-medium text-slate-600 block mb-1">Barrier Offset (e.g. +0.19)</label>
+                            <input type="text" id="dyn-barrier" value="+0.19" class="w-full bg-white border border-slate-300 rounded p-2 font-mono font-bold">
                         </div>
                     </div>
                 `;
@@ -380,7 +447,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="font-medium text-slate-600 block mb-1">Last Digit Prediction (0-9) [Lampiran 3]</label>
+                            <label class="font-medium text-slate-600 block mb-1">Last Digit (0-9)</label>
                             <input type="number" id="dyn-digit" min="0" max="9" value="5" class="w-full bg-white border border-slate-300 rounded p-2 font-bold text-center">
                         </div>
                     </div>
@@ -388,7 +455,7 @@
             } else if (type === 'even_odd') {
                 container.innerHTML = `
                     <div>
-                        <label class="font-medium text-slate-600 block mb-1">Digit Parity (Lampiran 4)</label>
+                        <label class="font-medium text-slate-600 block mb-1">Digit Parity</label>
                         <select id="dyn-purchase" class="w-full bg-white border border-slate-300 rounded p-2">
                             <option value="Even">Even (Genap)</option>
                             <option value="Odd">Odd (Ganjil)</option>
@@ -399,24 +466,27 @@
         }
 
         function confirmAddStrategy() {
-            const marketFull = document.getElementById('modal-market').value.split('|');
-            const submarketName = marketFull[0];
+            const subMarketVal = document.getElementById('modal-submarket').value.split('|');
+            const submarketName = subMarketVal[0];
             const tradeType = document.getElementById('modal-trade-type').value;
             const purchaseType = document.getElementById('dyn-purchase') ? document.getElementById('dyn-purchase').value : 'Higher';
             const digitVal = document.getElementById('dyn-digit') ? document.getElementById('dyn-digit').value : '';
+            const barrierVal = document.getElementById('dyn-barrier') ? document.getElementById('dyn-barrier').value : '';
 
             let contractLabel = "Up/Down";
+            if (tradeType === 'higher_lower') contractLabel = "Higher/Lower";
+            if (tradeType === 'touch_notouch') contractLabel = "Touch/No Touch";
             if (tradeType === 'matches_differs') contractLabel = "Digit";
             if (tradeType === 'over_under') contractLabel = "Over/Under";
             if (tradeType === 'even_odd') contractLabel = "Even/Odd";
 
             const newItem = {
                 contract_type: contractLabel,
-                market: "Volatility",
+                market: document.getElementById('modal-market-cat').selectedOptions[0].text.split(' ')[0],
                 submarket: submarketName,
                 purchase_type: purchaseType,
-                high: "",
-                low: tradeType === 'rise_fall' ? (purchaseType === 'Rise' ? '' : '-0.2') : '',
+                high: (tradeType === 'higher_lower' || tradeType === 'touch_notouch') ? barrierVal : '',
+                low: '',
                 last_digit: digitVal,
                 duration_amount: document.getElementById('modal-duration-amount').value,
                 duration_unit: document.getElementById('modal-duration-unit').value,
