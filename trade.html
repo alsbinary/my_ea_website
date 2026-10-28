@@ -265,7 +265,7 @@
     <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
             <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
-                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru (Deriv API)</h3>
+                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru (Deriv API active_symbols)</h3>
                 <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-lg">&times;</button>
             </div>
             <div class="p-6 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
@@ -275,6 +275,7 @@
                         <select id="modal-market-cat" onchange="onMarketCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold">
                             <option value="derived">Derived (Synthetics)</option>
                             <option value="forex">Forex</option>
+                            <option value="cryptocurrency">Cryptocurrency</option>
                         </select>
                     </div>
                     <div>
@@ -288,6 +289,7 @@
                         <option value="Rise/Fall">Rise / Fall</option>
                         <option value="Higher/Lower">Higher / Lower</option>
                         <option value="Digit">Digit Match / Diff</option>
+                        <option value="Touch/No Touch">Touch / No Touch</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
@@ -309,19 +311,48 @@
     </div>
 
     <script>
+        // Data komprehensif disesuaikan dengan standar Deriv API Active Symbols (active_symbols)
         const marketSymbolsData = {
             derived: [
+                { name: "Volatility 10 (1s) Index", symbol: "1HZ10V" },
+                { name: "Volatility 25 (1s) Index", symbol: "1HZ25V" },
+                { name: "Volatility 50 (1s) Index", symbol: "1HZ50V" },
+                { name: "Volatility 75 (1s) Index", symbol: "1HZ75V" },
                 { name: "Volatility 100 (1s) Index", symbol: "1HZ100V" },
-                { name: "Volatility 75 Index", symbol: "R_75" }
+                { name: "Volatility 10 Index", symbol: "R_10" },
+                { name: "Volatility 25 Index", symbol: "R_25" },
+                { name: "Volatility 50 Index", symbol: "R_50" },
+                { name: "Volatility 75 Index", symbol: "R_75" },
+                { name: "Volatility 100 Index", symbol: "R_100" },
+                { name: "Boom 300 Index", symbol: "BOOM300" },
+                { name: "Boom 500 Index", symbol: "BOOM500" },
+                { name: "Boom 1000 Index", symbol: "BOOM1000" },
+                { name: "Crash 300 Index", symbol: "CRASH300" },
+                { name: "Crash 500 Index", symbol: "CRASH500" },
+                { name: "Crash 1000 Index", symbol: "CRASH1000" },
+                { name: "Jump 10 Index", symbol: "JD10" },
+                { name: "Jump 25 Index", symbol: "JD25" },
+                { name: "Jump 50 Index", symbol: "JD50" },
+                { name: "Jump 75 Index", symbol: "JD75" },
+                { name: "Jump 100 Index", symbol: "JD100" }
             ],
             forex: [
-                { name: "EUR/USD", symbol: "frxEURUSD" }
+                { name: "EUR/USD", symbol: "frxEURUSD" },
+                { name: "GBP/USD", symbol: "frxGBPUSD" },
+                { name: "USD/JPY", symbol: "frxUSDJPY" },
+                { name: "AUD/USD", symbol: "frxAUDUSD" },
+                { name: "EUR/GBP", symbol: "frxEURGBP" },
+                { name: "USD/CAD", symbol: "frxUSDCAD" }
+            ],
+            cryptocurrency: [
+                { name: "BTC/USD", symbol: "cryBTCUSD" },
+                { name: "ETH/USD", symbol: "cryETHUSD" }
             ]
         };
 
         let defaultStrategyData = [
             { level: 1, contract_type: "Up/Down", market: "Volatility", submarket: "Volatility 100 (1s) Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.35 },
-            { level: 2, contract_type: "Up/Down", market: "Volatility", submarket: "Volatility 100 (1s) Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.60 }
+            { level: 2, contract_type: "Up/Down", market: "Volatility", submarket: "Volatility 75 Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.60 }
         ];
 
         let accountsData = {
@@ -462,7 +493,7 @@
             const newItem = {
                 level: defaultStrategyData.length + 1,
                 contract_type: tradeType,
-                market: marketCat === 'derived' ? 'Volatility' : 'Forex',
+                market: marketCat === 'derived' ? 'Volatility' : (marketCat === 'forex' ? 'Forex' : 'Crypto'),
                 submarket: subMarketText,
                 purchase_type: "Higher",
                 high: "",
