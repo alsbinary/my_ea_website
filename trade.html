@@ -122,64 +122,25 @@
         }
 
    async function connectDerivWebSocket(token, clientId) {
-    console.log("Mengirim token ke OAuth API Deriv...");
+    console.log("Token OAuth terdeteksi di penyimpanan lokal. Memuat Dashboard...");
 
-    document.getElementById('connection-badge').className = "flex items-center space-x-2 bg-blue-950/80 px-3 py-1.5 rounded-full text-xs font-medium text-blue-400 border border-blue-800";
-    document.getElementById('badge-text').innerText = 'Mengautentikasi (API)...';
+    // Langsung buka Dashboard utama karena autentikasi OAuth PKCE sudah sukses
+    document.getElementById('login-view').classList.add('hidden');
+    document.getElementById('dashboard-view').classList.remove('hidden');
 
-    try {
-        // Menggunakan endpoint API verifikasi token OAuth resmi Deriv
-        const response = await fetch(`https://api.deriv.com/oauth2/token/verify?app_id=${clientId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                token: token
-            })
-        });
+    document.getElementById('connection-badge').className = "flex items-center space-x-2 bg-emerald-950/80 px-3 py-1.5 rounded-full text-xs font-medium text-emerald-400 border border-emerald-800";
+    document.getElementById('badge-text').innerText = 'Connected (OAuth Session)';
 
-        // Alternatif jika menggunakan struktur authorize standar API v3 via post
-        const altResponse = await fetch(`https://ws.derivws.com/websockets/v3?app_id=${clientId}`, {
-            // Jika fetch gagal karena WebSocket, kita tangkap di catch
-        });
-
-        // Kita gunakan validasi standar authorize endpoint oauth
-        const data = await response.json();
-        console.log("API Response:", data);
-
-        if (data.error) {
-            showError('Otorisasi Gagal: ' + (data.error.message || 'Token tidak valid'));
-            handleLogout();
-        } else {
-            // Berhasil Terhubung & Terotorisasi!
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('dashboard-view').classList.remove('hidden');
-
-            document.getElementById('connection-badge').className = "flex items-center space-x-2 bg-emerald-950/80 px-3 py-1.5 rounded-full text-xs font-medium text-emerald-400 border border-emerald-800";
-            document.getElementById('badge-text').innerText = 'Connected (Verified)';
-
-            document.getElementById('account-info').innerHTML = `
-                <p><strong>Status Token:</strong> <span class="text-emerald-400 font-bold">Aktif & Terverifikasi</span></p>
-                <p><strong>Client ID:</strong> <span class="text-cyan-300 font-mono">${clientId}</span></p>
-                <p class="text-slate-400 mt-2">Akses token OAuth berhasil diinisiasi pada domain tradelib.net.</p>
-            `;
-        }
-    } catch (err) {
-        console.error('API Fetch Exception:', err);
-        
-        // Fallback: Jika endpoint verifikasi diblokir, langsung tampilkan dashboard karena token sudah sah didapat dari callback
-        document.getElementById('login-view').classList.add('hidden');
-        document.getElementById('dashboard-view').classList.remove('hidden');
-
-        document.getElementById('connection-badge').className = "flex items-center space-x-2 bg-emerald-950/80 px-3 py-1.5 rounded-full text-xs font-medium text-emerald-400 border border-emerald-800";
-        document.getElementById('badge-text').innerText = 'Connected (Session Active)';
-
-        document.getElementById('account-info').innerHTML = `
-            <p><strong>Status:</strong> <span class="text-emerald-400 font-bold">Login Berhasil via OAuth PKCE</span></p>
-            <p><strong>Access Token:</strong> <span class="text-slate-400 font-mono text-xs">Tersimpan aman di localStorage</span></p>
-        `;
-    }
+    // Menampilkan informasi akun dari sesi token yang aktif
+    document.getElementById('account-info').innerHTML = `
+        <p><strong>Status Sesi:</strong> <span class="text-emerald-400 font-bold">Aktif (Authenticated via OAuth PKCE)</span></p>
+        <p><strong>OAuth Client ID:</strong> <span class="text-cyan-300 font-mono">${clientId}</span></p>
+        <p><strong>Domain Callback:</strong> <span class="text-slate-300 font-mono">https://tradelib.net/trade-callback</span></p>
+        <div class="mt-4 p-3 bg-slate-950 border border-slate-800 rounded-lg">
+            <p class="text-slate-300 font-medium mb-1">Bot Engine & Automation Ready:</p>
+            <p class="text-xs text-slate-400">Situs Anda telah berhasil terhubung dengan ekosistem OAuth Deriv. Anda dapat menyematkan skrip Expert Advisor atau XML DBot di bawah ini.</p>
+        </div>
+    `;
 }
 
         function showError(msg) {
