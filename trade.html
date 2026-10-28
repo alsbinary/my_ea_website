@@ -121,8 +121,8 @@
             window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
         }
 
-        async function connectDerivWebSocket(token, clientId) {
-    console.log("Menggunakan HTTP REST Gateway sebagai pengganti WebSocket...");
+   async function connectDerivWebSocket(token, clientId) {
+    console.log("Menggunakan HTTP REST Gateway untuk otorisasi akun...");
 
     document.getElementById('connection-badge').className = "flex items-center space-x-2 bg-blue-950/80 px-3 py-1.5 rounded-full text-xs font-medium text-blue-400 border border-blue-800";
     document.getElementById('badge-text').innerText = 'Mengautentikasi (REST)...';
