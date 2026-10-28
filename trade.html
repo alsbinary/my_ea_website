@@ -121,55 +121,54 @@
             window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
         }
 
-        function connectDerivWebSocket(token, clientId) {
-            const wsUrl = `wss://green.derivws.com/websockets/v3?app_id=${clientId}`;
-            console.log("Menghubungkan ke WebSocket URL:", wsUrl);
+        async function connectDerivWebSocket(token, clientId) {
+    console.log("Menggunakan HTTP REST Gateway sebagai pengganti WebSocket...");
 
-            ws = new WebSocket(wsUrl);
+    document.getElementById('connection-badge').className = "flex items-center space-x-2 bg-blue-950/80 px-3 py-1.5 rounded-full text-xs font-medium text-blue-400 border border-blue-800";
+    document.getElementById('badge-text').innerText = 'Mengautentikasi (REST)...';
 
-            ws.onopen = () => {
-                console.log("WebSocket Terhubung, mengirim request authorize...");
-                ws.send(JSON.stringify({ authorize: token }));
-            };
+    try {
+        const response = await fetch(`https://green.derivws.com/v3/json?app_id=${clientId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                authorize: token
+            })
+        });
 
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                console.log("WebSocket Message Received:", data);
+        const data = await response.json();
+        console.log("REST API Response:", data);
 
-                if (data.msg_type === 'authorize') {
-                    if (data.error) {
-                        showError('Otorisasi Gagal: ' + data.error.message);
-                        console.error('Otorisasi Error:', data.error);
-                    } else {
-                        // Tampilkan Dashboard jika otorisasi sukses
-                        document.getElementById('login-view').classList.add('hidden');
-                        document.getElementById('dashboard-view').classList.remove('hidden');
+        if (data.error) {
+            showError('Otorisasi Gagal: ' + data.error.message);
+            console.error('Otorisasi Error:', data.error);
+            handleLogout();
+        } else if (data.authorize) {
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.remove('hidden');
 
-                        document.getElementById('connection-badge').className = "flex items-center space-x-2 bg-emerald-950/80 px-3 py-1.5 rounded-full text-xs font-medium text-emerald-400 border border-emerald-800";
-                        document.getElementById('badge-text').innerText = 'Connected';
+            document.getElementById('connection-badge').className = "flex items-center space-x-2 bg-emerald-950/80 px-3 py-1.5 rounded-full text-xs font-medium text-emerald-400 border border-emerald-800";
+            document.getElementById('badge-text').innerText = 'Connected (REST Mode)';
 
-                        const auth = data.authorize;
-                        document.getElementById('account-info').innerHTML = `
-                            <p><strong>Login ID:</strong> <span class="text-cyan-300 font-mono font-bold">${auth.loginid}</span></p>
-                            <p><strong>Nama Pemilik:</strong> ${auth.fullname || 'Trader'}</p>
-                            <p><strong>Email:</strong> ${auth.email}</p>
-                            <p><strong>Saldo Utama:</strong> <span class="text-emerald-400 font-bold">$${parseFloat(auth.balance).toFixed(2)} ${auth.currency}</span></p>
-                        `;
-                    }
-                }
-            };
-
-            ws.onerror = (err) => {
-                console.error('WebSocket Error Event:', err);
-                showError('Koneksi WebSocket gagal terhubung ke server Deriv.');
-            };
-
-            ws.onclose = (event) => {
-                console.warn('WebSocket Terputus:', event);
-                document.getElementById('connection-badge').className = "flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-full text-xs font-medium text-amber-400 border border-slate-700";
-                document.getElementById('badge-text').innerText = 'Terputus';
-            };
+            const auth = data.authorize;
+            document.getElementById('account-info').innerHTML = `
+                <p><strong>Login ID:</strong> <span class="text-cyan-300 font-mono font-bold">${auth.loginid}</span></p>
+                <p><strong>Nama Pemilik:</strong> ${auth.fullname || 'Trader'}</p>
+                <p><strong>Email:</strong> ${auth.email}</p>
+                <p><strong>Saldo Utama:</strong> <span class="text-emerald-400 font-bold">$${parseFloat(auth.balance).toFixed(2)} ${auth.currency}</span></p>
+            `;
+        } else {
+            showError('Respons server tidak valid.');
         }
+    } catch (err) {
+        console.error('HTTP Fetch Exception:', err);
+        showError('Gagal terhubung ke server Deriv via HTTP REST.');
+        document.getElementById('connection-badge').className = "flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-full text-xs font-medium text-amber-400 border border-slate-700";
+        document.getElementById('badge-text').innerText = 'Terputus';
+    }
+}
 
         function showError(msg) {
             const errEl = document.getElementById('login-error');
