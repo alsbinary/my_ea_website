@@ -235,7 +235,7 @@
                             <tbody>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-2 font-bold text-slate-800">Level 1</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">Volatility 25 (1s)</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Digit Match</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Matches / Differs</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start time</td><td id="pf-starttime" class="p-2 font-mono text-slate-600">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-2 font-mono text-slate-600">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">0s</td></tr>
@@ -297,23 +297,26 @@
                     <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
                         <option value="Rise/Fall">Rise / Fall</option>
                         <option value="Higher/Lower">Higher / Lower</option>
-                        <option value="Digit Match">Digit Match</option>
-                        <option value="Digit Diff">Digit Diff</option>
+                        <option value="Matches/Differs">Matches / Differs</option>
+                        <option value="Over/Under">Over / Under</option>
+                        <option value="Even/Odd">Even / Odd</option>
                         <option value="Touch/No Touch">Touch / No Touch</option>
                     </select>
                 </div>
 
-                <!-- CONTAINER INTERAKTIF PILIHAN DIGIT (SESUAI LAMPIRAN 1) -->
-                <div id="digit-prediction-container" class="hidden space-y-2 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-slate-700">Last digit prediction</span>
-                        <div class="space-x-2">
-                            <span id="tab-matches" onclick="setDigitMode('Match')" class="cursor-pointer font-bold px-2.5 py-1 rounded bg-teal-600 text-white text-[10px]">Matches</span>
-                            <span id="tab-diffs" onclick="setDigitMode('Diff')" class="cursor-pointer font-bold px-2.5 py-1 rounded bg-slate-200 text-slate-600 text-[10px]">Differs</span>
-                        </div>
+                <!-- CONTAINER DINAMIS DIGIT PREDICTION (LENGKAP SEPERTI LAMPIRAN 1) -->
+                <div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
+                    
+                    <!-- TAB OPTIONS SESUAI JENIS KONTRAK YANG DIPILIH -->
+                    <div id="digit-subtabs" class="flex justify-start space-x-2 border-b border-slate-200 pb-2">
+                        <!-- Diisi via JS: Matches/Differs, Over/Under, Even/Odd -->
                     </div>
-                    <div class="grid grid-cols-5 gap-2 pt-1" id="digit-grid">
-                        <!-- Tombol Digit 0-9 diisi lewat JS dengan persentase probabilitas -->
+
+                    <div id="digit-grid-wrapper" class="space-y-2">
+                        <span class="font-bold text-slate-700 block">Last digit prediction</span>
+                        <div class="grid grid-cols-5 gap-2" id="digit-grid">
+                            <!-- Tombol Digit 0-9 & probabilitas -->
+                        </div>
                     </div>
                 </div>
 
@@ -396,7 +399,7 @@
 
         let defaultStrategyData = [
             { level: 1, contract_type: "Rise/Fall", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Ticks", amount: 0.35 },
-            { level: 2, contract_type: "Digit Match", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Match", high: "", low: "", last_digit: "5", duration_amount: 1, duration_unit: "Ticks", amount: 1.00 }
+            { level: 2, contract_type: "Matches/Differs", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Matches", high: "", low: "", last_digit: "5", duration_amount: 1, duration_unit: "Ticks", amount: 1.00 }
         ];
 
         let accountsData = {
@@ -405,7 +408,7 @@
         };
         let currentAccountType = 'real';
         let selectedDigit = 5;
-        let selectedDigitMode = 'Match'; // Match atau Diff
+        let selectedSubTab = 'Matches'; // Default subtab
 
         setInterval(() => {
             document.getElementById('gmt-time').innerText = new Date().toUTCString().slice(17, 25);
@@ -424,17 +427,51 @@
                 document.getElementById('login-view').classList.remove('hidden');
                 document.getElementById('dashboard-view').classList.add('hidden');
             }
-            renderDigitGrid();
         };
+
+        function renderDigitSubTabs(tradeType) {
+            const container = document.getElementById('digit-subtabs');
+            container.innerHTML = '';
+
+            let tabs = [];
+            if (tradeType === 'Matches/Differs') {
+                tabs = ['Matches', 'Differs'];
+            } else if (tradeType === 'Over/Under') {
+                tabs = ['Over', 'Under'];
+            } else if (tradeType === 'Even/Odd') {
+                tabs = ['Even', 'Odd'];
+            }
+
+            selectedSubTab = tabs[0] || '';
+
+            tabs.forEach(tabName => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `px-4 py-1.5 rounded-lg font-bold text-xs transition ${selectedSubTab === tabName ? 'bg-teal-600 text-white shadow-sm' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`;
+                btn.innerText = tabName;
+                btn.onclick = () => {
+                    selectedSubTab = tabName;
+                    renderDigitSubTabs(tradeType);
+                };
+                container.appendChild(btn);
+            });
+
+            const gridWrapper = document.getElementById('digit-grid-wrapper');
+            if (tradeType === 'Even/Odd') {
+                gridWrapper.classList.add('hidden');
+            } else {
+                gridWrapper.classList.remove('hidden');
+                renderDigitGrid();
+            }
+        }
 
         function renderDigitGrid() {
             const grid = document.getElementById('digit-grid');
-            if(!grid) return;
+            if (!grid) return;
             grid.innerHTML = '';
-            // Contoh persentase probabilitas acak mirip platform Deriv
             const percentages = ["9.1%", "11.3%", "10.1%", "9.2%", "9.8%", "10.1%", "10.9%", "8.7%", "9.8%", "11.0%"];
-            
-            for(let i=0; i<=9; i++) {
+
+            for (let i = 0; i <= 9; i++) {
                 const btn = document.createElement('div');
                 const isSelected = (selectedDigit === i);
                 btn.className = `digit-btn border rounded-xl p-2 text-center cursor-pointer bg-white ${isSelected ? 'active border-slate-900 shadow' : 'border-slate-200 hover:border-slate-400'}`;
@@ -447,19 +484,6 @@
                     renderDigitGrid();
                 };
                 grid.appendChild(btn);
-            }
-        }
-
-        function setDigitMode(mode) {
-            selectedDigitMode = mode;
-            const tabMatches = document.getElementById('tab-matches');
-            const tabDiffs = document.getElementById('tab-diffs');
-            if(mode === 'Match') {
-                tabMatches.className = "cursor-pointer font-bold px-2.5 py-1 rounded bg-teal-600 text-white text-[10px]";
-                tabDiffs.className = "cursor-pointer font-bold px-2.5 py-1 rounded bg-slate-200 text-slate-600 text-[10px]";
-            } else {
-                tabDiffs.className = "cursor-pointer font-bold px-2.5 py-1 rounded bg-teal-600 text-white text-[10px]";
-                tabMatches.className = "cursor-pointer font-bold px-2.5 py-1 rounded bg-slate-200 text-slate-600 text-[10px]";
             }
         }
 
@@ -487,8 +511,8 @@
         }
 
         function botAction(action) {
-            if(action === 'run_bot') {
-                addContractHistoryRow("Won", "Level 1", "Match", "1.95", "1.00", "1.95", "+0.95");
+            if (action === 'run_bot') {
+                addContractHistoryRow("Won", "Level 1", "Matches", "1.95", "1.00", "1.95", "+0.95");
             } else {
                 alert(`Aksi Bot: ${action.toUpperCase()} dieksekusi.`);
             }
@@ -575,19 +599,18 @@
             const digitContainer = document.getElementById('digit-prediction-container');
 
             if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
-                unitSelect.value = 'm'; 
+                unitSelect.value = 'm';
+                unitSelect.disabled = false;
                 barrierContainer.classList.remove('hidden');
                 digitContainer.classList.add('hidden');
-            } else if (tradeType === 'Digit Match' || tradeType === 'Digit Diff') {
+            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
                 unitSelect.value = 't';
-                unitSelect.disabled = true; // Digit biasanya fix 1 tick di deriv
+                unitSelect.disabled = true;
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.remove('hidden');
-                if(tradeType === 'Digit Match') setDigitMode('Match');
-                else setDigitMode('Diff');
-                renderDigitGrid();
+                renderDigitSubTabs(tradeType);
             } else {
-                unitSelect.value = 't'; 
+                unitSelect.value = 't';
                 unitSelect.disabled = false;
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.add('hidden');
@@ -601,21 +624,24 @@
             const tradeType = document.getElementById('modal-trade-type').value;
             const durationAmount = document.getElementById('modal-duration').value;
             const durationUnitEl = document.getElementById('modal-duration-unit');
-            
+
             let unitText = "Ticks";
             const valUnit = durationUnitEl.value;
-            if(valUnit === 's') unitText = "Seconds";
-            else if(valUnit === 'm') unitText = "Minutes";
-            else if(valUnit === 'h') unitText = "Hours";
+            if (valUnit === 's') unitText = "Seconds";
+            else if (valUnit === 'm') unitText = "Minutes";
+            else if (valUnit === 'h') unitText = "Hours";
 
             const highVal = document.getElementById('modal-high').value;
             const lowVal = document.getElementById('modal-low').value;
-            
+
             let digitVal = "";
             let purchaseTypeVal = "Higher";
-            if (tradeType === 'Digit Match' || tradeType === 'Digit Diff') {
-                digitVal = selectedDigit.toString();
-                purchaseTypeVal = selectedDigitMode;
+
+            if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
+                purchaseTypeVal = selectedSubTab;
+                if (tradeType !== 'Even/Odd') {
+                    digitVal = selectedDigit.toString();
+                }
             }
 
             const newItem = {
@@ -631,6 +657,7 @@
                 duration_unit: unitText,
                 amount: parseFloat(document.getElementById('modal-amount').value)
             };
+
             defaultStrategyData.push(newItem);
             renderStrategyTable(defaultStrategyData);
             closeAddModal();
