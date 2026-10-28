@@ -73,6 +73,7 @@
             if (savedClientId) document.getElementById('client_id').value = savedClientId;
 
             if (accessToken && savedClientId) {
+                console.log("Token terdeteksi, mencoba menghubungkan WebSocket...");
                 connectDerivWebSocket(accessToken, savedClientId);
             }
         };
@@ -101,7 +102,6 @@
 
             const state = crypto.randomUUID();
 
-            // Menggunakan localStorage agar data aman tidak hilang saat redirect
             localStorage.setItem('pkce_code_verifier', codeVerifier);
             localStorage.setItem('oauth_state', state);
             localStorage.setItem('pending_client_id', clientId);
@@ -123,19 +123,25 @@
 
         function connectDerivWebSocket(token, clientId) {
             const wsUrl = `wss://ws.derivws.com/websockets/v3?app_id=${clientId}`;
+            console.log("Menghubungkan ke WebSocket URL:", wsUrl);
+
             ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
+                console.log("WebSocket Terhubung, mengirim request authorize...");
                 ws.send(JSON.stringify({ authorize: token }));
             };
 
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
+                console.log("WebSocket Message Received:", data);
+
                 if (data.msg_type === 'authorize') {
                     if (data.error) {
                         showError('Otorisasi Gagal: ' + data.error.message);
-                        handleLogout();
+                        console.error('Otorisasi Error:', data.error);
                     } else {
+                        // Tampilkan Dashboard jika otorisasi sukses
                         document.getElementById('login-view').classList.add('hidden');
                         document.getElementById('dashboard-view').classList.remove('hidden');
 
@@ -153,11 +159,13 @@
                 }
             };
 
-            ws.onerror = () => {
+            ws.onerror = (err) => {
+                console.error('WebSocket Error Event:', err);
                 showError('Koneksi WebSocket gagal terhubung ke server Deriv.');
             };
 
-            ws.onclose = () => {
+            ws.onclose = (event) => {
+                console.warn('WebSocket Terputus:', event);
                 document.getElementById('connection-badge').className = "flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-full text-xs font-medium text-amber-400 border border-slate-700";
                 document.getElementById('badge-text').innerText = 'Terputus';
             };
@@ -166,7 +174,7 @@
         function showError(msg) {
             const errEl = document.getElementById('login-error');
             errEl.innerText = msg;
-            errEl.classList.add('hidden'); // Diubah agar pesan error tidak menutupi form jika tidak diperlukan
+            errEl.classList.remove('hidden');
         }
 
         function handleLogout() {
