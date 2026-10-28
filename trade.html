@@ -22,13 +22,13 @@
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
         }
-        .digit-btn, .choice-btn {
+        .digit-btn, .choice-btn, .subtab-btn {
             transition: all 0.2s ease;
         }
-        .digit-btn.active, .choice-btn.active {
-            background-color: #0f172a;
-            color: #ffffff;
-            border-color: #0f172a;
+        .digit-btn.active, .choice-btn.active, .subtab-btn.active {
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+            border-color: #0f172a !important;
         }
     </style>
 </head>
@@ -274,4 +274,530 @@
         <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
             <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
                 <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru (Deriv API active_symbols)</h3>
-                <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-lg">&times;</button
+                <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-lg">&times;</button>
+            </div>
+            <div class="p-6 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-medium text-slate-600">Market Category</label>
+                        <select id="modal-market-cat" onchange="onMarketCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold">
+                            <option value="derived">Derived (Synthetics)</option>
+                            <option value="forex">Forex</option>
+                            <option value="cryptocurrency">Cryptocurrency</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="font-medium text-slate-600">Submarket / Asset</label>
+                        <select id="modal-submarket" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold"></select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="font-medium text-slate-600">Trade Type</label>
+                    <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
+                        <option value="Rise/Fall">Rise / Fall</option>
+                        <option value="Higher/Lower">Higher / Lower</option>
+                        <option value="Matches/Differs">Matches / Differs</option>
+                        <option value="Over/Under">Over / Under</option>
+                        <option value="Even/Odd">Even / Odd</option>
+                        <option value="Touch/No Touch">Touch / No Touch</option>
+                    </select>
+                </div>
+
+                <!-- TOMBOL PILIHAN ARAH INTERAKTIF -->
+                <div id="choice-buttons-container" class="space-y-1 pt-1">
+                    <label class="font-medium text-slate-600 block" id="choice-label">Prediction Direction</label>
+                    <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
+                </div>
+
+                <!-- CONTAINER DINAMIS DIGIT PREDICTION -->
+                <div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
+                    <div id="digit-subtabs" class="flex justify-start space-x-2 border-b border-slate-200 pb-2"></div>
+
+                    <div id="digit-grid-wrapper" class="space-y-2">
+                        <span class="font-bold text-slate-700 block">Last digit prediction</span>
+                        <div class="grid grid-cols-5 gap-2" id="digit-grid"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
+                    <div>
+                        <label id="duration-label" class="font-medium text-slate-600">Duration</label>
+                        <div class="flex space-x-1 mt-1">
+                            <input type="number" id="modal-duration" value="1" class="w-full bg-white border border-slate-300 rounded p-2">
+                            <select id="modal-duration-unit" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
+                                <option value="t">Ticks</option>
+                                <option value="s">Seconds</option>
+                                <option value="m">Minutes</option>
+                                <option value="h">Hours</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
+                        <input type="number" step="0.01" id="modal-amount" value="1.00" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
+                    </div>
+                </div>
+
+                <div id="barrier-container" class="hidden pt-2 border-t border-slate-200 grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-medium text-slate-600">Barrier / Offset (High)</label>
+                        <input type="text" id="modal-high" placeholder="+1.0" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
+                    </div>
+                    <div>
+                        <label class="font-medium text-slate-600">Barrier / Offset (Low)</label>
+                        <input type="text" id="modal-low" placeholder="-1.0" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-100 border-t border-slate-200 flex justify-end space-x-3">
+                <button onclick="closeAddModal()" class="px-4 py-2 bg-white border border-slate-300 rounded text-xs">Batal</button>
+                <button onclick="confirmAddStrategy()" class="px-5 py-2 bg-teal-600 text-white rounded font-bold text-xs shadow">Tambahkan ke Tabel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const marketSymbolsData = {
+            derived: [
+                { name: "Volatility 10 (1s) Index", symbol: "1HZ10V" },
+                { name: "Volatility 25 (1s) Index", symbol: "1HZ25V" },
+                { name: "Volatility 50 (1s) Index", symbol: "1HZ50V" },
+                { name: "Volatility 75 (1s) Index", symbol: "1HZ75V" },
+                { name: "Volatility 100 (1s) Index", symbol: "1HZ100V" },
+                { name: "Volatility 10 Index", symbol: "R_10" },
+                { name: "Volatility 25 Index", symbol: "R_25" },
+                { name: "Volatility 50 Index", symbol: "R_50" },
+                { name: "Volatility 75 Index", symbol: "R_75" },
+                { name: "Volatility 100 Index", symbol: "R_100" },
+                { name: "Boom 300 Index", symbol: "BOOM300" },
+                { name: "Boom 500 Index", symbol: "BOOM500" },
+                { name: "Boom 1000 Index", symbol: "BOOM1000" },
+                { name: "Crash 300 Index", symbol: "CRASH300" },
+                { name: "Crash 500 Index", symbol: "CRASH500" },
+                { name: "Crash 1000 Index", symbol: "CRASH1000" },
+                { name: "Jump 10 Index", symbol: "JD10" },
+                { name: "Jump 25 Index", symbol: "JD25" },
+                { name: "Jump 50 Index", symbol: "JD50" },
+                { name: "Jump 75 Index", symbol: "JD75" },
+                { name: "Jump 100 Index", symbol: "JD100" }
+            ],
+            forex: [
+                { name: "EUR/USD", symbol: "frxEURUSD" },
+                { name: "GBP/USD", symbol: "frxGBPUSD" },
+                { name: "USD/JPY", symbol: "frxUSDJPY" },
+                { name: "AUD/USD", symbol: "frxAUDUSD" },
+                { name: "EUR/GBP", symbol: "frxEURGBP" },
+                { name: "USD/CAD", symbol: "frxUSDCAD" }
+            ],
+            cryptocurrency: [
+                { name: "BTC/USD", symbol: "cryBTCUSD" },
+                { name: "ETH/USD", symbol: "cryETHUSD" }
+            ]
+        };
+
+        let defaultStrategyData = [
+            { level: 1, contract_type: "Rise/Fall", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Rise", high: "", low: "", last_digit: "", duration_amount: 5, duration_unit: "Ticks", amount: 0.35 },
+            { level: 2, contract_type: "Matches/Differs", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Matches", high: "", low: "", last_digit: "5", duration_amount: 1, duration_unit: "Ticks", amount: 1.00 }
+        ];
+
+        let accountsData = {
+            real: { loginid: "CR1084920", balance: "0.00 USD" },
+            demo: { loginid: "VRTC948201", balance: "9,999.00 USD" }
+        };
+        let currentAccountType = 'real';
+        let selectedDigit = 5;
+        let selectedSubTab = 'Matches';
+        let selectedChoice = 'Rise';
+
+        setInterval(() => {
+            document.getElementById('gmt-time').innerText = new Date().toUTCString().slice(17, 25);
+        }, 1000);
+
+        window.onload = function() {
+            const accessToken = localStorage.getItem('deriv_access_token');
+            const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
+            if (savedClientId) document.getElementById('client_id').value = savedClientId;
+
+            if (accessToken) {
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+                renderStrategyTable(defaultStrategyData);
+            } else {
+                document.getElementById('login-view').classList.remove('hidden');
+                document.getElementById('dashboard-view').classList.add('hidden');
+            }
+        };
+
+        function renderChoiceButtons(tradeType) {
+            const container = document.getElementById('choice-buttons-grid');
+            const wrapper = document.getElementById('choice-buttons-container');
+            const label = document.getElementById('choice-label');
+            if(!container) return;
+            container.innerHTML = '';
+
+            let choices = [];
+            if (tradeType === 'Rise/Fall') {
+                choices = ['Rise', 'Fall'];
+                label.innerText = 'Prediction Direction';
+                wrapper.classList.remove('hidden');
+            } else if (tradeType === 'Higher/Lower') {
+                choices = ['Higher', 'Lower'];
+                label.innerText = 'Barrier Type';
+                wrapper.classList.remove('hidden');
+            } else if (tradeType === 'Touch/No Touch') {
+                choices = ['Touch', 'No Touch'];
+                label.innerText = 'Touch Type';
+                wrapper.classList.remove('hidden');
+            } else {
+                wrapper.classList.add('hidden');
+                return;
+            }
+
+            if (!choices.includes(selectedChoice)) {
+                selectedChoice = choices[0];
+            }
+
+            choices.forEach(choiceName => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = (selectedChoice === choiceName);
+                btn.className = `choice-btn py-2 rounded-xl border font-bold text-xs transition ${isSelected ? 'active bg-slate-900 text-white border-slate-900 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
+                btn.innerText = choiceName;
+                btn.onclick = () => {
+                    selectedChoice = choiceName;
+                    renderChoiceButtons(tradeType);
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderDigitSubTabs(tradeType) {
+            const container = document.getElementById('digit-subtabs');
+            if(!container) return;
+            container.innerHTML = '';
+
+            let tabs = [];
+            if (tradeType === 'Matches/Differs') {
+                tabs = ['Matches', 'Differs'];
+            } else if (tradeType === 'Over/Under') {
+                tabs = ['Over', 'Under'];
+            } else if (tradeType === 'Even/Odd') {
+                tabs = ['Even', 'Odd'];
+            }
+
+            if (!tabs.includes(selectedSubTab)) {
+                selectedSubTab = tabs[0] || '';
+            }
+
+            tabs.forEach(tabName => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = (selectedSubTab === tabName);
+                btn.className = `subtab-btn px-4 py-1.5 rounded-lg font-bold text-xs transition ${isSelected ? 'active bg-teal-600 text-white shadow-sm' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`;
+                btn.innerText = tabName;
+                btn.onclick = () => {
+                    selectedSubTab = tabName;
+                    renderDigitSubTabs(tradeType);
+                };
+                container.appendChild(btn);
+            });
+
+            const gridWrapper = document.getElementById('digit-grid-wrapper');
+            if (tradeType === 'Even/Odd') {
+                gridWrapper.classList.add('hidden');
+            } else {
+                gridWrapper.classList.remove('hidden');
+                renderDigitGrid();
+            }
+        }
+
+        function renderDigitGrid() {
+            const grid = document.getElementById('digit-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            const percentages = ["9.1%", "11.3%", "10.1%", "9.2%", "9.8%", "10.1%", "10.9%", "8.7%", "9.8%", "11.0%"];
+
+            for (let i = 0; i <= 9; i++) {
+                const btn = document.createElement('div');
+                const isSelected = (selectedDigit === i);
+                btn.className = `digit-btn border rounded-xl p-2 text-center cursor-pointer bg-white ${isSelected ? 'active bg-slate-900 text-white border-slate-900 shadow' : 'border-slate-200 hover:border-slate-400'}`;
+                btn.innerHTML = `
+                    <div class="text-sm font-bold ${isSelected ? 'text-white' : 'text-slate-800'}">${i}</div>
+                    <div class="text-[9px] ${isSelected ? 'text-slate-300' : (i === 7 ? 'text-rose-500 font-bold' : (i === 1 ? 'text-emerald-600 font-bold' : 'text-slate-500'))}">${percentages[i]}</div>
+                `;
+                btn.onclick = () => {
+                    selectedDigit = i;
+                    renderDigitGrid();
+                };
+                grid.appendChild(btn);
+            }
+        }
+
+        function renderStrategyTable(dataList) {
+            const tbody = document.getElementById('strategy-table-body');
+            tbody.innerHTML = '';
+            dataList.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200";
+                tr.innerHTML = `
+                    <td class="text-center font-bold text-slate-600 bg-slate-50">Level ${index + 1}</td>
+                    <td><input type="text" value="${item.contract_type}"></td>
+                    <td><input type="text" value="${item.market}"></td>
+                    <td><input type="text" value="${item.submarket}"></td>
+                    <td><input type="text" value="${item.purchase_type}"></td>
+                    <td><input type="text" value="${item.high || ''}"></td>
+                    <td><input type="text" value="${item.low || ''}"></td>
+                    <td><input type="text" value="${item.last_digit || ''}" class="font-bold text-indigo-600 text-center"></td>
+                    <td><input type="number" value="${item.duration_amount}"></td>
+                    <td><select><option ${item.duration_unit === 'Ticks' ? 'selected' : ''}>Ticks</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option><option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option><option ${item.duration_unit === 'Hours' ? 'selected' : ''}>Hours</option></select></td>
+                    <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function botAction(action) {
+            if (action === 'run_bot') {
+                addContractHistoryRow("Won", "Level 1", "Rise", "0.68", "0.35", "0.68", "+0.33");
+            } else {
+                alert(`Aksi Bot: ${action.toUpperCase()} dieksekusi.`);
+            }
+        }
+
+        let contractHistoryData = [];
+        function addContractHistoryRow(status, level, purchaseType, payout, buyPrice, sellPrice, profit) {
+            contractHistoryData.push({ status, level, purchaseType, payout, buyPrice, sellPrice, profit });
+            renderContractTable();
+        }
+
+        function renderContractTable() {
+            const tbody = document.getElementById('contract-table-body');
+            tbody.innerHTML = '';
+            if (contractHistoryData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak.</td></tr>`;
+                return;
+            }
+
+            let totalProfitVal = 0;
+            let winCount = 0;
+            let lossCount = 0;
+
+            contractHistoryData.forEach((item, idx) => {
+                const isWin = parseFloat(item.profit) >= 0;
+                if (isWin) winCount++; else lossCount++;
+                totalProfitVal += parseFloat(item.profit);
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-200 bg-white";
+                tr.innerHTML = `
+                    <td class="p-2 border-r border-slate-200 text-center">${idx + 1}</td>
+                    <td class="p-2 border-r border-slate-200 font-bold ${isWin ? 'text-emerald-600' : 'text-rose-600'}">${item.status}</td>
+                    <td class="p-2 border-r border-slate-200 font-semibold">${item.level}</td>
+                    <td class="p-2 border-r border-slate-200">${item.purchaseType}</td>
+                    <td class="p-2 border-r border-slate-200">${item.payout}</td>
+                    <td class="p-2 border-r border-slate-200">${item.buyPrice}</td>
+                    <td class="p-2 border-r border-slate-200">${item.sellPrice}</td>
+                    <td class="p-2 text-right font-bold ${isWin ? 'text-emerald-600' : 'text-rose-600'}">${item.profit}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('stat-trade-count').innerText = contractHistoryData.length;
+            document.getElementById('stat-total-stake').innerText = contractHistoryData.reduce((acc, curr) => acc + parseFloat(curr.buyPrice), 0).toFixed(2);
+            document.getElementById('stat-loss-count').innerText = lossCount;
+            document.getElementById('stat-profit-count').innerText = winCount;
+            const tpEl = document.getElementById('stat-total-profit');
+            tpEl.innerText = totalProfitVal.toFixed(2);
+            tpEl.className = `text-sm font-black ${totalProfitVal >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+        }
+
+        function clearContractTable() {
+            contractHistoryData = [];
+            renderContractTable();
+        }
+
+        function openAddModal() {
+            document.getElementById('add-strategy-modal').classList.remove('hidden');
+            onMarketCategoryChange();
+            onTradeTypeChange();
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-strategy-modal').classList.add('hidden');
+        }
+
+        function onMarketCategoryChange() {
+            const cat = document.getElementById('modal-market-cat').value;
+            const subSelect = document.getElementById('modal-submarket');
+            subSelect.innerHTML = '';
+            marketSymbolsData[cat].forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.name + "|" + item.symbol;
+                opt.innerText = item.name;
+                subSelect.appendChild(opt);
+            });
+        }
+
+        function onTradeTypeChange() {
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const unitSelect = document.getElementById('modal-duration-unit');
+            const barrierContainer = document.getElementById('barrier-container');
+            const digitContainer = document.getElementById('digit-prediction-container');
+
+            renderChoiceButtons(tradeType);
+
+            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
+                unitSelect.value = 'm';
+                unitSelect.disabled = false;
+                barrierContainer.classList.remove('hidden');
+                digitContainer.classList.add('hidden');
+            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
+                unitSelect.value = 't';
+                unitSelect.disabled = true;
+                barrierContainer.classList.add('hidden');
+                digitContainer.classList.remove('hidden');
+                renderDigitSubTabs(tradeType);
+            } else {
+                unitSelect.value = 't';
+                unitSelect.disabled = false;
+                barrierContainer.classList.add('hidden');
+                digitContainer.classList.add('hidden');
+            }
+        }
+
+        function confirmAddStrategy() {
+            const marketCat = document.getElementById('modal-market-cat').value;
+            const subMarketSelect = document.getElementById('modal-submarket');
+            const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex].text;
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const durationAmount = document.getElementById('modal-duration').value;
+            const durationUnitEl = document.getElementById('modal-duration-unit');
+
+            let unitText = "Ticks";
+            const valUnit = durationUnitEl.value;
+            if (valUnit === 's') unitText = "Seconds";
+            else if (valUnit === 'm') unitText = "Minutes";
+            else if (valUnit === 'h') unitText = "Hours";
+
+            const highVal = document.getElementById('modal-high').value;
+            const lowVal = document.getElementById('modal-low').value;
+
+            let digitVal = "";
+            let purchaseTypeVal = selectedChoice;
+
+            if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
+                purchaseTypeVal = selectedSubTab;
+                if (tradeType !== 'Even/Odd') {
+                    digitVal = selectedDigit.toString();
+                }
+            }
+
+            const newItem = {
+                level: defaultStrategyData.length + 1,
+                contract_type: tradeType,
+                market: marketCat === 'derived' ? 'Volatility' : (marketCat === 'forex' ? 'Forex' : 'Crypto'),
+                submarket: subMarketText,
+                purchase_type: purchaseTypeVal,
+                high: highVal,
+                low: lowVal,
+                last_digit: digitVal,
+                duration_amount: durationAmount,
+                duration_unit: unitText,
+                amount: parseFloat(document.getElementById('modal-amount').value)
+            };
+
+            defaultStrategyData.push(newItem);
+            renderStrategyTable(defaultStrategyData);
+            closeAddModal();
+        }
+
+        function deleteLastRow() {
+            if (defaultStrategyData.length > 0) {
+                defaultStrategyData.pop();
+                renderStrategyTable(defaultStrategyData);
+            }
+        }
+
+        function clearStrategy() {
+            defaultStrategyData = [];
+            renderStrategyTable(defaultStrategyData);
+        }
+
+        function loadStrategyFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split('\n');
+                let parsedList = [];
+                lines.forEach((line, idx) => {
+                    if (idx === 0 || !line.trim()) return;
+                    const cols = line.split(',');
+                    if (cols.length >= 15) {
+                        parsedList.push({
+                            contract_type: cols[2], market: cols[3], submarket: cols[4],
+                            purchase_type: cols[5], high: cols[6], low: cols[7],
+                            last_digit: cols[8], duration_amount: cols[10],
+                            duration_unit: cols[11], amount: cols[14]
+                        });
+                    }
+                });
+                if (parsedList.length > 0) {
+                    defaultStrategyData = parsedList;
+                    renderStrategyTable(defaultStrategyData);
+                } else {
+                    alert('Format file tidak sesuai.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function toggleAccountDropdown() {
+            document.getElementById('account-menu').classList.toggle('hidden');
+        }
+
+        function switchAccountType(type) {
+            currentAccountType = type;
+            const acc = accountsData[type];
+            document.getElementById('account-type-label').innerText = type === 'real' ? "Real account" : "Demo account";
+            document.getElementById('account-id-label').innerText = acc.loginid;
+            document.getElementById('account-balance-label').innerText = acc.balance;
+            document.getElementById('account-balance-label').className = type === 'real' ? "text-slate-900 font-bold" : "text-amber-600 font-bold";
+            document.getElementById('account-menu').classList.add('hidden');
+        }
+
+        function loginWithDerivOAuthPKCE() {
+            const clientId = document.getElementById('client_id').value.trim();
+            if (!clientId) return alert('OAuth Client ID wajib diisi!');
+            localStorage.setItem('deriv_client_id', clientId);
+            const array = crypto.getRandomValues(new Uint8Array(64));
+            const codeVerifier = Array.from(array).map(v => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[v % 66]).join('');
+            const encoder = new TextEncoder();
+            crypto.subtle.digest('SHA-256', encoder.encode(codeVerifier)).then(digest => {
+                const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+                const state = crypto.randomUUID();
+                localStorage.setItem('pkce_code_verifier', codeVerifier);
+                localStorage.setItem('oauth_state', state);
+                const params = new URLSearchParams({
+                    client_id: clientId,
+                    redirect_uri: "https://tradelib.net/trade-callback",
+                    response_type: 'code',
+                    scope: 'trade',
+                    state: state,
+                    code_challenge: codeChallenge,
+                    code_challenge_method: 'S256'
+                });
+                window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
+            });
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('deriv_access_token');
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('login-view').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
