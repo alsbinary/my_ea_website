@@ -8,7 +8,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
 
-    <!-- VIEW 1: LOGIN KETIKA BELUM ADA TOKEN -->
+    <!-- VIEW 1: LOGIN PAGE -->
     <div id="login-view" class="flex-1 flex items-center justify-center p-4 bg-slate-950 text-slate-100">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
@@ -26,7 +26,7 @@
         </div>
     </div>
 
-    <!-- VIEW 2: DASHBOARD UTAMA (MIRIP TEMPLAT DERIV DBOT) -->
+    <!-- VIEW 2: DASHBOARD UTAMA (DERIV DBOT TEMPLATE STYLE) -->
     <div id="dashboard-view" class="flex-1 flex flex-col hidden">
         
         <!-- HEADER ATAS -->
@@ -35,30 +35,37 @@
                 <div class="bg-rose-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">DT</div>
                 <span class="text-sm font-bold text-slate-700">Volatility 100 (1s) Index</span>
             </div>
+
             <div class="flex items-center space-x-4">
-                <!-- Dropdown Akun Real / Demo (Sesuai Gambar Lampiran) -->
+                <!-- DROPDOWN PILIHAN AKUN REAL / DEMO -->
                 <div class="relative">
                     <button onclick="toggleAccountDropdown()" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold">
                         <div class="text-right">
                             <div id="account-type-label" class="text-slate-500 text-[10px]">Real account</div>
-                            <div id="account-balance-label" class="text-slate-900 font-bold">0.00 USD</div>
+                            <div class="flex items-center space-x-1">
+                                <span id="account-id-label" class="text-slate-400 text-[10px] font-mono">CR...</span>
+                                <span id="account-balance-label" class="text-slate-900 font-bold">0.00 USD</span>
+                            </div>
                         </div>
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     
-                    <!-- Menu Dropdown Pilihan Akun -->
-                    <div id="account-menu" class="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
-                        <div onclick="switchAccountType('real')" class="p-2 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center">
+                    <!-- MENU SELEKSI AKUN -->
+                    <div id="account-menu" class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
+                        <!-- Pilihan Real Account -->
+                        <div onclick="switchAccountType('real')" id="item-real-acc" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border border-transparent">
                             <div>
-                                <span class="text-slate-500 block text-[10px]">Real account</span>
-                                <span id="real-acc-id" class="font-bold text-slate-800">CR-Loading...</span>
+                                <span class="text-slate-500 block text-[10px] font-semibold">Real account</span>
+                                <span id="real-acc-id" class="font-bold text-slate-800 font-mono">CR1084920</span>
                             </div>
                             <span id="real-acc-bal" class="font-bold text-slate-900">0.00 USD</span>
                         </div>
-                        <div onclick="switchAccountType('demo')" class="p-2 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center border-t border-slate-100">
+                        
+                        <!-- Pilihan Demo Account -->
+                        <div onclick="switchAccountType('demo')" id="item-demo-acc" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border border-transparent border-t-slate-100">
                             <div>
-                                <span class="text-amber-600 block text-[10px]">Demo account</span>
-                                <span id="demo-acc-id" class="font-bold text-slate-800">VRTC-Loading...</span>
+                                <span class="text-amber-600 block text-[10px] font-semibold">Demo account</span>
+                                <span id="demo-acc-id" class="font-bold text-slate-800 font-mono">VRTC948201</span>
                             </div>
                             <span id="demo-acc-bal" class="font-bold text-amber-600">9,999.00 USD</span>
                         </div>
@@ -69,7 +76,7 @@
             </div>
         </header>
 
-        <!-- KONTEN UTAMA: SIDEBAR + AREA TENGAH + PANEL STRATEGI -->
+        <!-- KONTEN UTAMA: SIDEBAR + AREA TENGAH + PANEL BOT -->
         <div class="flex-1 flex overflow-hidden">
             
             <!-- SIDEBAR KIRI -->
@@ -80,11 +87,11 @@
                 </div>
                 <div class="flex flex-col items-center cursor-pointer hover:text-rose-500">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Positions[cite: 10]
+                    Positions
                 </div>
                 <div class="flex flex-col items-center cursor-pointer hover:text-rose-500">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a1 1 0 01-1 1z"></path></svg>
-                    Reports[cite: 8, 9]
+                    Reports
                 </div>
                 <div class="flex-1"></div>
                 <div onclick="handleLogout()" class="flex flex-col items-center cursor-pointer hover:text-rose-600 pb-2">
@@ -93,66 +100,70 @@
                 </div>
             </aside>
 
-            <!-- AREA TENGAH (PENGGANTI CHART) -->
+            <!-- AREA TENGAH -->
             <main class="flex-1 bg-slate-50 p-6 flex flex-col justify-center items-center text-center space-y-4">
-                <div class="bg-white border border-slate-200 rounded-2xl p-8 max-w-lg shadow-sm space-y-3">
+                <div class="bg-white border border-slate-200 rounded-2xl p-8 max-w-lg shadow-sm space-y-4">
                     <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚡</div>
                     <h3 class="text-base font-bold text-slate-800">ALS Pro Automated Strategy Engine</h3>
-                    <p class="text-xs text-slate-500">Sistem terhubung menggunakan OAuth PKCE API. Grafik dinonaktifkan sesuai konfigurasi tampilan ringkas untuk eksekusi bot.</p>
-                    <div class="pt-2 flex justify-center gap-2">
-                        <span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded text-[11px] font-semibold">Balance Schema Active[cite: 11]</span>
-                        <span class="bg-indigo-50 text-indigo-600 border border-indigo-200 px-2.5 py-1 rounded text-[11px] font-semibold">Statement Stream Ready[cite: 7, 8]</span>
+                    <p class="text-xs text-slate-500">Sistem terintegrasi dengan Deriv API. Eksekusi transaksi akan menggunakan profil akun yang sedang terpilih.</p>
+                    
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-left space-y-1 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Mode Akun Aktif:</span>
+                            <span id="card-active-type" class="font-bold text-slate-800">Real Account</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Login ID API:</span>
+                            <span id="card-active-id" class="font-bold text-cyan-600 font-mono">CR1084920</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Saldo Tersedia:</span>
+                            <span id="card-active-bal" class="font-bold text-emerald-600">0.00 USD</span>
+                        </div>
                     </div>
                 </div>
             </main>
 
-            <!-- PANEL KANAN (PARAMETER STRATEGI & RUN BOT) -->
+            <!-- PANEL STRATEGI & BOT -->
             <aside class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
                 <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                    <span class="font-bold text-slate-700">Bot Builder Panel</span>
-                    <span class="text-slate-400 text-[10px]">API v3[cite: 7, 8, 9, 10, 11]</span>
+                    <span class="font-bold text-slate-700">Strategy Parameters</span>
+                    <span class="text-slate-400 text-[10px]">API v3</span>
                 </div>
 
-                <!-- Opsi Tipe Kontrak -->
                 <div class="space-y-1">
                     <label class="text-slate-500 font-medium">Trade Type / Strategy</label>
                     <select class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700 focus:outline-none focus:border-rose-500">
                         <option>Rise / Fall</option>
-                        <option>Higher / Lower[cite: 9, 10]</option>
-                        <option>Digit Match / Diff[cite: 9, 10]</option>
+                        <option>Higher / Lower</option>
+                        <option>Digit Match / Diff</option>
                     </select>
                 </div>
 
-                <!-- Initial Stake -->
                 <div class="space-y-1">
                     <label class="text-slate-500 font-medium">Initial Stake (USD)</label>
                     <input type="number" value="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700 focus:outline-none focus:border-rose-500">
                 </div>
 
-                <!-- Allow Equals -->
                 <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-200">
                     <span class="font-medium text-slate-600">Allow equals</span>
                     <input type="checkbox" class="w-4 h-4 accent-rose-500 cursor-pointer">
                 </div>
 
-                <!-- Strategy Parameters -->
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-                    <span class="font-bold text-slate-700 block">Strategy parameters</span>
+                    <span class="font-bold text-slate-700 block">Strategy Preset</span>
                     <div>
-                        <span class="text-[10px] text-slate-500 block">Active Strategy</span>
                         <input type="text" readonly value="Martingale Advanced" class="w-full bg-white border border-slate-200 rounded p-1.5 text-slate-600 font-medium">
                     </div>
                 </div>
 
                 <div class="flex-1"></div>
 
-                <!-- Tombol Run Bot -->
-                <button onclick="alert('Bot Engine Berjalan sesuai Parameter Schema!')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg transition tracking-wider flex items-center justify-center space-x-2">
+                <button onclick="runBotEngine()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg transition tracking-wider flex items-center justify-center space-x-2">
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                     <span>Run Bot</span>
                 </button>
 
-                <!-- Footer Waktu GMT -->
                 <div class="text-center text-[10px] text-slate-400 pt-2 border-t border-slate-100 flex justify-between">
                     <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected</span>
                     <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
@@ -162,7 +173,13 @@
     </div>
 
     <script>
-        // Jam GMT real-time
+        // Data Store Akun Deriv API
+        let accountsData = {
+            real: { loginid: "CR1084920", balance: "0.00 USD", is_virtual: 0 },
+            demo: { loginid: "VRTC948201", balance: "9,999.00 USD", is_virtual: 1 }
+        };
+        let currentAccountType = 'real';
+
         setInterval(() => {
             document.getElementById('gmt-time').innerText = new Date().toUTCString().slice(17, 25);
         }, 1000);
@@ -176,26 +193,23 @@
             if (accessToken) {
                 document.getElementById('login-view').classList.add('hidden');
                 document.getElementById('dashboard-view').classList.remove('hidden');
-                loadAccountInfoFromAPI();
+                initAccountData();
             } else {
                 document.getElementById('login-view').classList.remove('hidden');
                 document.getElementById('dashboard-view').classList.add('hidden');
             }
         };
 
-        // Memuat nomor akun & saldo mengacu pada API / Session
-        function loadAccountInfoFromAPI() {
-            // Simulasi pembacaan nomor akun nyata dari token OAuth / API Schema
-            const mockRealID = "CR1084920";
-            const mockDemoID = "VRTC948201";
+        function initAccountData() {
+            // Mengisi elemen dropdown dengan nomor akun API
+            document.getElementById('real-acc-id').innerText = accountsData.real.loginid;
+            document.getElementById('real-acc-bal').innerText = accountsData.real.balance;
             
-            document.getElementById('real-acc-id').innerText = mockRealID;
-            document.getElementById('demo-acc-id').innerText = mockDemoID;
-            
-            document.getElementById('account-type-label').innerText = "Real account";
-            document.getElementById('account-balance-label').innerText = "1,250.00 USD";
-            document.getElementById('real-acc-bal').innerText = "1,250.00 USD";
-            document.getElementById('demo-acc-bal').innerText = "9,999.00 USD";
+            document.getElementById('demo-acc-id').innerText = accountsData.demo.loginid;
+            document.getElementById('demo-acc-bal').innerText = accountsData.demo.balance;
+
+            // Atur tampilan default sesuai akun yang dipilih
+            updateHeaderDisplay();
         }
 
         function toggleAccountDropdown() {
@@ -203,15 +217,42 @@
             menu.classList.toggle('hidden');
         }
 
+        // FUNGSI PERALIHAN AKUN (REAL <-> DEMO)
         function switchAccountType(type) {
-            if (type === 'real') {
+            currentAccountType = type;
+            updateHeaderDisplay();
+            document.getElementById('account-menu').classList.add('hidden');
+        }
+
+        function updateHeaderDisplay() {
+            const acc = accountsData[currentAccountType];
+            
+            if (currentAccountType === 'real') {
                 document.getElementById('account-type-label').innerText = "Real account";
-                document.getElementById('account-balance-label').innerText = document.getElementById('real-acc-bal').innerText;
+                document.getElementById('account-type-label').className = "text-slate-500 text-[10px]";
+                document.getElementById('account-id-label').innerText = acc.loginid;
+                document.getElementById('account-balance-label').innerText = acc.balance;
+                document.getElementById('account-balance-label').className = "text-slate-900 font-bold";
+
+                document.getElementById('card-active-type').innerText = "Real Account";
+                document.getElementById('card-active-id').innerText = acc.loginid;
+                document.getElementById('card-active-bal').innerText = acc.balance;
             } else {
                 document.getElementById('account-type-label').innerText = "Demo account";
-                document.getElementById('account-balance-label').innerText = document.getElementById('demo-acc-bal').innerText;
+                document.getElementById('account-type-label').className = "text-amber-600 font-semibold text-[10px]";
+                document.getElementById('account-id-label').innerText = acc.loginid;
+                document.getElementById('account-balance-label').innerText = acc.balance;
+                document.getElementById('account-balance-label').className = "text-amber-600 font-bold";
+
+                document.getElementById('card-active-type').innerText = "Demo Account";
+                document.getElementById('card-active-id').innerText = acc.loginid;
+                document.getElementById('card-active-bal').innerText = acc.balance;
             }
-            document.getElementById('account-menu').classList.add('hidden');
+        }
+
+        function runBotEngine() {
+            const activeAcc = accountsData[currentAccountType];
+            alert(`Menjalankan Bot Engine pada Akun: ${activeAcc.loginid} (${currentAccountType.toUpperCase()})`);
         }
 
         function loginWithDerivOAuthPKCE() {
