@@ -3,8 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALS Pro - Deriv Trading Dashboard</title>
+    <title>ALS Pro - Automated Strategy Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .strategy-table input, .strategy-table select {
+            background-color: transparent;
+            width: 100%;
+            font-size: 11px;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .strategy-table input:focus, .strategy-table select:focus {
+            background-color: #ffffff;
+            outline: 2px solid #0d9488;
+        }
+        .strategy-table td {
+            padding: 2px 4px;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+        }
+    </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
 
@@ -26,14 +44,14 @@
         </div>
     </div>
 
-    <!-- VIEW 2: DASHBOARD UTAMA (DERIV DBOT TEMPLATE STYLE) -->
+    <!-- VIEW 2: DASHBOARD UTAMA -->
     <div id="dashboard-view" class="flex-1 flex flex-col hidden">
         
-        <!-- HEADER ATAS -->
+        <!-- HEADER ATAS (JUDUL PERBAIKAN) -->
         <header class="bg-white border-b border-slate-200 px-4 py-2.5 flex justify-between items-center shadow-sm">
-            <div class="flex items-center space-x-4">
-                <div class="bg-rose-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">DT</div>
-                <span class="text-sm font-bold text-slate-700">Volatility 100 (1s) Index</span>
+            <div class="flex items-center space-x-3">
+                <div class="bg-teal-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">ALS</div>
+                <span class="text-sm font-bold text-slate-800 tracking-wide">ALS Pro Automated Strategy Engine</span>
             </div>
 
             <div class="flex items-center space-x-4">
@@ -50,19 +68,15 @@
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     
-                    <!-- MENU SELEKSI AKUN -->
                     <div id="account-menu" class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
-                        <!-- Pilihan Real Account -->
-                        <div onclick="switchAccountType('real')" id="item-real-acc" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border border-transparent">
+                        <div onclick="switchAccountType('real')" id="item-real-acc" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition">
                             <div>
                                 <span class="text-slate-500 block text-[10px] font-semibold">Real account</span>
                                 <span id="real-acc-id" class="font-bold text-slate-800 font-mono">CR1084920</span>
                             </div>
                             <span id="real-acc-bal" class="font-bold text-slate-900">0.00 USD</span>
                         </div>
-                        
-                        <!-- Pilihan Demo Account -->
-                        <div onclick="switchAccountType('demo')" id="item-demo-acc" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border border-transparent border-t-slate-100">
+                        <div onclick="switchAccountType('demo')" id="item-demo-acc" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border-t border-slate-100">
                             <div>
                                 <span class="text-amber-600 block text-[10px] font-semibold">Demo account</span>
                                 <span id="demo-acc-id" class="font-bold text-slate-800 font-mono">VRTC948201</span>
@@ -76,20 +90,20 @@
             </div>
         </header>
 
-        <!-- KONTEN UTAMA: SIDEBAR + AREA TENGAH + PANEL BOT -->
+        <!-- KONTEN UTAMA -->
         <div class="flex-1 flex overflow-hidden">
             
             <!-- SIDEBAR KIRI -->
             <aside class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 space-y-6 text-[10px] text-slate-500">
-                <div class="flex flex-col items-center cursor-pointer hover:text-rose-500">
+                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     Home
                 </div>
-                <div class="flex flex-col items-center cursor-pointer hover:text-rose-500">
+                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     Positions
                 </div>
-                <div class="flex flex-col items-center cursor-pointer hover:text-rose-500">
+                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a1 1 0 01-1 1z"></path></svg>
                     Reports
                 </div>
@@ -100,25 +114,65 @@
                 </div>
             </aside>
 
-            <!-- AREA TENGAH -->
-            <main class="flex-1 bg-slate-50 p-6 flex flex-col justify-center items-center text-center space-y-4">
-                <div class="bg-white border border-slate-200 rounded-2xl p-8 max-w-lg shadow-sm space-y-4">
-                    <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚡</div>
-                    <h3 class="text-base font-bold text-slate-800">ALS Pro Automated Strategy Engine</h3>
-                    <p class="text-xs text-slate-500">Sistem terintegrasi dengan Deriv API. Eksekusi transaksi akan menggunakan profil akun yang sedang terpilih.</p>
+            <!-- AREA TENGAH: MANAJEMEN TABEL STRATEGI MULTI-LEVEL -->
+            <main class="flex-1 bg-slate-50 p-4 flex flex-col space-y-3 overflow-hidden">
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col flex-1 overflow-hidden">
                     
-                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-left space-y-1 text-xs">
-                        <div class="flex justify-between">
-                            <span class="text-slate-500">Mode Akun Aktif:</span>
-                            <span id="card-active-type" class="font-bold text-slate-800">Real Account</span>
+                    <!-- Header Tabel Strategi -->
+                    <div class="bg-teal-600 text-white font-bold px-4 py-2 text-center text-sm tracking-wider uppercase">
+                        STRATEGY MANAGEMENT PANEL
+                    </div>
+
+                    <!-- Wadah Scroll Tabel -->
+                    <div class="flex-1 overflow-auto">
+                        <table class="w-full text-left border-collapse strategy-table text-xs">
+                            <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b border-slate-300 shadow-sm">
+                                <tr>
+                                    <th class="p-2 border-r border-slate-300 text-center w-12">Level</th>
+                                    <th class="p-2 border-r border-slate-300">Contract Type</th>
+                                    <th class="p-2 border-r border-slate-300">Market</th>
+                                    <th class="p-2 border-r border-slate-300">Sub Market</th>
+                                    <th class="p-2 border-r border-slate-300">Purchase Type</th>
+                                    <th class="p-2 border-r border-slate-300">High</th>
+                                    <th class="p-2 border-r border-slate-300">Low</th>
+                                    <th class="p-2 border-r border-slate-300">Last Digit</th>
+                                    <th class="p-2 border-r border-slate-300">Duration</th>
+                                    <th class="p-2 border-r border-slate-300">Unit</th>
+                                    <th class="p-2 border-r border-slate-300">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="strategy-table-body" class="bg-white divide-y divide-slate-200">
+                                <!-- Row strategi diisi otomatis via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tombol Aksi Kontrol Strategi (Sesuai Lampiran 2) -->
+                    <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="addStrategyRow()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Add Level</button>
+                            <button onclick="deleteLastRow()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Delete Last</button>
+                            <button onclick="clearStrategy()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Clear</button>
+                            <label class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer">
+                                Save/Load
+                                <input type="file" id="load-file-input" accept=".txt,.csv" onchange="loadStrategyFromFile(event)" class="hidden">
+                            </label>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-500">Login ID API:</span>
-                            <span id="card-active-id" class="font-bold text-cyan-600 font-mono">CR1084920</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-500">Saldo Tersedia:</span>
-                            <span id="card-active-bal" class="font-bold text-emerald-600">0.00 USD</span>
+
+                        <!-- Target Profit, Stop Loss & Total Profit -->
+                        <div class="flex items-center space-x-6 font-semibold">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-slate-600">Target Profit:</span>
+                                <input type="number" id="target-profit" value="10" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold">
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-slate-600">Stop Loss:</span>
+                                <input type="number" id="stop-loss" value="-33" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold">
+                            </div>
+                            <div class="flex items-center space-x-2 text-sm">
+                                <span class="text-slate-700 font-bold">Total Profit:</span>
+                                <span id="total-profit" class="text-emerald-600 font-black">$0.00</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -128,12 +182,12 @@
             <aside class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
                 <div class="flex justify-between items-center border-b border-slate-100 pb-2">
                     <span class="font-bold text-slate-700">Strategy Parameters</span>
-                    <span class="text-slate-400 text-[10px]">API v3</span>
+                    <span class="text-slate-400 text-[10px]">Deriv API v3</span>
                 </div>
 
                 <div class="space-y-1">
                     <label class="text-slate-500 font-medium">Trade Type / Strategy</label>
-                    <select class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700 focus:outline-none focus:border-rose-500">
+                    <select class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700 focus:outline-none focus:border-teal-500">
                         <option>Rise / Fall</option>
                         <option>Higher / Lower</option>
                         <option>Digit Match / Diff</option>
@@ -142,18 +196,18 @@
 
                 <div class="space-y-1">
                     <label class="text-slate-500 font-medium">Initial Stake (USD)</label>
-                    <input type="number" value="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700 focus:outline-none focus:border-rose-500">
+                    <input type="number" value="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700 focus:outline-none focus:border-teal-500">
                 </div>
 
                 <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-200">
                     <span class="font-medium text-slate-600">Allow equals</span>
-                    <input type="checkbox" class="w-4 h-4 accent-rose-500 cursor-pointer">
+                    <input type="checkbox" class="w-4 h-4 accent-teal-600 cursor-pointer">
                 </div>
 
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
                     <span class="font-bold text-slate-700 block">Strategy Preset</span>
                     <div>
-                        <input type="text" readonly value="Martingale Advanced" class="w-full bg-white border border-slate-200 rounded p-1.5 text-slate-600 font-medium">
+                        <input type="text" readonly value="Martingale Advanced Multi-Level" class="w-full bg-white border border-slate-200 rounded p-1.5 text-slate-600 font-medium">
                     </div>
                 </div>
 
@@ -173,10 +227,18 @@
     </div>
 
     <script>
-        // Data Store Akun Deriv API
+        // Data Default dari file TXT Strategy
+        let defaultStrategyData = [
+            { level: 1, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.35 },
+            { level: 2, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.60 },
+            { level: 3, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 1.50 },
+            { level: 4, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Lower", high: "+0.6", low: "", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 7.00 },
+            { level: 5, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Lower", high: "+0.6", low: "", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 24.00 }
+        ];
+
         let accountsData = {
-            real: { loginid: "CR1084920", balance: "0.00 USD", is_virtual: 0 },
-            demo: { loginid: "VRTC948201", balance: "9,999.00 USD", is_virtual: 1 }
+            real: { loginid: "CR1084920", balance: "0.00 USD" },
+            demo: { loginid: "VRTC948201", balance: "9,999.00 USD" }
         };
         let currentAccountType = 'real';
 
@@ -193,74 +255,144 @@
             if (accessToken) {
                 document.getElementById('login-view').classList.add('hidden');
                 document.getElementById('dashboard-view').classList.remove('hidden');
-                initAccountData();
+                renderStrategyTable(defaultStrategyData);
             } else {
                 document.getElementById('login-view').classList.remove('hidden');
                 document.getElementById('dashboard-view').classList.add('hidden');
             }
         };
 
-        function initAccountData() {
-            // Mengisi elemen dropdown dengan nomor akun API
-            document.getElementById('real-acc-id').innerText = accountsData.real.loginid;
-            document.getElementById('real-acc-bal').innerText = accountsData.real.balance;
-            
-            document.getElementById('demo-acc-id').innerText = accountsData.demo.loginid;
-            document.getElementById('demo-acc-bal').innerText = accountsData.demo.balance;
+        // RENDER TABEL STRATEGI MULTI-LEVEL
+        function renderStrategyTable(dataList) {
+            const tbody = document.getElementById('strategy-table-body');
+            tbody.innerHTML = '';
 
-            // Atur tampilan default sesuai akun yang dipilih
-            updateHeaderDisplay();
+            dataList.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200";
+                tr.innerHTML = `
+                    <td class="text-center font-bold text-slate-600 bg-slate-50">Level ${index + 1}</td>
+                    <td><input type="text" value="${item.contract_type || 'Up/Down'}"></td>
+                    <td><input type="text" value="${item.market || 'Volatility'}"></td>
+                    <td><input type="text" value="${item.submarket || 'Bull Market Index'}"></td>
+                    <td><input type="text" value="${item.purchase_type || 'Higher'}"></td>
+                    <td><input type="text" value="${item.high || ''}"></td>
+                    <td><input type="text" value="${item.low || ''}"></td>
+                    <td><input type="text" value="${item.last_digit || ''}"></td>
+                    <td><input type="number" value="${item.duration_amount || 5}"></td>
+                    <td>
+                        <select>
+                            <option ${item.duration_unit === 'Tick' ? 'selected' : ''}>Tick</option>
+                            <option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option>
+                            <option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option>
+                        </select>
+                    </td>
+                    <td><input type="number" step="0.01" value="${item.amount || 0.35}" class="font-bold text-teal-700"></td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
-        function toggleAccountDropdown() {
-            const menu = document.getElementById('account-menu');
-            menu.classList.toggle('hidden');
+        function addStrategyRow() {
+            const tbody = document.getElementById('strategy-table-body');
+            const count = tbody.children.length + 1;
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200";
+            tr.innerHTML = `
+                <td class="text-center font-bold text-slate-600 bg-slate-50">Level ${count}</td>
+                <td><input type="text" value="Up/Down"></td>
+                <td><input type="text" value="Volatility"></td>
+                <td><input type="text" value="Bull Market Index"></td>
+                <td><input type="text" value="Higher"></td>
+                <td><input type="text" value=""></td>
+                <td><input type="text" value="-0.2"></td>
+                <td><input type="text" value=""></td>
+                <td><input type="number" value="5"></td>
+                <td><select><option>Tick</option><option>Seconds</option></select></td>
+                <td><input type="number" step="0.01" value="0.35" class="font-bold text-teal-700"></td>
+            `;
+            tbody.appendChild(tr);
         }
 
-        // FUNGSI PERALIHAN AKUN (REAL <-> DEMO)
-        function switchAccountType(type) {
-            currentAccountType = type;
-            updateHeaderDisplay();
-            document.getElementById('account-menu').classList.add('hidden');
-        }
-
-        function updateHeaderDisplay() {
-            const acc = accountsData[currentAccountType];
-            
-            if (currentAccountType === 'real') {
-                document.getElementById('account-type-label').innerText = "Real account";
-                document.getElementById('account-type-label').className = "text-slate-500 text-[10px]";
-                document.getElementById('account-id-label').innerText = acc.loginid;
-                document.getElementById('account-balance-label').innerText = acc.balance;
-                document.getElementById('account-balance-label').className = "text-slate-900 font-bold";
-
-                document.getElementById('card-active-type').innerText = "Real Account";
-                document.getElementById('card-active-id').innerText = acc.loginid;
-                document.getElementById('card-active-bal').innerText = acc.balance;
-            } else {
-                document.getElementById('account-type-label').innerText = "Demo account";
-                document.getElementById('account-type-label').className = "text-amber-600 font-semibold text-[10px]";
-                document.getElementById('account-id-label').innerText = acc.loginid;
-                document.getElementById('account-balance-label').innerText = acc.balance;
-                document.getElementById('account-balance-label').className = "text-amber-600 font-bold";
-
-                document.getElementById('card-active-type').innerText = "Demo Account";
-                document.getElementById('card-active-id').innerText = acc.loginid;
-                document.getElementById('card-active-bal').innerText = acc.balance;
+        function deleteLastRow() {
+            const tbody = document.getElementById('strategy-table-body');
+            if (tbody.children.length > 0) {
+                tbody.removeChild(tbody.lastChild);
             }
         }
 
+        function clearStrategy() {
+            document.getElementById('strategy-table-body').innerHTML = '';
+        }
+
+        function loadStrategyFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n');
+                let parsedList = [];
+
+                lines.forEach((line, idx) => {
+                    if (idx === 0 || !line.trim()) return; // Skip Header
+                    const cols = line.split(',');
+                    if (cols.length >= 15) {
+                        parsedList.push({
+                            level: cols[1],
+                            contract_type: cols[2],
+                            market: cols[3],
+                            submarket: cols[4],
+                            purchase_type: cols[5],
+                            high: cols[6],
+                            low: cols[7],
+                            last_digit: cols[8],
+                            duration_amount: cols[10],
+                            duration_unit: cols[11],
+                            amount: cols[14]
+                        });
+                    }
+                });
+
+                if (parsedList.length > 0) {
+                    renderStrategyTable(parsedList);
+                } else {
+                    alert('Format file strategi tidak cocok.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function toggleAccountDropdown() {
+            document.getElementById('account-menu').classList.toggle('hidden');
+        }
+
+        function switchAccountType(type) {
+            currentAccountType = type;
+            const acc = accountsData[type];
+            if (type === 'real') {
+                document.getElementById('account-type-label').innerText = "Real account";
+                document.getElementById('account-id-label').innerText = acc.loginid;
+                document.getElementById('account-balance-label').innerText = acc.balance;
+                document.getElementById('account-balance-label').className = "text-slate-900 font-bold";
+            } else {
+                document.getElementById('account-type-label').innerText = "Demo account";
+                document.getElementById('account-id-label').innerText = acc.loginid;
+                document.getElementById('account-balance-label').innerText = acc.balance;
+                document.getElementById('account-balance-label').className = "text-amber-600 font-bold";
+            }
+            document.getElementById('account-menu').classList.add('hidden');
+        }
+
         function runBotEngine() {
-            const activeAcc = accountsData[currentAccountType];
-            alert(`Menjalankan Bot Engine pada Akun: ${activeAcc.loginid} (${currentAccountType.toUpperCase()})`);
+            const rowCount = document.getElementById('strategy-table-body').children.length;
+            alert(`Menjalankan Bot ALS Pro (${rowCount} Level Strategi Aktif) pada Akun ${accountsData[currentAccountType].loginid}`);
         }
 
         function loginWithDerivOAuthPKCE() {
             const clientId = document.getElementById('client_id').value.trim();
-            if (!clientId) {
-                alert('OAuth Client ID wajib diisi!');
-                return;
-            }
+            if (!clientId) return alert('OAuth Client ID wajib diisi!');
             localStorage.setItem('deriv_client_id', clientId);
 
             const array = crypto.getRandomValues(new Uint8Array(64));
@@ -269,38 +401,29 @@
                 .join('');
 
             const encoder = new TextEncoder();
-            const data = encoder.encode(codeVerifier);
-            
-            crypto.subtle.digest('SHA-256', data).then(digest => {
+            crypto.subtle.digest('SHA-256', encoder.encode(codeVerifier)).then(digest => {
                 const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
-                    .replace(/\+/g, '-')
-                    .replace(/\//g, '_')
-                    .replace(/=+$/, '');
-
+                    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
                 const state = crypto.randomUUID();
                 localStorage.setItem('pkce_code_verifier', codeVerifier);
                 localStorage.setItem('oauth_state', state);
                 localStorage.setItem('pending_client_id', clientId);
 
-                const redirectUri = "https://tradelib.net/trade-callback";
                 const params = new URLSearchParams({
                     client_id: clientId,
-                    redirect_uri: redirectUri,
+                    redirect_uri: "https://tradelib.net/trade-callback",
                     response_type: 'code',
                     scope: 'trade',
                     state: state,
                     code_challenge: codeChallenge,
                     code_challenge_method: 'S256'
                 });
-
                 window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
             });
         }
 
         function handleLogout() {
             localStorage.removeItem('deriv_access_token');
-            localStorage.removeItem('pkce_code_verifier');
-            localStorage.removeItem('oauth_state');
             document.getElementById('dashboard-view').classList.add('hidden');
             document.getElementById('login-view').classList.remove('hidden');
         }
