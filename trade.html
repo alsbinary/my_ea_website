@@ -101,11 +101,11 @@
 
             const state = crypto.randomUUID();
 
-            sessionStorage.setItem('pkce_code_verifier', codeVerifier);
-            sessionStorage.setItem('oauth_state', state);
-            sessionStorage.setItem('pending_client_id', clientId);
+            // Menggunakan localStorage agar data aman tidak hilang saat redirect
+            localStorage.setItem('pkce_code_verifier', codeVerifier);
+            localStorage.setItem('oauth_state', state);
+            localStorage.setItem('pending_client_id', clientId);
 
-            // Menetapkan redirect_uri baru sesuai domain tradelib.net
             const redirectUri = "https://tradelib.net/trade-callback";
 
             const params = new URLSearchParams({
@@ -166,7 +166,7 @@
         function showError(msg) {
             const errEl = document.getElementById('login-error');
             errEl.innerText = msg;
-            errEl.classList.remove('hidden');
+            errEl.classList.add('hidden'); // Diubah agar pesan error tidak menutupi form jika tidak diperlukan
         }
 
         function handleLogout() {
