@@ -45,9 +45,9 @@
     </div>
 
     <!-- VIEW 2: DASHBOARD UTAMA -->
-    <div id="dashboard-view" class="flex-1 flex flex-col hidden">
+    <div id="dashboard-view" class="flex-1 flex flex-col hidden relative">
         
-        <!-- HEADER ATAS (JUDUL PERBAIKAN) -->
+        <!-- HEADER ATAS -->
         <header class="bg-white border-b border-slate-200 px-4 py-2.5 flex justify-between items-center shadow-sm">
             <div class="flex items-center space-x-3">
                 <div class="bg-teal-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">ALS</div>
@@ -69,14 +69,14 @@
                     </button>
                     
                     <div id="account-menu" class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
-                        <div onclick="switchAccountType('real')" id="item-real-acc" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition">
+                        <div onclick="switchAccountType('real')" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition">
                             <div>
                                 <span class="text-slate-500 block text-[10px] font-semibold">Real account</span>
                                 <span id="real-acc-id" class="font-bold text-slate-800 font-mono">CR1084920</span>
                             </div>
                             <span id="real-acc-bal" class="font-bold text-slate-900">0.00 USD</span>
                         </div>
-                        <div onclick="switchAccountType('demo')" id="item-demo-acc" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border-t border-slate-100">
+                        <div onclick="switchAccountType('demo')" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border-t border-slate-100">
                             <div>
                                 <span class="text-amber-600 block text-[10px] font-semibold">Demo account</span>
                                 <span id="demo-acc-id" class="font-bold text-slate-800 font-mono">VRTC948201</span>
@@ -114,16 +114,13 @@
                 </div>
             </aside>
 
-            <!-- AREA TENGAH: MANAJEMEN TABEL STRATEGI MULTI-LEVEL -->
+            <!-- AREA TENGAH: TABEL STRATEGI -->
             <main class="flex-1 bg-slate-50 p-4 flex flex-col space-y-3 overflow-hidden">
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col flex-1 overflow-hidden">
-                    
-                    <!-- Header Tabel Strategi -->
                     <div class="bg-teal-600 text-white font-bold px-4 py-2 text-center text-sm tracking-wider uppercase">
                         STRATEGY MANAGEMENT PANEL
                     </div>
 
-                    <!-- Wadah Scroll Tabel -->
                     <div class="flex-1 overflow-auto">
                         <table class="w-full text-left border-collapse strategy-table text-xs">
                             <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b border-slate-300 shadow-sm">
@@ -142,15 +139,15 @@
                                 </tr>
                             </thead>
                             <tbody id="strategy-table-body" class="bg-white divide-y divide-slate-200">
-                                <!-- Row strategi diisi otomatis via JS -->
+                                <!-- Diisi via JS -->
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Tombol Aksi Kontrol Strategi (Sesuai Lampiran 2) -->
                     <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
                         <div class="flex items-center space-x-2">
-                            <button onclick="addStrategyRow()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Add Level</button>
+                            <!-- Tombol Add Level memicu Modal Popup -->
+                            <button onclick="openAddModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm">Add Level (+)</button>
                             <button onclick="deleteLastRow()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Delete Last</button>
                             <button onclick="clearStrategy()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Clear</button>
                             <label class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer">
@@ -159,7 +156,6 @@
                             </label>
                         </div>
 
-                        <!-- Target Profit, Stop Loss & Total Profit -->
                         <div class="flex items-center space-x-6 font-semibold">
                             <div class="flex items-center space-x-2">
                                 <span class="text-slate-600">Target Profit:</span>
@@ -178,7 +174,7 @@
                 </div>
             </main>
 
-            <!-- PANEL STRATEGI & BOT -->
+            <!-- PANEL KANAN -->
             <aside class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
                 <div class="flex justify-between items-center border-b border-slate-100 pb-2">
                     <span class="font-bold text-slate-700">Strategy Parameters</span>
@@ -187,7 +183,7 @@
 
                 <div class="space-y-1">
                     <label class="text-slate-500 font-medium">Trade Type / Strategy</label>
-                    <select class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700 focus:outline-none focus:border-teal-500">
+                    <select class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700">
                         <option>Rise / Fall</option>
                         <option>Higher / Lower</option>
                         <option>Digit Match / Diff</option>
@@ -196,19 +192,12 @@
 
                 <div class="space-y-1">
                     <label class="text-slate-500 font-medium">Initial Stake (USD)</label>
-                    <input type="number" value="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700 focus:outline-none focus:border-teal-500">
+                    <input type="number" value="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700">
                 </div>
 
                 <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-200">
                     <span class="font-medium text-slate-600">Allow equals</span>
                     <input type="checkbox" class="w-4 h-4 accent-teal-600 cursor-pointer">
-                </div>
-
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-                    <span class="font-bold text-slate-700 block">Strategy Preset</span>
-                    <div>
-                        <input type="text" readonly value="Martingale Advanced Multi-Level" class="w-full bg-white border border-slate-200 rounded p-1.5 text-slate-600 font-medium">
-                    </div>
                 </div>
 
                 <div class="flex-1"></div>
@@ -226,14 +215,133 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP: ADD LEVEL DENGAN CHART & API MARKET -->
+    <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
+                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi & Real-time Chart (Deriv API)</h3>
+                <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-lg">&times;</button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto text-xs">
+                
+                <!-- Kolom Kiri: Form Isian Parameter Strategi -->
+                <div class="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[11px]">Parameter Kontrak & Pasar</h4>
+                    
+                    <div class="space-y-1">
+                        <label class="font-medium text-slate-600">Pilih Market & Submarket (API)</label>
+                        <select id="modal-market" class="w-full bg-white border border-slate-300 rounded-lg p-2 font-semibold">
+                            <option value="Volatility 100 (1s) Index|1HZ100V">Volatility 100 (1s) Index (1HZ100V)</option>
+                            <option value="Volatility 75 Index|R_75">Volatility 75 Index (R_75)</option>
+                            <option value="Boom 1000 Index|BOOM1000">Boom 1000 Index (BOOM1000)</option>
+                            <option value="Crash 1000 Index|CRASH1000">Crash 1000 Index (CRASH1000)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="font-medium text-slate-600">Contract Type</label>
+                            <select id="modal-contract" class="w-full bg-white border border-slate-300 rounded-lg p-2 font-semibold">
+                                <option>Up/Down</option>
+                                <option>Higher/Lower</option>
+                                <option>Digit Match/Diff</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="font-medium text-slate-600">Purchase Type</label>
+                            <select id="modal-purchase" class="w-full bg-white border border-slate-300 rounded-lg p-2 font-semibold">
+                                <option>Higher</option>
+                                <option>Lower</option>
+                                <option>Digit Match</option>
+                                <option>Digit Diff</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="font-medium text-slate-600">High</label>
+                            <input type="text" id="modal-high" class="w-full bg-white border border-slate-300 rounded p-1.5" placeholder="+0.6">
+                        </div>
+                        <div>
+                            <label class="font-medium text-slate-600">Low</label>
+                            <input type="text" id="modal-low" class="w-full bg-white border border-slate-300 rounded p-1.5" placeholder="-0.2">
+                        </div>
+                        <div>
+                            <label class="font-medium text-slate-600">Last Digit</label>
+                            <input type="text" id="modal-digit" class="w-full bg-white border border-slate-300 rounded p-1.5" placeholder="">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="font-medium text-slate-600">Duration</label>
+                            <input type="number" id="modal-duration" value="5" class="w-full bg-white border border-slate-300 rounded p-1.5">
+                        </div>
+                        <div>
+                            <label class="font-medium text-slate-600">Unit</label>
+                            <select id="modal-unit" class="w-full bg-white border border-slate-300 rounded p-1.5">
+                                <option>Tick</option>
+                                <option>Seconds</option>
+                                <option>Minutes</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
+                            <input type="number" step="0.01" id="modal-amount" value="0.35" class="w-full bg-white border border-teal-500 rounded p-1.5 font-bold text-teal-700">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Simulasi Real-Time Chart (Referensi DTrader & Ticks API) -->
+                <div class="space-y-3 flex flex-col">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-700">Real-time Tick Chart (API Stream)</span>
+                        <span id="chart-symbol-badge" class="bg-teal-50 text-teal-600 border border-teal-200 px-2 py-0.5 rounded text-[10px] font-mono">1HZ100V</span>
+                    </div>
+                    
+                    <!-- Kotak Render Chart -->
+                    <div class="flex-1 bg-slate-950 rounded-xl border border-slate-800 p-4 flex flex-col justify-between relative min-h-[220px]">
+                        <div class="absolute top-3 left-3 text-[10px] text-slate-400 font-mono">Interval: 1t | Type: Area Chart</div>
+                        <div class="absolute top-3 right-3 text-emerald-400 font-mono font-bold text-xs" id="live-tick-price">1168.47</div>
+                        
+                        <!-- Garis Grafik Simulasi Visual SVG -->
+                        <div class="flex-1 flex items-center justify-center my-auto">
+                            <svg class="w-full h-28 text-teal-500" viewBox="0 0 300 100" fill="none">
+                                <path d="M0 80 Q 50 20, 100 60 T 200 30 T 300 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M0 80 Q 50 20, 100 60 T 200 30 T 300 10 V 100 H 0 Z" fill="url(#grad)" fill-opacity="0.2"/>
+                                <defs>
+                                    <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#0d9488" />
+                                        <stop offset="100%" stop-color="transparent" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+
+                        <div class="text-[10px] text-slate-500 text-center font-mono">Connected via wss://ws.derivws.com/websockets/v3</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 bg-slate-100 border-t border-slate-200 flex justify-end space-x-3">
+                <button onclick="closeAddModal()" class="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 rounded text-slate-700 font-semibold text-xs">Batal</button>
+                <button onclick="confirmAddStrategy()" class="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded font-bold text-xs shadow">Tambahkan ke Tabel</button>
+            </div>
+
+        </div>
+    </div>
+
     <script>
-        // Data Default dari file TXT Strategy
         let defaultStrategyData = [
             { level: 1, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.35 },
-            { level: 2, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.60 },
-            { level: 3, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 1.50 },
-            { level: 4, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Lower", high: "+0.6", low: "", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 7.00 },
-            { level: 5, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Lower", high: "+0.6", low: "", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 24.00 }
+            { level: 2, contract_type: "Up/Down", market: "Volatility", submarket: "Bull Market Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.60 }
         ];
 
         let accountsData = {
@@ -262,7 +370,6 @@
             }
         };
 
-        // RENDER TABEL STRATEGI MULTI-LEVEL
         function renderStrategyTable(dataList) {
             const tbody = document.getElementById('strategy-table-body');
             tbody.innerHTML = '';
@@ -272,57 +379,62 @@
                 tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200";
                 tr.innerHTML = `
                     <td class="text-center font-bold text-slate-600 bg-slate-50">Level ${index + 1}</td>
-                    <td><input type="text" value="${item.contract_type || 'Up/Down'}"></td>
-                    <td><input type="text" value="${item.market || 'Volatility'}"></td>
-                    <td><input type="text" value="${item.submarket || 'Bull Market Index'}"></td>
-                    <td><input type="text" value="${item.purchase_type || 'Higher'}"></td>
-                    <td><input type="text" value="${item.high || ''}"></td>
-                    <td><input type="text" value="${item.low || ''}"></td>
-                    <td><input type="text" value="${item.last_digit || ''}"></td>
-                    <td><input type="number" value="${item.duration_amount || 5}"></td>
-                    <td>
-                        <select>
-                            <option ${item.duration_unit === 'Tick' ? 'selected' : ''}>Tick</option>
-                            <option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option>
-                            <option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option>
-                        </select>
-                    </td>
-                    <td><input type="number" step="0.01" value="${item.amount || 0.35}" class="font-bold text-teal-700"></td>
+                    <td><input type="text" value="${item.contract_type}"></td>
+                    <td><input type="text" value="${item.market}"></td>
+                    <td><input type="text" value="${item.submarket}"></td>
+                    <td><input type="text" value="${item.purchase_type}"></td>
+                    <td><input type="text" value="${item.high}"></td>
+                    <td><input type="text" value="${item.low}"></td>
+                    <td><input type="text" value="${item.last_digit}"></td>
+                    <td><input type="number" value="${item.duration_amount}"></td>
+                    <td><select><option ${item.duration_unit === 'Tick' ? 'selected' : ''}>Tick</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option></select></td>
+                    <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function addStrategyRow() {
-            const tbody = document.getElementById('strategy-table-body');
-            const count = tbody.children.length + 1;
-            const tr = document.createElement('tr');
-            tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200";
-            tr.innerHTML = `
-                <td class="text-center font-bold text-slate-600 bg-slate-50">Level ${count}</td>
-                <td><input type="text" value="Up/Down"></td>
-                <td><input type="text" value="Volatility"></td>
-                <td><input type="text" value="Bull Market Index"></td>
-                <td><input type="text" value="Higher"></td>
-                <td><input type="text" value=""></td>
-                <td><input type="text" value="-0.2"></td>
-                <td><input type="text" value=""></td>
-                <td><input type="number" value="5"></td>
-                <td><select><option>Tick</option><option>Seconds</option></select></td>
-                <td><input type="number" step="0.01" value="0.35" class="font-bold text-teal-700"></td>
-            `;
-            tbody.appendChild(tr);
+        // FUNGSI MODAL POPUP
+        function openAddModal() {
+            document.getElementById('add-strategy-modal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-strategy-modal').classList.add('hidden');
+        }
+
+        function confirmAddStrategy() {
+            const marketFull = document.getElementById('modal-market').value.split('|');
+            const marketName = marketFull[0];
+
+            const newItem = {
+                contract_type: document.getElementById('modal-contract').value,
+                market: "Volatility",
+                submarket: marketName,
+                purchase_type: document.getElementById('modal-purchase').value,
+                high: document.getElementById('modal-high').value,
+                low: document.getElementById('modal-low').value,
+                last_digit: document.getElementById('modal-digit').value,
+                duration_amount: document.getElementById('modal-duration').value,
+                duration_unit: document.getElementById('modal-unit').value,
+                amount: parseFloat(document.getElementById('modal-amount').value)
+            };
+
+            defaultStrategyData.push(newItem);
+            renderStrategyTable(defaultStrategyData);
+            closeAddModal();
         }
 
         function deleteLastRow() {
-            const tbody = document.getElementById('strategy-table-body');
-            if (tbody.children.length > 0) {
-                tbody.removeChild(tbody.lastChild);
+            if (defaultStrategyData.length > 0) {
+                defaultStrategyData.pop();
+                renderStrategyTable(defaultStrategyData);
             }
         }
 
         function clearStrategy() {
-            document.getElementById('strategy-table-body').innerHTML = '';
+            defaultStrategyData = [];
+            renderStrategyTable(defaultStrategyData);
         }
 
         function loadStrategyFromFile(event) {
@@ -331,16 +443,13 @@
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                const text = e.target.result;
-                const lines = text.split('\n');
+                const lines = e.target.result.split('\n');
                 let parsedList = [];
-
                 lines.forEach((line, idx) => {
-                    if (idx === 0 || !line.trim()) return; // Skip Header
+                    if (idx === 0 || !line.trim()) return;
                     const cols = line.split(',');
                     if (cols.length >= 15) {
                         parsedList.push({
-                            level: cols[1],
                             contract_type: cols[2],
                             market: cols[3],
                             submarket: cols[4],
@@ -354,11 +463,11 @@
                         });
                     }
                 });
-
                 if (parsedList.length > 0) {
-                    renderStrategyTable(parsedList);
+                    defaultStrategyData = parsedList;
+                    renderStrategyTable(defaultStrategyData);
                 } else {
-                    alert('Format file strategi tidak cocok.');
+                    alert('Format file tidak sesuai.');
                 }
             };
             reader.readAsText(file);
@@ -371,23 +480,15 @@
         function switchAccountType(type) {
             currentAccountType = type;
             const acc = accountsData[type];
-            if (type === 'real') {
-                document.getElementById('account-type-label').innerText = "Real account";
-                document.getElementById('account-id-label').innerText = acc.loginid;
-                document.getElementById('account-balance-label').innerText = acc.balance;
-                document.getElementById('account-balance-label').className = "text-slate-900 font-bold";
-            } else {
-                document.getElementById('account-type-label').innerText = "Demo account";
-                document.getElementById('account-id-label').innerText = acc.loginid;
-                document.getElementById('account-balance-label').innerText = acc.balance;
-                document.getElementById('account-balance-label').className = "text-amber-600 font-bold";
-            }
+            document.getElementById('account-type-label').innerText = type === 'real' ? "Real account" : "Demo account";
+            document.getElementById('account-id-label').innerText = acc.loginid;
+            document.getElementById('account-balance-label').innerText = acc.balance;
+            document.getElementById('account-balance-label').className = type === 'real' ? "text-slate-900 font-bold" : "text-amber-600 font-bold";
             document.getElementById('account-menu').classList.add('hidden');
         }
 
         function runBotEngine() {
-            const rowCount = document.getElementById('strategy-table-body').children.length;
-            alert(`Menjalankan Bot ALS Pro (${rowCount} Level Strategi Aktif) pada Akun ${accountsData[currentAccountType].loginid}`);
+            alert(`Menjalankan Bot ALS Pro (${defaultStrategyData.length} Level) pada Akun ${accountsData[currentAccountType].loginid}`);
         }
 
         function loginWithDerivOAuthPKCE() {
@@ -396,18 +497,14 @@
             localStorage.setItem('deriv_client_id', clientId);
 
             const array = crypto.getRandomValues(new Uint8Array(64));
-            const codeVerifier = Array.from(array)
-                .map(v => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[v % 66])
-                .join('');
-
+            const codeVerifier = Array.from(array).map(v => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[v % 66]).join('');
             const encoder = new TextEncoder();
+            
             crypto.subtle.digest('SHA-256', encoder.encode(codeVerifier)).then(digest => {
-                const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
-                    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+                const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
                 const state = crypto.randomUUID();
                 localStorage.setItem('pkce_code_verifier', codeVerifier);
                 localStorage.setItem('oauth_state', state);
-                localStorage.setItem('pending_client_id', clientId);
 
                 const params = new URLSearchParams({
                     client_id: clientId,
