@@ -22,10 +22,10 @@
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
         }
-        .digit-btn {
+        .digit-btn, .choice-btn {
             transition: all 0.2s ease;
         }
-        .digit-btn.active {
+        .digit-btn.active, .choice-btn.active {
             background-color: #0f172a;
             color: #ffffff;
             border-color: #0f172a;
@@ -235,7 +235,7 @@
                             <tbody>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-2 font-bold text-slate-800">Level 1</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">Volatility 25 (1s)</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Matches / Differs</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Rise / Fall</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start time</td><td id="pf-starttime" class="p-2 font-mono text-slate-600">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-2 font-mono text-slate-600">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">0s</td></tr>
@@ -243,9 +243,9 @@
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">10.00</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Low Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-slate-700">1.95</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">1.00</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Price</td><td id="pf-price" class="p-2 text-slate-700">1.00</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-slate-700">0.68</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">0.35</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Price</td><td id="pf-price" class="p-2 text-slate-700">0.35</td></tr>
                                 <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">0.00</td></tr>
                             </tbody>
                         </table>
@@ -304,18 +304,24 @@
                     </select>
                 </div>
 
-                <!-- CONTAINER DINAMIS DIGIT PREDICTION (LENGKAP SEPERTI LAMPIRAN 1) -->
+                <!-- TOMBOL PILIHAN ARAH INTERAKTIF UNTUK RISE/FALL & HIGHER/LOWER -->
+                <div id="choice-buttons-container" class="space-y-1 pt-1">
+                    <label class="font-medium text-slate-600 block" id="choice-label">Prediction Direction</label>
+                    <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid">
+                        <!-- Diisi via JS -->
+                    </div>
+                </div>
+
+                <!-- CONTAINER DINAMIS DIGIT PREDICTION -->
                 <div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
-                    
-                    <!-- TAB OPTIONS SESUAI JENIS KONTRAK YANG DIPILIH -->
                     <div id="digit-subtabs" class="flex justify-start space-x-2 border-b border-slate-200 pb-2">
-                        <!-- Diisi via JS: Matches/Differs, Over/Under, Even/Odd -->
+                        <!-- Diisi via JS -->
                     </div>
 
                     <div id="digit-grid-wrapper" class="space-y-2">
                         <span class="font-bold text-slate-700 block">Last digit prediction</span>
                         <div class="grid grid-cols-5 gap-2" id="digit-grid">
-                            <!-- Tombol Digit 0-9 & probabilitas -->
+                            <!-- Tombol Digit 0-9 -->
                         </div>
                     </div>
                 </div>
@@ -398,7 +404,7 @@
         };
 
         let defaultStrategyData = [
-            { level: 1, contract_type: "Rise/Fall", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Ticks", amount: 0.35 },
+            { level: 1, contract_type: "Rise/Fall", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Rise", high: "", low: "", last_digit: "", duration_amount: 5, duration_unit: "Ticks", amount: 0.35 },
             { level: 2, contract_type: "Matches/Differs", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Matches", high: "", low: "", last_digit: "5", duration_amount: 1, duration_unit: "Ticks", amount: 1.00 }
         ];
 
@@ -408,7 +414,8 @@
         };
         let currentAccountType = 'real';
         let selectedDigit = 5;
-        let selectedSubTab = 'Matches'; // Default subtab
+        let selectedSubTab = 'Matches';
+        let selectedChoice = 'Rise'; // Pilihan untuk Rise/Fall atau Higher/Lower
 
         setInterval(() => {
             document.getElementById('gmt-time').innerText = new Date().toUTCString().slice(17, 25);
@@ -428,6 +435,46 @@
                 document.getElementById('dashboard-view').classList.add('hidden');
             }
         };
+
+        function renderChoiceButtons(tradeType) {
+            const container = document.getElementById('choice-buttons-grid');
+            const wrapper = document.getElementById('choice-buttons-container');
+            const label = document.getElementById('choice-label');
+            if(!container) return;
+            container.innerHTML = '';
+
+            let choices = [];
+            if (tradeType === 'Rise/Fall') {
+                choices = ['Rise', 'Fall'];
+                label.innerText = 'Prediction Direction';
+                wrapper.classList.remove('hidden');
+            } else if (tradeType === 'Higher/Lower') {
+                choices = ['Higher', 'Lower'];
+                label.innerText = 'Barrier Type';
+                wrapper.classList.remove('hidden');
+            } else if (tradeType === 'Touch/No Touch') {
+                choices = ['Touch', 'No Touch'];
+                label.innerText = 'Touch Type';
+                wrapper.classList.remove('hidden');
+            } else {
+                wrapper.classList.add('hidden');
+                return;
+            }
+
+            selectedChoice = choices[0];
+
+            choices.forEach(choiceName => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `choice-btn py-2 rounded-xl border font-bold text-xs transition ${selectedChoice === choiceName ? 'active border-slate-900 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
+                btn.innerText = choiceName;
+                btn.onclick = () => {
+                    selectedChoice = choiceName;
+                    renderChoiceButtons(tradeType);
+                };
+                container.appendChild(btn);
+            });
+        }
 
         function renderDigitSubTabs(tradeType) {
             const container = document.getElementById('digit-subtabs');
@@ -512,7 +559,7 @@
 
         function botAction(action) {
             if (action === 'run_bot') {
-                addContractHistoryRow("Won", "Level 1", "Matches", "1.95", "1.00", "1.95", "+0.95");
+                addContractHistoryRow("Won", "Level 1", "Rise", "0.68", "0.35", "0.68", "+0.33");
             } else {
                 alert(`Aksi Bot: ${action.toUpperCase()} dieksekusi.`);
             }
@@ -598,6 +645,8 @@
             const barrierContainer = document.getElementById('barrier-container');
             const digitContainer = document.getElementById('digit-prediction-container');
 
+            renderChoiceButtons(tradeType);
+
             if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
                 unitSelect.value = 'm';
                 unitSelect.disabled = false;
@@ -635,7 +684,7 @@
             const lowVal = document.getElementById('modal-low').value;
 
             let digitVal = "";
-            let purchaseTypeVal = "Higher";
+            let purchaseTypeVal = selectedChoice;
 
             if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
                 purchaseTypeVal = selectedSubTab;
