@@ -294,7 +294,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
                     <div>
-                        <label id="duration-label" class="font-medium text-slate-600">Duration (Ticks)</label>
+                        <label id="duration-label" class="font-medium text-slate-600">Duration</label>
                         <div class="flex space-x-1 mt-1">
                             <input type="number" id="modal-duration" value="5" class="w-full bg-white border border-slate-300 rounded p-2">
                             <select id="modal-duration-unit" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
@@ -368,7 +368,7 @@
         };
 
         let defaultStrategyData = [
-            { level: 1, contract_type: "Rise/Fall", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.35 },
+            { level: 1, contract_type: "Rise/Fall", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Ticks", amount: 0.35 },
             { level: 2, contract_type: "Higher/Lower", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Higher", high: "+0.5", low: "-0.5", last_digit: "", duration_amount: 15, duration_unit: "Minutes", amount: 0.60 }
         ];
 
@@ -412,8 +412,8 @@
                     <td><input type="text" value="${item.high || ''}"></td>
                     <td><input type="text" value="${item.low || ''}"></td>
                     <td><input type="text" value="${item.last_digit || ''}"></td>
-                    <td><input type="text" value="${item.duration_amount} ${item.duration_unit}"></td>
-                    <td><select><option>Tick</option><option>Seconds</option><option>Minutes</option><option>Hours</option></select></td>
+                    <td><input type="number" value="${item.duration_amount}"></td>
+                    <td><select><option ${item.duration_unit === 'Ticks' ? 'selected' : ''}>Ticks</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option><option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option><option ${item.duration_unit === 'Hours' ? 'selected' : ''}>Hours</option></select></td>
                     <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
                 `;
                 tbody.appendChild(tr);
@@ -508,10 +508,10 @@
             const barrierContainer = document.getElementById('barrier-container');
 
             if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
-                unitSelect.value = 'm'; // Default ke Minutes untuk Higher/Lower
+                unitSelect.value = 'm'; 
                 barrierContainer.classList.remove('hidden');
             } else {
-                unitSelect.value = 't'; // Default ke Ticks untuk Rise/Fall atau Digit
+                unitSelect.value = 't'; 
                 barrierContainer.classList.add('hidden');
             }
         }
@@ -523,7 +523,12 @@
             const tradeType = document.getElementById('modal-trade-type').value;
             const durationAmount = document.getElementById('modal-duration').value;
             const durationUnitEl = document.getElementById('modal-duration-unit');
-            const durationUnitText = durationUnitEl.options[durationUnitEl.selectedIndex].text;
+            
+            let unitText = "Ticks";
+            const valUnit = durationUnitEl.value;
+            if(valUnit === 's') unitText = "Seconds";
+            else if(valUnit === 'm') unitText = "Minutes";
+            else if(valUnit === 'h') unitText = "Hours";
 
             const highVal = document.getElementById('modal-high').value;
             const lowVal = document.getElementById('modal-low').value;
@@ -535,10 +540,10 @@
                 submarket: subMarketText,
                 purchase_type: "Higher",
                 high: highVal,
-                low: lowVal || "-0.2",
+                low: lowVal,
                 last_digit: "",
                 duration_amount: durationAmount,
-                duration_unit: durationUnitText,
+                duration_unit: unitText,
                 amount: parseFloat(document.getElementById('modal-amount').value)
             };
             defaultStrategyData.push(newItem);
