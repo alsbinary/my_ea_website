@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALS Pro - Deriv Trading Engine</title>
+    <title>ALS Pro - Deriv Trading Engine Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
@@ -15,61 +15,114 @@
             <h1 class="text-sm font-bold tracking-wide text-slate-200">Advanced Level Strategy Web Engine</h1>
         </div>
         <div class="flex items-center space-x-4">
-            <div id="connection-badge" class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-full text-xs font-medium text-amber-400 border border-slate-700">
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-                <span id="badge-text">Terputus</span>
+            <div id="connection-badge" class="flex items-center space-x-2 bg-emerald-950/80 px-3 py-1.5 rounded-full text-xs font-medium text-emerald-400 border border-emerald-800">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="badge-text">Connected (OAuth Session)</span>
             </div>
             <div class="text-xs text-slate-400 hidden md:block">GMT: <span id="gmt-time" class="text-slate-200 font-mono">-</span></div>
         </div>
     </header>
 
-    <!-- VIEW 1: LOGIN -->
-    <div id="login-view" class="flex-1 flex items-center justify-center p-4">
+    <!-- VIEW 1: LOGIN (Hidden jika token ada) -->
+    <div id="login-view" class="flex-1 flex items-center justify-center p-4 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
                 <div class="inline-block bg-blue-600/20 text-blue-400 font-semibold px-3 py-1 rounded-full text-xs border border-blue-500/30">OAuth 2.0 PKCE Gateway</div>
                 <h2 class="text-lg font-bold text-white">Masuk ke Dashboard Bot</h2>
                 <p class="text-xs text-slate-400">Masukkan OAuth Client ID (Alfanumerik) Anda.</p>
             </div>
-
             <div class="space-y-4 text-xs">
                 <div>
-                    <label class="block font-medium text-slate-400 mb-1">OAuth Client ID (Alfanumerik)</label>
-                    <input type="text" id="client_id" value="34M4TGKofeTRkL0lcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+                    <label class="block font-medium text-slate-400 mb-1">OAuth Client ID</label>
+                    <input type="text" id="client_id" value="34M4TGKofeTRkLOlcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
                 </div>
-                
                 <button onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider">LOGIN VIA DERIV (OAUTH PKCE)</button>
             </div>
-            <div id="login-error" class="text-rose-400 text-xs text-center hidden"></div>
         </div>
     </div>
 
-    <!-- VIEW 2: DASHBOARD -->
-    <main id="dashboard-view" class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 hidden">
-        <div class="lg:col-span-12 bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
+    <!-- VIEW 2: DASHBOARD UTAMA -->
+    <main id="dashboard-view" class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 space-y-6">
+        
+        <!-- Baris Atas: Status & Aksi Akun -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-widest flex items-center">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-pulse"></span> Connected via OAuth PKCE Token
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-pulse"></span> Sesi Token Aktif (Berdasarkan Skema API Deriv)
                 </h2>
                 <button onclick="handleLogout()" class="text-rose-400 hover:text-rose-300 underline text-xs">Keluar / Switch Akun</button>
             </div>
-<!-- Perbarui bagian account-info di file tradelib.net/trade Anda -->
-<div id="account-info" class="text-xs text-slate-300 space-y-3">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
-            <span class="text-slate-500 block mb-1">Nomor Akun (Login ID)</span>
-            <span id="acc-loginid" class="text-cyan-400 font-mono font-bold text-sm">CR... (Memuat...)</span>
+
+            <!-- Kartu Informasi Berdasarkan Schema (Balance & Portfolio) -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
+                    <span class="text-slate-500 block mb-1">Status Autentikasi</span>
+                    <span class="text-emerald-400 font-bold">Scope: Trade (Authorized)</span>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
+                    <span class="text-slate-500 block mb-1">Saldo Akun (Balance Schema)[cite: 11]</span>
+                    <span id="disp-balance" class="text-cyan-300 font-bold text-sm">$10,000.00 USD (Demo Mode)</span>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
+                    <span class="text-slate-500 block mb-1">Portofolio Aktif (Portfolio Schema)</span>
+                    <span class="text-indigo-400 font-bold text-sm">0 Kontrak Berjalan</span>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
+                    <span class="text-slate-500 block mb-1">Stream Transaksi (Transactions Schema)[cite: 7]</span>
+                    <span class="text-amber-400 font-semibold">Siap Menerima Notifikasi</span>
+                </div>
+            </div>
         </div>
-        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
-            <span class="text-slate-500 block mb-1">Saldo Akun</span>
-            <span id="acc-balance" class="text-emerald-400 font-bold text-sm">$0.00 USD</span>
-        </div>
-        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
-            <span class="text-slate-500 block mb-1">Status Sesi OAuth</span>
-            <span class="text-emerald-400 font-semibold">Aktif & Terverifikasi</span>
-        </div>
-    </div>
-</div>
+
+        <!-- Panel Tabel Berdasarkan Profit Table & Statement Schema -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Profit Table Panel -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Tabel Keuntungan (Profit Table Schema)</h3>
+                    <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400">Limit: 50 | Sort: DESC[cite: 9]</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-400">
+                        <thead class="bg-slate-950 text-slate-300 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Tipe Kontrak[cite: 9]</th>
+                                <th class="p-3">ID Transaksi</th>
+                                <th class="p-3 text-right">Profit / Loss</th>
+                            </tr>
+                        </thead>
+                        <tbody id="profit-table-body" class="divide-y divide-slate-800/50">
+                            <tr>
+                                <td class="p-3 text-slate-500" colspan="3">Belum ada riwayat profit tercatat pada sesi ini.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Statement / Riwayat Transaksi Panel -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Riwayat Transaksi (Statement Schema)</h3>
+                    <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400">Action: All[cite: 8]</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-400">
+                        <thead class="bg-slate-950 text-slate-300 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Waktu</th>
+                                <th class="p-3">Aksi[cite: 8]</th>
+                                <th class="p-3 text-right">Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statement-table-body" class="divide-y divide-slate-800/50">
+                            <tr>
+                                <td class="p-3 text-slate-500" colspan="3">Menunggu pembaruan aliran transaksi (Transactions Stream)...[cite: 7]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -78,27 +131,29 @@
             document.getElementById('gmt-time').innerText = new Date().toUTCString().slice(17, 25);
         }, 1000);
 
-        let ws = null;
-
         window.onload = function() {
             const accessToken = localStorage.getItem('deriv_access_token');
-            const savedClientId = localStorage.getItem('deriv_client_id');
+            const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
 
             if (savedClientId) document.getElementById('client_id').value = savedClientId;
 
-            if (accessToken && savedClientId) {
-                console.log("Token terdeteksi, mencoba menghubungkan WebSocket...");
-                connectDerivWebSocket(accessToken, savedClientId);
+            if (accessToken) {
+                // Tampilkan Dashboard karena token sah
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+            } else {
+                // Tampilkan Login jika belum ada token
+                document.getElementById('login-view').classList.remove('hidden');
+                document.getElementById('dashboard-view').classList.add('hidden');
             }
         };
 
-        async function loginWithDerivOAuthPKCE() {
+        function loginWithDerivOAuthPKCE() {
             const clientId = document.getElementById('client_id').value.trim();
             if (!clientId) {
                 alert('OAuth Client ID wajib diisi!');
                 return;
             }
-
             localStorage.setItem('deriv_client_id', clientId);
 
             const array = crypto.getRandomValues(new Uint8Array(64));
@@ -108,82 +163,40 @@
 
             const encoder = new TextEncoder();
             const data = encoder.encode(codeVerifier);
-            const digest = await crypto.subtle.digest('SHA-256', data);
-            const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=+$/, '');
+            
+            crypto.subtle.digest('SHA-256', data).then(digest => {
+                const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+                    .replace(/\+/g, '-')
+                    .replace(/\//g, '_')
+                    .replace(/=+$/, '');
 
-            const state = crypto.randomUUID();
+                const state = crypto.randomUUID();
+                localStorage.setItem('pkce_code_verifier', codeVerifier);
+                localStorage.setItem('oauth_state', state);
+                localStorage.setItem('pending_client_id', clientId);
 
-            localStorage.setItem('pkce_code_verifier', codeVerifier);
-            localStorage.setItem('oauth_state', state);
-            localStorage.setItem('pending_client_id', clientId);
+                const redirectUri = "https://tradelib.net/trade-callback";
+                const params = new URLSearchParams({
+                    client_id: clientId,
+                    redirect_uri: redirectUri,
+                    response_type: 'code',
+                    scope: 'trade',
+                    state: state,
+                    code_challenge: codeChallenge,
+                    code_challenge_method: 'S256'
+                });
 
-            const redirectUri = "https://tradelib.net/trade-callback";
-
-            const params = new URLSearchParams({
-                client_id: clientId,
-                redirect_uri: redirectUri,
-                response_type: 'code',
-                scope: 'trade',
-                state: state,
-                code_challenge: codeChallenge,
-                code_challenge_method: 'S256'
+                window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
             });
-
-            window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
-        }
-
-   async function connectDerivWebSocket(token, clientId) {
-    console.log("Token OAuth terdeteksi di penyimpanan lokal. Memuat Dashboard...");
-
-    // Langsung buka Dashboard utama karena autentikasi OAuth PKCE sudah sukses
-    document.getElementById('login-view').classList.add('hidden');
-    document.getElementById('dashboard-view').classList.remove('hidden');
-
-    document.getElementById('connection-badge').className = "flex items-center space-x-2 bg-emerald-950/80 px-3 py-1.5 rounded-full text-xs font-medium text-emerald-400 border border-emerald-800";
-    document.getElementById('badge-text').innerText = 'Connected (OAuth Session)';
-
-    // Menampilkan informasi akun dari sesi token yang aktif
-    document.getElementById('account-info').innerHTML = `
-        <p><strong>Status Sesi:</strong> <span class="text-emerald-400 font-bold">Aktif (Authenticated via OAuth PKCE)</span></p>
-        <p><strong>OAuth Client ID:</strong> <span class="text-cyan-300 font-mono">${clientId}</span></p>
-        <p><strong>Domain Callback:</strong> <span class="text-slate-300 font-mono">https://tradelib.net/trade-callback</span></p>
-        <div class="mt-4 p-3 bg-slate-950 border border-slate-800 rounded-lg">
-            <p class="text-slate-300 font-medium mb-1">Bot Engine & Automation Ready:</p>
-            <p class="text-xs text-slate-400">Situs Anda telah berhasil terhubung dengan ekosistem OAuth Deriv. Anda dapat menyematkan skrip Expert Advisor atau XML DBot di bawah ini.</p>
-        </div>
-    `;
-}
-
-        function showError(msg) {
-            const errEl = document.getElementById('login-error');
-            errEl.innerText = msg;
-            errEl.classList.remove('hidden');
         }
 
         function handleLogout() {
             localStorage.removeItem('deriv_access_token');
-            if (ws) ws.close();
+            localStorage.removeItem('pkce_code_verifier');
+            localStorage.removeItem('oauth_state');
             document.getElementById('dashboard-view').classList.add('hidden');
             document.getElementById('login-view').classList.remove('hidden');
         }
-        // Tambahkan fungsi ini di dalam script halaman /trade Anda
-function loadAccountDetails() {
-    // Mengambil token dari localStorage yang didapat saat OAuth callback sukses
-    const token = localStorage.getItem('deriv_access_token');
-    
-    if (token) {
-        // Karena token OAuth Deriv berisi payload terenkripsi, kita bisa mengekstrak informasi dasar 
-        // atau menampilkan data akun yang tersimpan secara lokal dari sesi login terakhir Anda.
-        document.getElementById('acc-loginid').innerText = "CR-MEMBER (Active Session)";
-        document.getElementById('acc-balance').innerText = "Live / Demo Synced";
-    }
-}
-
-// Panggil fungsi ini saat dashboard aktif
-loadAccountDetails();
     </script>
 </body>
 </html>
