@@ -113,14 +113,16 @@
                 </div>
             </aside>
 
-            <!-- AREA TENGAH: TABEL STRATEGI -->
-            <main class="flex-1 bg-slate-50 p-4 flex flex-col space-y-3 overflow-hidden">
-                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col flex-1 overflow-hidden">
+            <!-- AREA TENGAH: TABEL STRATEGI & CONTRACT TABLE -->
+            <main class="flex-1 bg-slate-50 p-4 flex flex-col space-y-4 overflow-y-auto">
+                
+                <!-- Panel Manajemen Strategi (Tabel Atas) -->
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col">
                     <div class="bg-teal-600 text-white font-bold px-4 py-2 text-center text-sm tracking-wider uppercase">
                         STRATEGY MANAGEMENT PANEL
                     </div>
 
-                    <div class="flex-1 overflow-auto">
+                    <div class="overflow-x-auto max-h-48">
                         <table class="w-full text-left border-collapse strategy-table text-xs">
                             <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b border-slate-300 shadow-sm">
                                 <tr>
@@ -143,6 +145,7 @@
                         </table>
                     </div>
 
+                    <!-- Tombol Kontrol Dinamis (Lampiran 3: Terletak di bawah baris & bergeser otomatis) -->
                     <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
                         <div class="flex items-center space-x-2">
                             <button onclick="openAddModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm">Add Level (+)</button>
@@ -163,50 +166,131 @@
                                 <span class="text-slate-600">Stop Loss:</span>
                                 <input type="number" id="stop-loss" value="-33" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold">
                             </div>
-                            <div class="flex items-center space-x-2 text-sm">
-                                <span class="text-slate-700 font-bold">Total Profit:</span>
-                                <span id="total-profit" class="text-emerald-600 font-black">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTRACT TABLE / HISTORY TRADE (Lampiran 4) -->
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col flex-1">
+                    <div class="bg-slate-200 text-slate-800 font-bold px-4 py-2 text-center text-xs tracking-wider uppercase border-b border-slate-300">
+                        CONTRACT TABLE
+                    </div>
+
+                    <div class="flex-1 overflow-x-auto min-h-[160px] bg-slate-300">
+                        <table class="w-full text-left border-collapse text-xs bg-white">
+                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
+                                <tr>
+                                    <th class="p-2 border-r border-slate-300 text-center w-10">#</th>
+                                    <th class="p-2 border-r border-slate-300">Status</th>
+                                    <th class="p-2 border-r border-slate-300">Level</th>
+                                    <th class="p-2 border-r border-slate-300">Purchase Type</th>
+                                    <th class="p-2 border-r border-slate-300">Payout</th>
+                                    <th class="p-2 border-r border-slate-300">Buy Price</th>
+                                    <th class="p-2 border-r border-slate-300">Sell Price</th>
+                                    <th class="p-2 text-right">Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contract-table-body" class="divide-y divide-slate-200 text-slate-600">
+                                <tr>
+                                    <td colspan="8" class="p-4 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer Contract Table (Rekapitulasi Sesuai Lampiran 4) -->
+                    <div class="p-3 bg-slate-50 border-t border-slate-300 flex flex-wrap items-center justify-between text-xs font-semibold">
+                        <button onclick="clearContractTable()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded shadow-sm">Clear Contract Table</button>
+                        <div class="flex items-center space-x-6">
+                            <div>Trade Count : <span id="stat-trade-count" class="font-bold text-slate-800">0</span></div>
+                            <div>Total Stake : <span id="stat-total-stake" class="font-bold text-slate-800">0</span></div>
+                            <div>Loss Count : <span id="stat-loss-count" class="font-bold text-rose-600">0</span></div>
+                            <div>Profit Count : <span id="stat-profit-count" class="font-bold text-emerald-600">0</span></div>
+                            <div class="bg-slate-100 border border-slate-300 px-3 py-1 rounded text-right">
+                                <span class="block text-[10px] text-slate-500 uppercase">Total Profit</span>
+                                <span id="stat-total-profit" class="text-sm font-black text-slate-800">0</span>
                             </div>
                         </div>
                     </div>
                 </div>
+
             </main>
 
-            <!-- PANEL KANAN -->
-            <aside class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
-                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                    <span class="font-bold text-slate-700">Strategy Parameters</span>
-                    <span class="text-slate-400 text-[10px]">Deriv API v3</span>
+            <!-- PANEL KANAN: BERUBAH MENJADI PORTFOLIO TRADING SAAT RUN BOT (Lampiran 1 & 2) -->
+            <aside id="right-panel" class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
+                
+                <!-- STATE 1: PARAMETER AWAL (Lampiran 1) -->
+                <div id="panel-params" class="space-y-4 flex flex-col h-full">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                        <span class="font-bold text-slate-700">Strategy Parameters</span>
+                        <span class="text-slate-400 text-[10px]">Deriv API v3</span>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-slate-500 font-medium">Trade Type / Strategy</label>
+                        <select class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700">
+                            <option>Rise / Fall</option>
+                            <option>Higher / Lower</option>
+                            <option>Touch / No Touch</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-slate-500 font-medium">Initial Stake (USD)</label>
+                        <input type="number" value="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700">
+                    </div>
+
+                    <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                        <span class="font-medium text-slate-600">Allow equals</span>
+                        <input type="checkbox" class="w-4 h-4 accent-teal-600 cursor-pointer">
+                    </div>
+
+                    <div class="flex-1"></div>
+
+                    <button onclick="startBotEngine()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg transition tracking-wider flex items-center justify-center space-x-2">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        <span>Run Bot</span>
+                    </button>
                 </div>
 
-                <div class="space-y-1">
-                    <label class="text-slate-500 font-medium">Trade Type / Strategy</label>
-                    <select class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700">
-                        <option>Rise / Fall</option>
-                        <option>Higher / Lower</option>
-                        <option>Touch / No Touch</option>
-                        <option>Digit Match / Diff</option>
-                    </select>
+                <!-- STATE 2: PORTFOLIO & PROSES TRADING (Lampiran 2 - Tampil Setelah Run Bot) -->
+                <div id="panel-portfolio" class="space-y-3 hidden flex flex-col h-full">
+                    <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-xs tracking-wider uppercase rounded">
+                        PORTFOLIO
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-hidden text-xs">
+                        <table class="w-full border-collapse">
+                            <tbody>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-2 font-bold text-slate-800">Level 1</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">Volatility 100 (1s)</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Up/Down (Rise)</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start time</td><td id="pf-starttime" class="p-2 font-mono text-slate-600">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-2 font-mono text-slate-600">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">0s</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Entry spot</td><td id="pf-entry" class="p-2 font-mono text-slate-700">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">10.00</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Low Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">-0.2</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-slate-700">0.68</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">0.35</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Price</td><td id="pf-price" class="p-2 text-slate-700">0.35</td></tr>
+                                <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">0.00</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tombol Kontrol Trading Sesuai Lampiran 2 -->
+                    <div class="grid grid-cols-2 gap-1.5 pt-1">
+                        <button onclick="botAction('start')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[11px]">START</button>
+                        <button onclick="botAction('sell_continue')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[10px]">SELL & CONTINUE</button>
+                        <button onclick="botAction('sell_stop')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[10px]">SELL & STOP</button>
+                        <button onclick="botAction('stop_level')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[11px]">STOP LEVEL</button>
+                    </div>
+                    <button onclick="stopBotEngine()" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow text-xs">STOP TRADE</button>
                 </div>
 
-                <div class="space-y-1">
-                    <label class="text-slate-500 font-medium">Initial Stake (USD)</label>
-                    <input type="number" value="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-semibold text-slate-700">
-                </div>
-
-                <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                    <span class="font-medium text-slate-600">Allow equals</span>
-                    <input type="checkbox" class="w-4 h-4 accent-teal-600 cursor-pointer">
-                </div>
-
-                <div class="flex-1"></div>
-
-                <button onclick="runBotEngine()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg transition tracking-wider flex items-center justify-center space-x-2">
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    <span>Run Bot</span>
-                </button>
-
-                <div class="text-center text-[10px] text-slate-400 pt-2 border-t border-slate-100 flex justify-between">
+                <div class="text-center text-[10px] text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
                     <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected</span>
                     <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
                 </div>
@@ -214,115 +298,67 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: ADD LEVEL DENGAN PILIHAN MARKET API & TRADE TYPES LENGKAP -->
+    <!-- MODAL POPUP: ADD LEVEL -->
     <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
-            
             <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
                 <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru (Deriv API)</h3>
                 <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-lg">&times;</button>
             </div>
-
             <div class="p-6 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
-                
-                <!-- Pilih Kategori Market API -->
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label class="font-medium text-slate-600">Market Category (API)</label>
-                        <select id="modal-market-cat" onchange="onMarketCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-slate-700">
+                    <div>
+                        <label class="font-medium text-slate-600">Market Category</label>
+                        <select id="modal-market-cat" onchange="onMarketCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold">
                             <option value="derived">Derived (Synthetics)</option>
-                            <option value="forex">Forex (Major/Minor)</option>
-                            <option value="stocks">Stocks & Indices</option>
-                            <option value="commodities">Commodities</option>
+                            <option value="forex">Forex</option>
                         </select>
                     </div>
-                    <div class="space-y-1">
-                        <label class="font-medium text-slate-600">Submarket / Asset Symbol</label>
-                        <select id="modal-submarket" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-slate-700">
-                            <!-- Diisi via JS -->
-                        </select>
+                    <div>
+                        <label class="font-medium text-slate-600">Submarket / Asset</label>
+                        <select id="modal-submarket" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold"></select>
                     </div>
                 </div>
-
-                <!-- Pilih Trade Type Lengkap -->
-                <div class="space-y-1">
-                    <label class="font-medium text-slate-600">Trade Types</label>
-                    <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
-                        <option value="rise_fall">Rise / Fall</option>
-                        <option value="higher_lower">Higher / Lower</option>
-                        <option value="touch_notouch">Touch / No Touch</option>
-                        <option value="matches_differs">Matches / Differs</option>
-                        <option value="over_under">Over / Under</option>
-                        <option value="even_odd">Even / Odd</option>
+                <div>
+                    <label class="font-medium text-slate-600">Trade Type</label>
+                    <select id="modal-trade-type" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
+                        <option value="Rise/Fall">Rise / Fall</option>
+                        <option value="Higher/Lower">Higher / Lower</option>
+                        <option value="Digit">Digit Match / Diff</option>
                     </select>
                 </div>
-
-                <!-- Kontainer Dinamis Berdasarkan Trade Type -->
-                <div id="trade-type-dynamic-options" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                    <!-- Dinamis via JS -->
-                </div>
-
-                <!-- Durasi & Jumlah Stake -->
                 <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
                     <div>
-                        <label class="font-medium text-slate-600">Duration</label>
-                        <div class="flex space-x-2 mt-1">
-                            <input type="number" id="modal-duration-amount" value="5" class="w-2/3 bg-white border border-slate-300 rounded p-2">
-                            <select id="modal-duration-unit" class="w-1/3 bg-white border border-slate-300 rounded p-2">
-                                <option>Tick</option>
-                                <option>Seconds</option>
-                                <option>Minutes</option>
-                            </select>
-                        </div>
+                        <label class="font-medium text-slate-600">Duration (Ticks)</label>
+                        <input type="number" id="modal-duration" value="5" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
                     </div>
                     <div>
-                        <label class="font-medium text-teal-700 font-bold">Initial Stake / Amount ($)</label>
+                        <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
                         <input type="number" step="0.01" id="modal-amount" value="0.35" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
                     </div>
                 </div>
-
             </div>
-
             <div class="p-4 bg-slate-100 border-t border-slate-200 flex justify-end space-x-3">
-                <button onclick="closeAddModal()" class="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 rounded text-slate-700 font-semibold text-xs">Batal</button>
-                <button onclick="confirmAddStrategy()" class="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded font-bold text-xs shadow">Tambahkan ke Tabel</button>
+                <button onclick="closeAddModal()" class="px-4 py-2 bg-white border border-slate-300 rounded text-xs">Batal</button>
+                <button onclick="confirmAddStrategy()" class="px-5 py-2 bg-teal-600 text-white rounded font-bold text-xs shadow">Tambahkan ke Tabel</button>
             </div>
-
         </div>
     </div>
 
     <script>
-        // Referensi market sesuai API Deriv active_symbols
         const marketSymbolsData = {
             derived: [
                 { name: "Volatility 100 (1s) Index", symbol: "1HZ100V" },
-                { name: "Volatility 75 Index", symbol: "R_75" },
-                { name: "Volatility 50 (1s) Index", symbol: "1HZ50V" },
-                { name: "Volatility 10 Index", symbol: "R_10" },
-                { name: "Boom 1000 Index", symbol: "BOOM1000" },
-                { name: "Crash 1000 Index", symbol: "CRASH1000" }
+                { name: "Volatility 75 Index", symbol: "R_75" }
             ],
             forex: [
-                { name: "EUR/USD", symbol: "frxEURUSD" },
-                { name: "GBP/USD", symbol: "frxGBPUSD" },
-                { name: "AUD/USD", symbol: "frxAUDUSD" },
-                { name: "USD/JPY", symbol: "frxUSDJPY" }
-            ],
-            stocks: [
-                { name: "Wall Street Index", symbol: "W20USD" },
-                { name: "US Tech 100", symbol: "USTEC" },
-                { name: "UK 100", symbol: "FTSE" }
-            ],
-            commodities: [
-                { name: "Gold / USD", symbol: "frxXAUUSD" },
-                { name: "Silver / USD", symbol: "frxXAGUSD" },
-                { name: "Oil / USD", symbol: "WTIUSD" }
+                { name: "EUR/USD", symbol: "frxEURUSD" }
             ]
         };
 
         let defaultStrategyData = [
             { level: 1, contract_type: "Up/Down", market: "Volatility", submarket: "Volatility 100 (1s) Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.35 },
-            { level: 2, contract_type: "Higher/Lower", market: "Volatility", submarket: "Volatility 75 Index", purchase_type: "Higher", high: "+0.19", low: "", last_digit: "", duration_amount: 10, duration_unit: "Tick", amount: 0.60 }
+            { level: 2, contract_type: "Up/Down", market: "Volatility", submarket: "Volatility 100 (1s) Index", purchase_type: "Higher", high: "", low: "-0.2", last_digit: "", duration_amount: 5, duration_unit: "Tick", amount: 0.60 }
         ];
 
         let accountsData = {
@@ -338,7 +374,6 @@
         window.onload = function() {
             const accessToken = localStorage.getItem('deriv_access_token');
             const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
-
             if (savedClientId) document.getElementById('client_id').value = savedClientId;
 
             if (accessToken) {
@@ -354,7 +389,6 @@
         function renderStrategyTable(dataList) {
             const tbody = document.getElementById('strategy-table-body');
             tbody.innerHTML = '';
-
             dataList.forEach((item, index) => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200";
@@ -368,17 +402,89 @@
                     <td><input type="text" value="${item.low || ''}"></td>
                     <td><input type="text" value="${item.last_digit || ''}"></td>
                     <td><input type="number" value="${item.duration_amount}"></td>
-                    <td><select><option ${item.duration_unit === 'Tick' ? 'selected' : ''}>Tick</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option></select></td>
+                    <td><select><option>Tick</option><option>Seconds</option></select></td>
                     <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
+        // FUNGSI RUN BOT & TRANSISI PANEL KANAN KE PORTFOLIO (Lampiran 2)
+        function startBotEngine() {
+            document.getElementById('panel-params').classList.add('hidden');
+            document.getElementById('panel-portfolio').classList.remove('hidden');
+            
+            // Simulasi data portfolio aktif & penambahan ke Contract Table (Lampiran 4)
+            setTimeout(() => {
+                addContractHistoryRow("Won", "Level 1", "Higher", "0.68", "0.35", "0.68", "+0.33");
+            }, 3000);
+        }
+
+        function stopBotEngine() {
+            document.getElementById('panel-portfolio').classList.add('hidden');
+            document.getElementById('panel-params').classList.remove('hidden');
+        }
+
+        function botAction(action) {
+            alert(`Aksi Bot: ${action.toUpperCase()} dieksekusi.`);
+        }
+
+        // TAMBAH RIWAYAT KE CONTRACT TABLE (Lampiran 4)
+        let contractHistoryData = [];
+        function addContractHistoryRow(status, level, purchaseType, payout, buyPrice, sellPrice, profit) {
+            contractHistoryData.push({ status, level, purchaseType, payout, buyPrice, sellPrice, profit });
+            renderContractTable();
+        }
+
+        function renderContractTable() {
+            const tbody = document.getElementById('contract-table-body');
+            tbody.innerHTML = '';
+            if (contractHistoryData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak.</td></tr>`;
+                return;
+            }
+
+            let totalProfitVal = 0;
+            let winCount = 0;
+            let lossCount = 0;
+
+            contractHistoryData.forEach((item, idx) => {
+                const isWin = parseFloat(item.profit) >= 0;
+                if (isWin) winCount++; else lossCount++;
+                totalProfitVal += parseFloat(item.profit);
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-200 bg-white";
+                tr.innerHTML = `
+                    <td class="p-2 border-r border-slate-200 text-center">${idx + 1}</td>
+                    <td class="p-2 border-r border-slate-200 font-bold ${isWin ? 'text-emerald-600' : 'text-rose-600'}">${item.status}</td>
+                    <td class="p-2 border-r border-slate-200 font-semibold">${item.level}</td>
+                    <td class="p-2 border-r border-slate-200">${item.purchaseType}</td>
+                    <td class="p-2 border-r border-slate-200">${item.payout}</td>
+                    <td class="p-2 border-r border-slate-200">${item.buyPrice}</td>
+                    <td class="p-2 border-r border-slate-200">${item.sellPrice}</td>
+                    <td class="p-2 text-right font-bold ${isWin ? 'text-emerald-600' : 'text-rose-600'}">${item.profit}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('stat-trade-count').innerText = contractHistoryData.length;
+            document.getElementById('stat-total-stake').innerText = contractHistoryData.reduce((acc, curr) => acc + parseFloat(curr.buyPrice), 0).toFixed(2);
+            document.getElementById('stat-loss-count').innerText = lossCount;
+            document.getElementById('stat-profit-count').innerText = winCount;
+            const tpEl = document.getElementById('stat-total-profit');
+            tpEl.innerText = totalProfitVal.toFixed(2);
+            tpEl.className = `text-sm font-black ${totalProfitVal >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+        }
+
+        function clearContractTable() {
+            contractHistoryData = [];
+            renderContractTable();
+        }
+
         function openAddModal() {
             document.getElementById('add-strategy-modal').classList.remove('hidden');
             onMarketCategoryChange();
-            onTradeTypeChange();
         }
 
         function closeAddModal() {
@@ -389,110 +495,28 @@
             const cat = document.getElementById('modal-market-cat').value;
             const subSelect = document.getElementById('modal-submarket');
             subSelect.innerHTML = '';
-            
             marketSymbolsData[cat].forEach(item => {
                 const opt = document.createElement('option');
                 opt.value = item.name + "|" + item.symbol;
-                opt.innerText = item.name + " (" + item.symbol + ")";
+                opt.innerText = item.name;
                 subSelect.appendChild(opt);
             });
         }
 
-        function onTradeTypeChange() {
-            const type = document.getElementById('modal-trade-type').value;
-            const container = document.getElementById('trade-type-dynamic-options');
-            
-            if (type === 'rise_fall') {
-                container.innerHTML = `
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="font-medium text-slate-600 block mb-1">Direction</label>
-                            <select id="dyn-purchase" class="w-full bg-white border border-slate-300 rounded p-2">
-                                <option value="Rise">Rise</option>
-                                <option value="Fall">Fall</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center pt-5">
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" id="dyn-allow-equals" class="w-4 h-4 accent-teal-600">
-                                <span class="font-medium text-slate-700">Allow equals</span>
-                            </label>
-                        </div>
-                    </div>
-                `;
-            } else if (type === 'higher_lower' || type === 'touch_notouch') {
-                container.innerHTML = `
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="font-medium text-slate-600 block mb-1">Action Type</label>
-                            <select id="dyn-purchase" class="w-full bg-white border border-slate-300 rounded p-2">
-                                <option value="${type === 'higher_lower' ? 'Higher' : 'Touch'}">${type === 'higher_lower' ? 'Higher' : 'Touch'}</option>
-                                <option value="${type === 'higher_lower' ? 'Lower' : 'No Touch'}">${type === 'higher_lower' ? 'Lower' : 'No Touch'}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="font-medium text-slate-600 block mb-1">Barrier Offset (e.g. +0.19)</label>
-                            <input type="text" id="dyn-barrier" value="+0.19" class="w-full bg-white border border-slate-300 rounded p-2 font-mono font-bold">
-                        </div>
-                    </div>
-                `;
-            } else if (type === 'matches_differs' || type === 'over_under') {
-                container.innerHTML = `
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="font-medium text-slate-600 block mb-1">Prediction Type</label>
-                            <select id="dyn-purchase" class="w-full bg-white border border-slate-300 rounded p-2">
-                                <option value="${type === 'matches_differs' ? 'Match' : 'Over'}">${type === 'matches_differs' ? 'Match' : 'Over'}</option>
-                                <option value="${type === 'matches_differs' ? 'Differ' : 'Under'}">${type === 'matches_differs' ? 'Differ' : 'Under'}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="font-medium text-slate-600 block mb-1">Last Digit (0-9)</label>
-                            <input type="number" id="dyn-digit" min="0" max="9" value="5" class="w-full bg-white border border-slate-300 rounded p-2 font-bold text-center">
-                        </div>
-                    </div>
-                `;
-            } else if (type === 'even_odd') {
-                container.innerHTML = `
-                    <div>
-                        <label class="font-medium text-slate-600 block mb-1">Digit Parity</label>
-                        <select id="dyn-purchase" class="w-full bg-white border border-slate-300 rounded p-2">
-                            <option value="Even">Even (Genap)</option>
-                            <option value="Odd">Odd (Ganjil)</option>
-                        </select>
-                    </div>
-                `;
-            }
-        }
-
         function confirmAddStrategy() {
             const subMarketVal = document.getElementById('modal-submarket').value.split('|');
-            const submarketName = subMarketVal[0];
-            const tradeType = document.getElementById('modal-trade-type').value;
-            const purchaseType = document.getElementById('dyn-purchase') ? document.getElementById('dyn-purchase').value : 'Higher';
-            const digitVal = document.getElementById('dyn-digit') ? document.getElementById('dyn-digit').value : '';
-            const barrierVal = document.getElementById('dyn-barrier') ? document.getElementById('dyn-barrier').value : '';
-
-            let contractLabel = "Up/Down";
-            if (tradeType === 'higher_lower') contractLabel = "Higher/Lower";
-            if (tradeType === 'touch_notouch') contractLabel = "Touch/No Touch";
-            if (tradeType === 'matches_differs') contractLabel = "Digit";
-            if (tradeType === 'over_under') contractLabel = "Over/Under";
-            if (tradeType === 'even_odd') contractLabel = "Even/Odd";
-
             const newItem = {
-                contract_type: contractLabel,
-                market: document.getElementById('modal-market-cat').selectedOptions[0].text.split(' ')[0],
-                submarket: submarketName,
-                purchase_type: purchaseType,
-                high: (tradeType === 'higher_lower' || tradeType === 'touch_notouch') ? barrierVal : '',
-                low: '',
-                last_digit: digitVal,
-                duration_amount: document.getElementById('modal-duration-amount').value,
-                duration_unit: document.getElementById('modal-duration-unit').value,
+                contract_type: "Up/Down",
+                market: "Volatility",
+                submarket: subMarketVal[0],
+                purchase_type: "Higher",
+                high: "",
+                low: "-0.2",
+                last_digit: "",
+                duration_amount: document.getElementById('modal-duration').value,
+                duration_unit: "Tick",
                 amount: parseFloat(document.getElementById('modal-amount').value)
             };
-
             defaultStrategyData.push(newItem);
             renderStrategyTable(defaultStrategyData);
             closeAddModal();
@@ -513,7 +537,6 @@
         function loadStrategyFromFile(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 const lines = e.target.result.split('\n');
@@ -523,16 +546,10 @@
                     const cols = line.split(',');
                     if (cols.length >= 15) {
                         parsedList.push({
-                            contract_type: cols[2],
-                            market: cols[3],
-                            submarket: cols[4],
-                            purchase_type: cols[5],
-                            high: cols[6],
-                            low: cols[7],
-                            last_digit: cols[8],
-                            duration_amount: cols[10],
-                            duration_unit: cols[11],
-                            amount: cols[14]
+                            contract_type: cols[2], market: cols[3], submarket: cols[4],
+                            purchase_type: cols[5], high: cols[6], low: cols[7],
+                            last_digit: cols[8], duration_amount: cols[10],
+                            duration_unit: cols[11], amount: cols[14]
                         });
                     }
                 });
@@ -560,25 +577,18 @@
             document.getElementById('account-menu').classList.add('hidden');
         }
 
-        function runBotEngine() {
-            alert(`Menjalankan Bot ALS Pro (${defaultStrategyData.length} Level) pada Akun ${accountsData[currentAccountType].loginid}`);
-        }
-
         function loginWithDerivOAuthPKCE() {
             const clientId = document.getElementById('client_id').value.trim();
             if (!clientId) return alert('OAuth Client ID wajib diisi!');
             localStorage.setItem('deriv_client_id', clientId);
-
             const array = crypto.getRandomValues(new Uint8Array(64));
             const codeVerifier = Array.from(array).map(v => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[v % 66]).join('');
             const encoder = new TextEncoder();
-            
             crypto.subtle.digest('SHA-256', encoder.encode(codeVerifier)).then(digest => {
                 const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
                 const state = crypto.randomUUID();
                 localStorage.setItem('pkce_code_verifier', codeVerifier);
                 localStorage.setItem('oauth_state', state);
-
                 const params = new URLSearchParams({
                     client_id: clientId,
                     redirect_uri: "https://tradelib.net/trade-callback",
