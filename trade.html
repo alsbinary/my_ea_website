@@ -40,11 +40,11 @@
             <div class="text-center space-y-2">
                 <div class="inline-block bg-blue-600/20 text-blue-400 font-semibold px-3 py-1 rounded-full text-xs border border-blue-500/30">OAuth 2.0 PKCE Gateway</div>
                 <h2 class="text-lg font-bold text-white">Masuk ke Dashboard Bot</h2>
-                <p class="text-xs text-slate-400">Masukkan OAuth Client ID (Alfanumerik) Anda.</p>
+                <p class="text-xs text-slate-400">Masukkan OAuth Client ID / App ID Anda.</p>
             </div>
             <div class="space-y-4 text-xs">
                 <div>
-                    <label class="block font-medium text-slate-400 mb-1">OAuth Client ID</label>
+                    <label class="block font-medium text-slate-400 mb-1">OAuth Client ID / App ID</label>
                     <input type="text" id="client_id" value="34M4TGKofeTRkLOlcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
                 </div>
                 <button onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider">LOGIN VIA DERIV (OAUTH PKCE)</button>
@@ -257,7 +257,7 @@
                 </div>
 
                 <div class="text-center text-[10px] text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
-                    <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected</span>
+                    <span id="conn-status-indicator" class="flex items-center"><span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected</span>
                     <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
                 </div>
             </aside>
@@ -268,7 +268,7 @@
     <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
             <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
-                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru (Deriv API contracts_for & proposal)</h3>
+                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru</h3>
                 <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-lg">&times;</button>
             </div>
             <div class="p-6 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
@@ -355,7 +355,7 @@
                     <input type="text" id="modal-barrier" value="+0.676" placeholder="+0.676" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1 font-mono font-bold text-slate-800">
                 </div>
 
-                <!-- WIDGET SIMULASI PAYOUT PERSIS SEPERTI DERIV TRADER (WARNA HIJAU DERIV TRADER) -->
+                <!-- WIDGET SIMULASI PAYOUT -->
                 <div id="payout-summary-box" class="bg-emerald-600 text-white p-3.5 rounded-xl flex justify-between items-center shadow-md">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
@@ -424,447 +424,38 @@
         let selectedChoice = 'No Touch';
         let currentEstimatedPayout = 3.35;
 
-        <!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALS Pro - Automated Strategy Engine</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .strategy-table input, .strategy-table select {
-            background-color: transparent;
-            width: 100%;
-            font-size: 11px;
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-        .strategy-table input:focus, .strategy-table select:focus {
-            background-color: #ffffff;
-            outline: 2px solid #0d9488;
-        }
-        .strategy-table td {
-            padding: 2px 4px;
-            border-bottom: 1px solid #e2e8f0;
-            border-right: 1px solid #e2e8f0;
-        }
-        .digit-btn, .choice-btn, .subtab-btn {
-            transition: all 0.2s ease;
-        }
-        .digit-btn.active, .choice-btn.active, .subtab-btn.active {
-            background-color: #0f172a !important;
-            color: #ffffff !important;
-            border-color: #0f172a !important;
-        }
-    </style>
-</head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
-
-    <!-- VIEW 1: LOGIN PAGE -->
-    <div id="login-view" class="flex-1 flex items-center justify-center p-4 bg-slate-950 text-slate-100">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 shadow-2xl space-y-6">
-            <div class="text-center space-y-2">
-                <div class="inline-block bg-blue-600/20 text-blue-400 font-semibold px-3 py-1 rounded-full text-xs border border-blue-500/30">OAuth 2.0 PKCE Gateway</div>
-                <h2 class="text-lg font-bold text-white">Masuk ke Dashboard Bot</h2>
-                <p class="text-xs text-slate-400">Masukkan OAuth Client ID (Alfanumerik) Anda.</p>
-            </div>
-            <div class="space-y-4 text-xs">
-                <div>
-                    <label class="block font-medium text-slate-400 mb-1">OAuth Client ID</label>
-                    <input type="text" id="client_id" value="34M4TGKofeTRkLOlcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
-                </div>
-                <button onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider">LOGIN VIA DERIV (OAUTH PKCE)</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- VIEW 2: DASHBOARD UTAMA -->
-    <div id="dashboard-view" class="flex-1 flex flex-col hidden relative">
-        
-        <!-- HEADER ATAS -->
-        <header class="bg-white border-b border-slate-200 px-4 py-2.5 flex justify-between items-center shadow-sm">
-            <div class="flex items-center space-x-3">
-                <div class="bg-teal-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">ALS</div>
-                <span class="text-sm font-bold text-slate-800 tracking-wide">ALS Pro Automated Strategy Engine</span>
-            </div>
-
-            <div class="flex items-center space-x-4">
-                <div class="relative">
-                    <button onclick="toggleAccountDropdown()" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold">
-                        <div class="text-right">
-                            <div id="account-type-label" class="text-slate-500 text-[10px]">Real account</div>
-                            <div class="flex items-center space-x-1">
-                                <span id="account-id-label" class="text-slate-400 text-[10px] font-mono">CR...</span>
-                                <span id="account-balance-label" class="text-slate-900 font-bold">0.00 USD</span>
-                            </div>
-                        </div>
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    
-                    <div id="account-menu" class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
-                        <div onclick="switchAccountType('real')" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition">
-                            <div>
-                                <span class="text-slate-500 block text-[10px] font-semibold">Real account</span>
-                                <span id="real-acc-id" class="font-bold text-slate-800 font-mono">CR1084920</span>
-                            </div>
-                            <span id="real-acc-bal" class="font-bold text-slate-900">0.00 USD</span>
-                        </div>
-                        <div onclick="switchAccountType('demo')" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border-t border-slate-100">
-                            <div>
-                                <span class="text-amber-600 block text-[10px] font-semibold">Demo account</span>
-                                <span id="demo-acc-id" class="font-bold text-slate-800 font-mono">VRTC948201</span>
-                            </div>
-                            <span id="demo-acc-bal" class="font-bold text-amber-600">9,999.00 USD</span>
-                        </div>
-                    </div>
-                </div>
-
-                <button class="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 py-1.5 rounded-lg text-xs shadow">Deposit</button>
-            </div>
-        </header>
-
-        <!-- KONTEN UTAMA -->
-        <div class="flex-1 flex overflow-hidden">
-            
-            <!-- SIDEBAR KIRI -->
-            <aside class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 space-y-6 text-[10px] text-slate-500">
-                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                    Home
-                </div>
-                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Positions
-                </div>
-                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a1 1 0 01-1 1z"></path></svg>
-                    Reports
-                </div>
-                <div class="flex-1"></div>
-                <div onclick="handleLogout()" class="flex flex-col items-center cursor-pointer hover:text-rose-600 pb-2">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    Log out
-                </div>
-            </aside>
-
-            <!-- AREA TENGAH: TABEL STRATEGI & CONTRACT TABLE -->
-            <main class="flex-1 bg-slate-50 p-4 flex flex-col space-y-4 overflow-y-auto">
-                
-                <!-- Panel Manajemen Strategi (Tabel Atas) -->
-                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col">
-                    <div class="bg-teal-600 text-white font-bold px-4 py-2 text-center text-sm tracking-wider uppercase">
-                        STRATEGY MANAGEMENT PANEL
-                    </div>
-
-                    <div class="overflow-x-auto max-h-48">
-                        <table class="w-full text-left border-collapse strategy-table text-xs">
-                            <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b border-slate-300 shadow-sm">
-                                <tr>
-                                    <th class="p-2 border-r border-slate-300 text-center w-12">Level</th>
-                                    <th class="p-2 border-r border-slate-300">Contract Type</th>
-                                    <th class="p-2 border-r border-slate-300">Market</th>
-                                    <th class="p-2 border-r border-slate-300">Sub Market</th>
-                                    <th class="p-2 border-r border-slate-300">Purchase Type</th>
-                                    <th class="p-2 border-r border-slate-300">Barrier</th>
-                                    <th class="p-2 border-r border-slate-300">Last Digit</th>
-                                    <th class="p-2 border-r border-slate-300">Duration</th>
-                                    <th class="p-2 border-r border-slate-300">Unit</th>
-                                    <th class="p-2 border-r border-slate-300">Amount</th>
-                                    <th class="p-2 border-r border-slate-300 text-emerald-600">Est. Payout</th>
-                                </tr>
-                            </thead>
-                            <tbody id="strategy-table-body" class="bg-white divide-y divide-slate-200">
-                                <!-- Diisi via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Tombol Kontrol Dinamis -->
-                    <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
-                        <div class="flex items-center space-x-2">
-                            <button onclick="openAddModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm">Add Level (+)</button>
-                            <button onclick="deleteLastRow()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Delete Last</button>
-                            <button onclick="clearStrategy()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Clear</button>
-                        </div>
-
-                        <div class="flex items-center space-x-6 font-semibold">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-slate-600">Target Profit:</span>
-                                <input type="number" id="target-profit" value="10" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold">
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-slate-600">Stop Loss:</span>
-                                <input type="number" id="stop-loss" value="-33" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CONTRACT TABLE / HISTORY TRADE -->
-                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col flex-1">
-                    <div class="bg-slate-200 text-slate-800 font-bold px-4 py-2 text-center text-xs tracking-wider uppercase border-b border-slate-300">
-                        CONTRACT TABLE
-                    </div>
-
-                    <div class="flex-1 overflow-x-auto min-h-[160px] bg-slate-300">
-                        <table class="w-full text-left border-collapse text-xs bg-white">
-                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
-                                <tr>
-                                    <th class="p-2 border-r border-slate-300 text-center w-10">#</th>
-                                    <th class="p-2 border-r border-slate-300">Status</th>
-                                    <th class="p-2 border-r border-slate-300">Level</th>
-                                    <th class="p-2 border-r border-slate-300">Purchase Type</th>
-                                    <th class="p-2 border-r border-slate-300">Payout</th>
-                                    <th class="p-2 border-r border-slate-300">Buy Price</th>
-                                    <th class="p-2 border-r border-slate-300">Sell Price</th>
-                                    <th class="p-2 text-right">Profit</th>
-                                </tr>
-                            </thead>
-                            <tbody id="contract-table-body" class="divide-y divide-slate-200 text-slate-600">
-                                <tr>
-                                    <td colspan="8" class="p-4 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="p-3 bg-slate-50 border-t border-slate-300 flex flex-wrap items-center justify-between text-xs font-semibold">
-                        <button onclick="clearContractTable()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded shadow-sm">Clear Contract Table</button>
-                        <div class="flex items-center space-x-6">
-                            <div>Trade Count : <span id="stat-trade-count" class="font-bold text-slate-800">0</span></div>
-                            <div>Total Stake : <span id="stat-total-stake" class="font-bold text-slate-800">0</span></div>
-                            <div>Loss Count : <span id="stat-loss-count" class="font-bold text-rose-600">0</span></div>
-                            <div>Profit Count : <span id="stat-profit-count" class="font-bold text-emerald-600">0</span></div>
-                            <div class="bg-slate-100 border border-slate-300 px-3 py-1 rounded text-right">
-                                <span class="block text-[10px] text-slate-500 uppercase">Total Profit</span>
-                                <span id="stat-total-profit" class="text-sm font-black text-slate-800">0</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </main>
-
-            <!-- PANEL KANAN: TRADING RUNNING PERMANEN -->
-            <aside id="right-panel" class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
-                <div id="panel-portfolio" class="space-y-3 flex flex-col h-full">
-                    <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-xs tracking-wider uppercase rounded">
-                        TRADING RUNNING
-                    </div>
-
-                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-hidden text-xs">
-                        <table class="w-full border-collapse">
-                            <tbody>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-2 font-bold text-slate-800">Level 1</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">Volatility 100 Index</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Touch / No Touch</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start time</td><td id="pf-starttime" class="p-2 font-mono text-slate-600">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-2 font-mono text-slate-600">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">0s</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Entry spot</td><td id="pf-entry" class="p-2 font-mono text-slate-700">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">10.00</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">+0.676</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-emerald-600 font-bold">$3.35</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">$2.00</td></tr>
-                                <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">0.00</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Tombol Kontrol -->
-                    <div class="grid grid-cols-2 gap-1.5 pt-1">
-                        <button onclick="botAction('run_bot')" class="py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-[11px]">RUN BOT</button>
-                        <button onclick="botAction('sell_continue')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[10px]">SELL & CONTINUE</button>
-                        <button onclick="botAction('sell_stop')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[10px]">SELL & STOP</button>
-                        <button onclick="botAction('stop_level')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[11px]">STOP LEVEL</button>
-                    </div>
-                    <button onclick="botAction('stop_trade')" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow text-xs">STOP TRADE</button>
-                </div>
-
-                <div class="text-center text-[10px] text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
-                    <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected</span>
-                    <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
-                </div>
-            </aside>
-        </div>
-    </div>
-
-    <!-- MODAL POPUP: ADD LEVEL -->
-    <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
-            <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
-                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru (Deriv API contracts_for & proposal)</h3>
-                <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-lg">&times;</button>
-            </div>
-            <div class="p-6 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="font-medium text-slate-600">Market Category</label>
-                        <select id="modal-market-cat" onchange="onMarketCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold">
-                            <option value="derived">Derived (Synthetics)</option>
-                            <option value="forex">Forex</option>
-                            <option value="cryptocurrency">Cryptocurrency</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="font-medium text-slate-600">Submarket / Asset</label>
-                        <select id="modal-submarket" onchange="onSubmarketChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold"></select>
-                    </div>
-                </div>
-
-                <!-- INDIKATOR STATUS VALIDASI API (PENDING -> VERIFIED) -->
-                <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
-                    <span id="api-status-text">Memproses permintaan data ke Deriv API...</span>
-                    <span id="api-status-badge" class="font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase">PENDING</span>
-                </div>
-
-                <div>
-                    <label class="font-medium text-slate-600">Trade Type</label>
-                    <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
-                        <option value="Rise/Fall">Rise / Fall</option>
-                        <option value="Higher/Lower">Higher / Lower</option>
-                        <option value="Matches/Differs">Matches / Differs</option>
-                        <option value="Over/Under">Over / Under</option>
-                        <option value="Even/Odd">Even / Odd</option>
-                        <option value="Touch/No Touch" selected>Touch / No Touch</option>
-                    </select>
-                </div>
-
-                <!-- TOMBOL PILIHAN ARAH INTERAKTIF -->
-                <div id="choice-buttons-container" class="space-y-1 pt-1">
-                    <label class="font-medium text-slate-600 block" id="choice-label">Touch Type</label>
-                    <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
-                </div>
-
-                <!-- CONTAINER DINAMIS DIGIT PREDICTION -->
-                <div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
-                    <div id="digit-subtabs" class="flex justify-start space-x-2 border-b border-slate-200 pb-2">
-                        <button type="button" onclick="switchDigitSubTab('Matches')" id="subtab-matches" class="subtab-btn active px-3 py-1 rounded font-bold text-xs bg-slate-900 text-white">Matches</button>
-                        <button type="button" onclick="switchDigitSubTab('Differs')" id="subtab-differs" class="subtab-btn px-3 py-1 rounded font-bold text-xs bg-white text-slate-700 border border-slate-200">Differs</button>
-                    </div>
-
-                    <div id="digit-grid-wrapper" class="space-y-2">
-                        <span class="font-bold text-slate-700 block">Last digit prediction</span>
-                        <div class="grid grid-cols-5 gap-2" id="digit-grid"></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
-                    <div>
-                        <div class="flex justify-between items-center">
-                            <label id="duration-label" class="font-medium text-slate-600">Duration</label>
-                            <span id="min-duration-info" class="text-[10px] text-teal-600 font-semibold">Min: 5t</span>
-                        </div>
-                        <div class="flex space-x-1 mt-1">
-                            <input type="number" id="modal-duration" value="10" min="1" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2">
-                            <select id="modal-duration-unit" onchange="requestProposalUpdate()" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
-                                <option value="t" selected>Ticks</option>
-                                <option value="s">Seconds</option>
-                                <option value="m">Minutes</option>
-                                <option value="h">Hours</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between items-center">
-                            <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
-                            <span id="min-stake-info" class="text-[10px] text-amber-600 font-semibold">Min Stake: $0.35</span>
-                        </div>
-                        <input type="number" step="0.01" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
-                    </div>
-                </div>
-
-                <!-- BARRIER TUNGGAL SESUAI TAMPILAN TRADING -->
-                <div id="barrier-container" class="pt-2 border-t border-slate-200">
-                    <label class="font-medium text-slate-600">Barrier Offset</label>
-                    <input type="text" id="modal-barrier" value="+0.676" placeholder="+0.676" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1 font-mono font-bold text-slate-800">
-                </div>
-
-                <!-- WIDGET SIMULASI PAYOUT PERSIS SEPERTI DERIV TRADER (WARNA HIJAU DERIV TRADER) -->
-                <div id="payout-summary-box" class="bg-emerald-600 text-white p-3.5 rounded-xl flex justify-between items-center shadow-md">
-                    <div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
-                        <span id="payout-type-label" class="text-xs font-semibold">Buy (No Touch)</span>
-                    </div>
-                    <div class="text-right">
-                        <span id="payout-value" class="text-lg font-black tracking-tight text-white">$3.35</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-4 bg-slate-100 border-t border-slate-200 flex justify-end space-x-3">
-                <button onclick="closeAddModal()" class="px-4 py-2 bg-white border border-slate-300 rounded text-xs">Batal</button>
-                <button onclick="confirmAddStrategy()" class="px-5 py-2 bg-teal-600 text-white rounded font-bold text-xs shadow">Tambahkan ke Tabel</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const defaultAssetBarriers = {
-            "R_100": "+0.676",
-            "R_75": "+0.350",
-            "R_50": "+0.190",
-            "R_25": "+0.120",
-            "R_10": "+0.080",
-            "1HZ100V": "+1.250",
-            "1HZ75V": "+0.850",
-            "1HZ50V": "+0.550",
-            "1HZ25V": "+0.320",
-            "1HZ10V": "+0.150"
-        };
-
-        const marketSymbolsData = {
-            derived: [
-                { name: "Volatility 100 Index", symbol: "R_100" },
-                { name: "Volatility 75 Index", symbol: "R_75" },
-                { name: "Volatility 50 Index", symbol: "R_50" },
-                { name: "Volatility 25 Index", symbol: "R_25" },
-                { name: "Volatility 10 Index", symbol: "R_10" },
-                { name: "Volatility 100 (1s) Index", symbol: "1HZ100V" },
-                { name: "Volatility 75 (1s) Index", symbol: "1HZ75V" },
-                { name: "Volatility 50 (1s) Index", symbol: "1HZ50V" },
-                { name: "Volatility 25 (1s) Index", symbol: "1HZ25V" },
-                { name: "Volatility 10 (1s) Index", symbol: "1HZ10V" }
-            ],
-            forex: [
-                { name: "EUR/USD", symbol: "frxEURUSD" },
-                { name: "GBP/USD", symbol: "frxGBPUSD" },
-                { name: "USD/JPY", symbol: "frxUSDJPY" }
-            ],
-            cryptocurrency: [
-                { name: "BTC/USD", symbol: "cryBTCUSD" },
-                { name: "ETH/USD", symbol: "cryETHUSD" }
-            ]
-        };
-
-        let defaultStrategyData = [
-            { level: 1, contract_type: "Touch / No Touch", market: "Volatility", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.676", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
-        ];
-
-        let ws = null;
-        let contractCache = {};
-        let availableContracts = [];
-        let selectedDigit = 5;
-        let selectedSubTab = 'Matches';
-        let selectedChoice = 'No Touch';
-        let currentEstimatedPayout = 3.35;
-
+        // MENGGUNAKAN CLIENT ID DARI INPUT PENGGUNA
         function initWebSocket() {
-            if (ws && ws.readyState === WebSocket.OPEN) return;
-            ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
+            if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+            
+            const clientId = document.getElementById('client_id') ? document.getElementById('client_id').value.trim() : "34M4TGKofeTRkLOlcJ9zO";
+            const appId = clientId || "34M4TGKofeTRkLOlcJ9zO";
+
+            ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${appId}`);
             
             ws.onopen = () => {
-                console.log('Deriv WebSocket Connected');
+                console.log('Deriv WebSocket Connected with App ID:', appId);
+                document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected`;
                 requestProposalUpdate();
             };
+
+            ws.onerror = (err) => {
+                console.error("WebSocket Error:", err);
+                document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Error Connection`;
+            };
+
+            ws.onclose = () => {
+                console.warn("WebSocket Disconnected. Reconnecting...");
+                document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Reconnecting...`;
+                setTimeout(initWebSocket, 3000);
+            };
+
             ws.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
                 
-                // Tangani Error API agar status tidak macet di pending
                 if (data.error) {
                     console.warn("Deriv API Error:", data.error.message);
-                    setApiErrorStatus(data.error.message);
+                    setApiPendingStatus("Error: " + data.error.message);
                     return;
                 }
                 
@@ -889,22 +480,24 @@
             };
         }
 
+        // JAM GMT TICKER
+        function startGMTClock() {
+            setInterval(() => {
+                const now = new Date();
+                const gmtString = now.toUTCString().split(' ')[4] + ' GMT';
+                const el = document.getElementById('gmt-time');
+                if (el) el.innerText = gmtString;
+            }, 1000);
+        }
+
         function setApiPendingStatus(message) {
             const banner = document.getElementById('api-status-banner');
+            if(!banner) return;
             banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]";
             document.getElementById('api-status-text').innerText = message;
             const badge = document.getElementById('api-status-badge');
             badge.innerText = "PENDING";
             badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
-        }
-
-        function setApiErrorStatus(errorMessage) {
-            const banner = document.getElementById('api-status-banner');
-            banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]";
-            document.getElementById('api-status-text').innerText = "Error API: " + errorMessage;
-            const badge = document.getElementById('api-status-badge');
-            badge.innerText = "GAGAL";
-            badge.className = "font-bold text-[10px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded uppercase";
         }
 
         function clearActiveApiSubscriptions() {
@@ -942,11 +535,6 @@
                 ws.send(JSON.stringify({ contracts_for: symbol }));
             } else {
                 initWebSocket();
-                setTimeout(() => {
-                    if (ws && ws.readyState === WebSocket.OPEN) {
-                        ws.send(JSON.stringify({ contracts_for: symbol }));
-                    }
-                }, 500);
             }
         }
 
@@ -987,7 +575,7 @@
             const duration = parseInt(document.getElementById('modal-duration').value) || 10;
             const durationUnit = document.getElementById('modal-duration-unit').value;
             const amount = parseFloat(document.getElementById('modal-amount').value) || 2.0;
-            const barrier = document.getElementById('modal-barrier').value;
+            let barrier = document.getElementById('modal-barrier').value;
 
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
 
@@ -1021,15 +609,19 @@
                     duration_unit: durationUnit
                 };
                 if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
+                    if (barrier && !barrier.startsWith('+') && !barrier.startsWith('-')) {
+                        barrier = '+' + barrier;
+                    }
                     req.barrier = barrier;
                 } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
-                    req.barrier = selectedDigit;
+                    req.barrier = selectedDigit.toString();
                 }
                 ws.send(JSON.stringify(req));
             }
         }
 
         window.onload = function() {
+            startGMTClock();
             initWebSocket();
             const accessToken = localStorage.getItem('deriv_access_token');
             const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
@@ -1116,6 +708,7 @@
 
         function renderStrategyTable(dataList) {
             const tbody = document.getElementById('strategy-table-body');
+            if(!tbody) return;
             tbody.innerHTML = '';
             dataList.forEach((item, index) => {
                 const tr = document.createElement('tr');
@@ -1243,372 +836,7 @@
             const clientId = document.getElementById('client_id').value.trim();
             if (!clientId) return alert('OAuth Client ID wajib diisi!');
             localStorage.setItem('deriv_client_id', clientId);
-            window.location.reload();
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('deriv_access_token');
-            document.getElementById('dashboard-view').classList.add('hidden');
-            document.getElementById('login-view').classList.remove('hidden');
-        }
-    </script>
-</body>
-</html>
-
-        function setApiPendingStatus(message) {
-            const banner = document.getElementById('api-status-banner');
-            banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]";
-            document.getElementById('api-status-text').innerText = message;
-            const badge = document.getElementById('api-status-badge');
-            badge.innerText = "PENDING";
-            badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
-        }
-
-        function setApiErrorStatus(errorMessage) {
-            const banner = document.getElementById('api-status-banner');
-            banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]";
-            document.getElementById('api-status-text').innerText = "Error API: " + errorMessage;
-            const badge = document.getElementById('api-status-badge');
-            badge.innerText = "GAGAL";
-            badge.className = "font-bold text-[10px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded uppercase";
-        }
-
-        function clearActiveApiSubscriptions() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ forget_all: ["proposal"] }));
-            }
-        }
-
-        function onSubmarketChange() {
-            const subMarketSelect = document.getElementById('modal-submarket');
-            if (!subMarketSelect || !subMarketSelect.value) return;
-            const symbol = subMarketSelect.value.split('|')[1];
-
-            if (defaultAssetBarriers[symbol]) {
-                document.getElementById('modal-barrier').value = defaultAssetBarriers[symbol];
-            }
-
-            setApiPendingStatus("Mengambil data kontrak & proposal baru untuk aset ini...");
-            clearActiveApiSubscriptions();
-            fetchContractsForSymbol();
-        }
-
-        function fetchContractsForSymbol() {
-            const subMarketSelect = document.getElementById('modal-submarket');
-            if (!subMarketSelect || !subMarketSelect.value) return;
-            const symbol = subMarketSelect.value.split('|')[1];
-
-            if (contractCache[symbol]) {
-                availableContracts = contractCache[symbol];
-                applyApiValidationRules();
-                return;
-            }
-
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ contracts_for: symbol }));
-            } else {
-                initWebSocket();
-                setTimeout(() => {
-                    if (ws && ws.readyState === WebSocket.OPEN) {
-                        ws.send(JSON.stringify({ contracts_for: symbol }));
-                    }
-                }, 500);
-            }
-        }
-
-        function handleContractsForResponse(contracts) {
-            availableContracts = contracts || [];
-            applyApiValidationRules();
-        }
-
-        function applyApiValidationRules() {
-            const tradeType = document.getElementById('modal-trade-type').value;
-            let matchingContracts = [];
-
-            if (tradeType === 'Rise/Fall') {
-                matchingContracts = availableContracts.filter(c => c.contract_category === 'callput');
-            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
-                matchingContracts = availableContracts.filter(c => c.contract_category === 'digits');
-            } else if (tradeType === 'Higher/Lower') {
-                matchingContracts = availableContracts.filter(c => c.contract_category === 'highlow');
-            } else if (tradeType === 'Touch/No Touch') {
-                matchingContracts = availableContracts.filter(c => c.contract_category === 'touchnotouch');
-            }
-
-            if (matchingContracts.length > 0) {
-                const sample = matchingContracts[0];
-                if (sample.high_barrier) document.getElementById('modal-barrier').value = sample.high_barrier;
-                else if (sample.barrier) document.getElementById('modal-barrier').value = sample.barrier;
-            }
-
-            requestProposalUpdate();
-        }
-
-        function requestProposalUpdate() {
-            const subMarketSelect = document.getElementById('modal-submarket');
-            if (!subMarketSelect || !subMarketSelect.value) return;
-            const symbol = subMarketSelect.value.split('|')[1];
-
-            const tradeType = document.getElementById('modal-trade-type').value;
-            const duration = parseInt(document.getElementById('modal-duration').value) || 10;
-            const durationUnit = document.getElementById('modal-duration-unit').value;
-            const amount = parseFloat(document.getElementById('modal-amount').value) || 2.0;
-            const barrier = document.getElementById('modal-barrier').value;
-
-            document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
-
-            setApiPendingStatus("Mengirim request proposal baru ke API...");
-            clearActiveApiSubscriptions();
-
-            let contractTypeApi = "NOTOUCH";
-            if (tradeType === 'Touch/No Touch') {
-                contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
-            } else if (tradeType === 'Rise/Fall') {
-                contractTypeApi = (selectedChoice === 'Rise') ? "CALL" : "PUT";
-            } else if (tradeType === 'Higher/Lower') {
-                contractTypeApi = (selectedChoice === 'Higher') ? "HIGHER" : "LOWER";
-            } else if (tradeType === 'Matches/Differs') {
-                contractTypeApi = (selectedSubTab === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
-            } else if (tradeType === 'Over/Under') {
-                contractTypeApi = (selectedSubTab === 'Over') ? "DIGITOVER" : "DIGITUNDER";
-            } else if (tradeType === 'Even/Odd') {
-                contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
-            }
-
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                const req = {
-                    proposal: 1,
-                    amount: amount,
-                    basis: "stake",
-                    currency: "USD",
-                    symbol: symbol,
-                    contract_type: contractTypeApi,
-                    duration: duration,
-                    duration_unit: durationUnit
-                };
-                if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
-                    req.barrier = barrier;
-                } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
-                    req.barrier = selectedDigit;
-                }
-                ws.send(JSON.stringify(req));
-            }
-        }
-
-        window.onload = function() {
-            initWebSocket();
-            const accessToken = localStorage.getItem('deriv_access_token');
-            const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
-            if (savedClientId) document.getElementById('client_id').value = savedClientId;
-
-            if (accessToken) {
-                document.getElementById('login-view').classList.add('hidden');
-                document.getElementById('dashboard-view').classList.remove('hidden');
-                renderStrategyTable(defaultStrategyData);
-            } else {
-                document.getElementById('login-view').classList.remove('hidden');
-                document.getElementById('dashboard-view').classList.add('hidden');
-            }
-        };
-
-        function renderChoiceButtons(tradeType) {
-            const container = document.getElementById('choice-buttons-grid');
-            const wrapper = document.getElementById('choice-buttons-container');
-            const label = document.getElementById('choice-label');
-            if(!container) return;
-            container.innerHTML = '';
-
-            let choices = [];
-            if (tradeType === 'Rise/Fall') {
-                choices = ['Rise', 'Fall'];
-                label.innerText = 'Prediction Direction';
-                wrapper.classList.remove('hidden');
-            } else if (tradeType === 'Higher/Lower') {
-                choices = ['Higher', 'Lower'];
-                label.innerText = 'Barrier Type';
-                wrapper.classList.remove('hidden');
-            } else if (tradeType === 'Touch/No Touch') {
-                choices = ['Touch', 'No Touch'];
-                label.innerText = 'Touch Type';
-                wrapper.classList.remove('hidden');
-            } else {
-                wrapper.classList.add('hidden');
-                return;
-            }
-
-            if (!choices.includes(selectedChoice)) selectedChoice = choices[0];
-
-            choices.forEach(choiceName => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                const isSelected = (selectedChoice === choiceName);
-                btn.className = `choice-btn py-2 rounded-xl border font-bold text-xs transition ${isSelected ? 'active bg-slate-900 text-white border-slate-900 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
-                btn.innerText = choiceName;
-                btn.onclick = () => {
-                    selectedChoice = choiceName;
-                    renderChoiceButtons(tradeType);
-                    requestProposalUpdate();
-                };
-                container.appendChild(btn);
-            });
-        }
-
-        function renderDigitGrid() {
-            const grid = document.getElementById('digit-grid');
-            if (!grid) return;
-            grid.innerHTML = '';
-
-            for (let i = 0; i <= 9; i++) {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                const isSelected = (selectedDigit === i);
-                btn.className = `digit-btn py-2 rounded-lg border font-bold text-xs transition ${isSelected ? 'active bg-indigo-600 text-white border-indigo-600 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
-                btn.innerText = i;
-                btn.onclick = () => {
-                    selectedDigit = i;
-                    renderDigitGrid();
-                    requestProposalUpdate();
-                };
-                grid.appendChild(btn);
-            }
-        }
-
-        function switchDigitSubTab(tabName) {
-            selectedSubTab = tabName;
-            document.getElementById('subtab-matches').className = `subtab-btn px-3 py-1 rounded font-bold text-xs ${tabName === 'Matches' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
-            document.getElementById('subtab-differs').className = `subtab-btn px-3 py-1 rounded font-bold text-xs ${tabName === 'Differs' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
-            requestProposalUpdate();
-        }
-
-        function renderStrategyTable(dataList) {
-            const tbody = document.getElementById('strategy-table-body');
-            tbody.innerHTML = '';
-            dataList.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200";
-                tr.innerHTML = `
-                    <td class="text-center font-bold text-slate-600 bg-slate-50">Level ${index + 1}</td>
-                    <td><input type="text" value="${item.contract_type}"></td>
-                    <td><input type="text" value="${item.market}"></td>
-                    <td><input type="text" value="${item.submarket}"></td>
-                    <td><input type="text" value="${item.purchase_type}"></td>
-                    <td><input type="text" value="${item.barrier || ''}" class="font-mono font-bold text-slate-700"></td>
-                    <td><input type="text" value="${item.last_digit || ''}" class="font-bold text-indigo-600 text-center"></td>
-                    <td><input type="number" value="${item.duration_amount}"></td>
-                    <td><select><option ${item.duration_unit === 'Ticks' ? 'selected' : ''}>Ticks</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option><option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option><option ${item.duration_unit === 'Hours' ? 'selected' : ''}>Hours</option></select></td>
-                    <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
-                    <td class="font-bold text-emerald-600">$${(item.payout || 3.35).toFixed(2)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function openAddModal() {
-            document.getElementById('add-strategy-modal').classList.remove('hidden');
-            onMarketCategoryChange();
-            onTradeTypeChange();
-        }
-
-        function closeAddModal() {
-            document.getElementById('add-strategy-modal').classList.add('hidden');
-        }
-
-        function onMarketCategoryChange() {
-            const cat = document.getElementById('modal-market-cat').value;
-            const subSelect = document.getElementById('modal-submarket');
-            subSelect.innerHTML = '';
-            marketSymbolsData[cat].forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item.name + "|" + item.symbol;
-                opt.innerText = item.name;
-                subSelect.appendChild(opt);
-            });
-            onSubmarketChange();
-        }
-
-        function onTradeTypeChange() {
-            const tradeType = document.getElementById('modal-trade-type').value;
-            const unitSelect = document.getElementById('modal-duration-unit');
-            const barrierContainer = document.getElementById('barrier-container');
-            const digitContainer = document.getElementById('digit-prediction-container');
-
-            renderChoiceButtons(tradeType);
-
-            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
-                unitSelect.value = 't';
-                unitSelect.disabled = false;
-                barrierContainer.classList.remove('hidden');
-                digitContainer.classList.add('hidden');
-            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
-                unitSelect.value = 't';
-                unitSelect.disabled = true;
-                barrierContainer.classList.add('hidden');
-                digitContainer.classList.remove('hidden');
-                renderDigitGrid();
-            } else {
-                unitSelect.value = 't';
-                unitSelect.disabled = false;
-                barrierContainer.classList.add('hidden');
-                digitContainer.classList.add('hidden');
-            }
-
-            setApiPendingStatus("Menyesuaikan parameter tipe perdagangan dengan API...");
-            clearActiveApiSubscriptions();
-            fetchContractsForSymbol();
-            requestProposalUpdate();
-        }
-
-        function confirmAddStrategy() {
-            const marketCat = document.getElementById('modal-market-cat').value;
-            const subMarketSelect = document.getElementById('modal-submarket');
-            const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex].text;
-            const tradeType = document.getElementById('modal-trade-type').value;
-            const durationAmount = document.getElementById('modal-duration').value;
-            const durationUnitEl = document.getElementById('modal-duration-unit');
-
-            let unitText = "Ticks";
-            const valUnit = durationUnitEl.value;
-            if (valUnit === 's') unitText = "Seconds";
-            else if (valUnit === 'm') unitText = "Minutes";
-            else if (valUnit === 'h') unitText = "Hours";
-
-            const barrierVal = document.getElementById('modal-barrier').value;
-
-            const newItem = {
-                level: defaultStrategyData.length + 1,
-                contract_type: tradeType,
-                market: marketCat === 'derived' ? 'Volatility' : (marketCat === 'forex' ? 'Forex' : 'Crypto'),
-                submarket: subMarketText,
-                purchase_type: selectedChoice,
-                barrier: barrierVal,
-                last_digit: ['Matches/Differs', 'Over/Under'].includes(tradeType) ? selectedDigit : "",
-                duration_amount: durationAmount,
-                duration_unit: unitText,
-                amount: parseFloat(document.getElementById('modal-amount').value),
-                payout: currentEstimatedPayout
-            };
-
-            defaultStrategyData.push(newItem);
-            renderStrategyTable(defaultStrategyData);
-            closeAddModal();
-        }
-
-        function deleteLastRow() {
-            if (defaultStrategyData.length > 0) {
-                defaultStrategyData.pop();
-                renderStrategyTable(defaultStrategyData);
-            }
-        }
-
-        function clearStrategy() {
-            defaultStrategyData = [];
-            renderStrategyTable(defaultStrategyData);
-        }
-
-        function loginWithDerivOAuthPKCE() {
-            const clientId = document.getElementById('client_id').value.trim();
-            if (!clientId) return alert('OAuth Client ID wajib diisi!');
-            localStorage.setItem('deriv_client_id', clientId);
+            localStorage.setItem('deriv_access_token', 'connected_demo');
             window.location.reload();
         }
 
