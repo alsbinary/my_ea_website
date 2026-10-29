@@ -273,7 +273,7 @@
     <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
             <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
-                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru (Deriv API active_symbols)</h3>
+                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru (Deriv API contracts_for)</h3>
                 <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-lg">&times;</button>
             </div>
             <div class="p-6 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
@@ -294,8 +294,8 @@
 
                 <!-- INDIKATOR STATUS VALIDASI API -->
                 <div id="api-status-banner" class="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
-                    <span id="api-status-text">Memuat aturan kontrak dari Deriv API...</span>
-                    <span id="api-status-badge" class="font-bold text-[10px] bg-blue-200 px-2 py-0.5 rounded uppercase">Fetching</span>
+                    <span id="api-status-text">Koneksi API siap.</span>
+                    <span id="api-status-badge" class="font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase">Ready</span>
                 </div>
 
                 <div>
@@ -330,10 +330,10 @@
                     <div>
                         <div class="flex justify-between items-center">
                             <label id="duration-label" class="font-medium text-slate-600">Duration</label>
-                            <span id="min-duration-info" class="text-[10px] text-teal-600 font-semibold">Min: 1 Tick</span>
+                            <span id="min-duration-info" class="text-[10px] text-teal-600 font-semibold">Min: 1t</span>
                         </div>
                         <div class="flex space-x-1 mt-1">
-                            <input type="number" id="modal-duration" value="1" min="1" class="w-full bg-white border border-slate-300 rounded p-2">
+                            <input type="number" id="modal-duration" value="5" min="1" class="w-full bg-white border border-slate-300 rounded p-2">
                             <select id="modal-duration-unit" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
                                 <option value="t">Ticks</option>
                                 <option value="s">Seconds</option>
@@ -347,7 +347,7 @@
                             <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
                             <span id="min-stake-info" class="text-[10px] text-amber-600 font-semibold">Min Stake: $0.35</span>
                         </div>
-                        <input type="number" step="0.01" id="modal-amount" value="1.00" min="0.35" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
+                        <input type="number" step="0.01" id="modal-amount" value="0.35" min="0.35" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
                     </div>
                 </div>
 
@@ -406,26 +406,50 @@
         };
 
         let ws = null;
+        let contractCache = {}; // Caching lokal agar tidak request berulang untuk simbol yang sama
         let availableContracts = [];
         let selectedDigit = 5;
         let selectedSubTab = 'Matches';
         let selectedChoice = 'Rise';
 
+        // 1. KONEKSI WEBSOCKET PERSISTENT (GLOBAL & SINGLETON)
         function initWebSocket() {
+            if (ws && ws.readyState === WebSocket.OPEN) return;
             ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
-            ws.onopen = () => console.log('Connected to Deriv WebSocket API');
+            
+            ws.onopen = () => {
+                console.log('Deriv WebSocket Connected');
+            };
+
             ws.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
-                if (data.msg_type === 'contracts_for') {
-                    handleContractsForResponse(data.contracts_for);
+                if (data.msg_type === 'contracts_for' && data.contracts_for) {
+                    const symbol = data.echo_req.contracts_for;
+                    contractCache[symbol] = data.contracts_for.available; // Simpan ke cache
+                    handleContractsForResponse(data.contracts_for.available);
                 }
+            };
+
+            ws.onerror = (err) => {
+                console.error('WebSocket Error:', err);
             };
         }
 
+        // 2. FUNGSI FETCH DENGAN CACHE & TIMEOUT AGAR TIDAK LOADING LAMA
         function fetchContractsForSymbol() {
             const subMarketSelect = document.getElementById('modal-submarket');
-            if (!subMarketSelect.value) return;
+            if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
+
+            // Cek apakah data sudah ada di cache lokal
+            if (contractCache[symbol]) {
+                document.getElementById('api-status-text').innerText = `Aturan muat cepat (Cache) untuk ${symbol}.`;
+                document.getElementById('api-status-badge').innerText = 'CACHED';
+                document.getElementById('api-status-badge').className = 'font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase';
+                availableContracts = contractCache[symbol];
+                applyApiValidationRules();
+                return;
+            }
 
             document.getElementById('api-status-text').innerText = `Mengambil batasan aturan untuk ${symbol}...`;
             document.getElementById('api-status-badge').innerText = 'LOADING';
@@ -433,30 +457,37 @@
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ contracts_for: symbol }));
+            } else {
+                initWebSocket();
+                setTimeout(() => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ contracts_for: symbol }));
+                    }
+                }, 800);
             }
         }
 
-        function handleContractsForResponse(contractsData) {
-            if (!contractsData || !contractsData.available) return;
-            availableContracts = contractsData.available;
-
-            document.getElementById('api-status-text').innerText = `Validasi Deriv API Aktif (${availableContracts.length} jenis kontrak tersedia).`;
+        function handleContractsForResponse(contracts) {
+            availableContracts = contracts;
+            document.getElementById('api-status-text').innerText = `Validasi Deriv API Aktif (${contracts.length} kontrak tersedia).`;
             document.getElementById('api-status-badge').innerText = 'VERIFIED';
             document.getElementById('api-status-badge').className = 'font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase';
-
             applyApiValidationRules();
         }
 
+        // 3. PENYESUAIAN NILAI DEFAULT & VALIDASI DARI API
         function applyApiValidationRules() {
             const tradeType = document.getElementById('modal-trade-type').value;
             let matchingContracts = [];
 
             if (tradeType === 'Rise/Fall') {
                 matchingContracts = availableContracts.filter(c => c.contract_category === 'callput');
-            } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under' || tradeType === 'Even/Odd') {
+            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
                 matchingContracts = availableContracts.filter(c => c.contract_category === 'digits');
             } else if (tradeType === 'Higher/Lower') {
                 matchingContracts = availableContracts.filter(c => c.contract_category === 'highlow');
+            } else if (tradeType === 'Touch/No Touch') {
+                matchingContracts = availableContracts.filter(c => c.contract_category === 'touchnotouch');
             }
 
             if (matchingContracts.length > 0) {
@@ -466,11 +497,19 @@
 
                 document.getElementById('min-duration-info').innerText = `Min: ${minDurationStr}`;
                 document.getElementById('min-stake-info').innerText = `Min Stake: $${minStakeVal}`;
-                document.getElementById('modal-amount').min = minStakeVal;
+                
+                // Set default amount & min amount sesuai data API
+                const amountInput = document.getElementById('modal-amount');
+                amountInput.min = minStakeVal;
+                amountInput.value = (sample.default_stake || minStakeVal).toFixed(2);
 
-                const durationNum = parseInt(minDurationStr);
+                // Set default duration & min duration sesuai data API
+                const durationNum = parseInt(minDurationStr) || 1;
                 const durationUnit = minDurationStr.slice(-1);
-                document.getElementById('modal-duration').min = durationNum || 1;
+                const durationInput = document.getElementById('modal-duration');
+                durationInput.min = durationNum;
+                durationInput.value = durationNum;
+
                 if (['t', 's', 'm', 'h'].includes(durationUnit)) {
                     document.getElementById('modal-duration-unit').value = durationUnit;
                 }
