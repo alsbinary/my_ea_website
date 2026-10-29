@@ -287,10 +287,10 @@
                     </div>
                 </div>
 
-                <!-- INDIKATOR STATUS VALIDASI API -->
-                <div id="api-status-banner" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
-                    <span id="api-status-text">Siap & Terhubung dengan Standar Deriv API.</span>
-                    <span id="api-status-badge" class="font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase">VERIFIED</span>
+                <!-- INDIKATOR STATUS VALIDASI API (PENDING -> VERIFIED) -->
+                <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
+                    <span id="api-status-text">Memproses permintaan data ke Deriv API...</span>
+                    <span id="api-status-badge" class="font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase">PENDING</span>
                 </div>
 
                 <div>
@@ -444,8 +444,25 @@
                 if (data.msg_type === 'proposal' && data.proposal) {
                     currentEstimatedPayout = parseFloat(data.proposal.payout);
                     document.getElementById('payout-value').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
+                    
+                    // Update status API dari PENDING ke VERIFIED
+                    const banner = document.getElementById('api-status-banner');
+                    banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]";
+                    document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
+                    const badge = document.getElementById('api-status-badge');
+                    badge.innerText = "VERIFIED";
+                    badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
                 }
             };
+        }
+
+        function setApiPendingStatus(message) {
+            const banner = document.getElementById('api-status-banner');
+            banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]";
+            document.getElementById('api-status-text').innerText = message;
+            const badge = document.getElementById('api-status-badge');
+            badge.innerText = "PENDING";
+            badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
         }
 
         function onSubmarketChange() {
@@ -457,6 +474,7 @@
                 document.getElementById('modal-barrier').value = defaultAssetBarriers[symbol];
             }
 
+            setApiPendingStatus("Mengambil data kontrak & proposal baru untuk aset ini...");
             fetchContractsForSymbol();
         }
 
@@ -523,6 +541,8 @@
             const barrier = document.getElementById('modal-barrier').value;
 
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
+
+            setApiPendingStatus("Mengirim request proposal baru ke API...");
 
             let contractTypeApi = "NOTOUCH";
             if (tradeType === 'Touch/No Touch') {
@@ -716,6 +736,7 @@
                 digitContainer.classList.add('hidden');
             }
 
+            setApiPendingStatus("Menyesuaikan parameter tipe perdagangan dengan API...");
             fetchContractsForSymbol();
             requestProposalUpdate();
         }
