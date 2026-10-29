@@ -465,6 +465,13 @@
             badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
         }
 
+        function clearActiveApiSubscriptions() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                // Hentikan langganan proposal sebelumnya agar tidak macet di pending
+                ws.send(JSON.stringify({ forget_all: ["proposal"] }));
+            }
+        }
+
         function onSubmarketChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
@@ -475,6 +482,7 @@
             }
 
             setApiPendingStatus("Mengambil data kontrak & proposal baru untuk aset ini...");
+            clearActiveApiSubscriptions();
             fetchContractsForSymbol();
         }
 
@@ -543,6 +551,7 @@
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
 
             setApiPendingStatus("Mengirim request proposal baru ke API...");
+            clearActiveApiSubscriptions();
 
             let contractTypeApi = "NOTOUCH";
             if (tradeType === 'Touch/No Touch') {
@@ -737,6 +746,7 @@
             }
 
             setApiPendingStatus("Menyesuaikan parameter tipe perdagangan dengan API...");
+            clearActiveApiSubscriptions();
             fetchContractsForSymbol();
             requestProposalUpdate();
         }
