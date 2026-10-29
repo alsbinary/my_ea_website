@@ -293,8 +293,8 @@
                 </div>
 
                 <!-- INDIKATOR STATUS VALIDASI API -->
-                <div id="api-status-banner" class="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
-                    <span id="api-status-text">Koneksi API siap.</span>
+                <div id="api-status-banner" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
+                    <span id="api-status-text">Siap & Terhubung dengan Standar Deriv API.</span>
                     <span id="api-status-badge" class="font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase">Ready</span>
                 </div>
 
@@ -330,14 +330,14 @@
                     <div>
                         <div class="flex justify-between items-center">
                             <label id="duration-label" class="font-medium text-slate-600">Duration</label>
-                            <span id="min-duration-info" class="text-[10px] text-teal-600 font-semibold">Min: 1t</span>
+                            <span id="min-duration-info" class="text-[10px] text-teal-600 font-semibold">Min: 5m</span>
                         </div>
                         <div class="flex space-x-1 mt-1">
                             <input type="number" id="modal-duration" value="5" min="1" class="w-full bg-white border border-slate-300 rounded p-2">
-                            <select id="modal-duration-unit" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
+                            <select id="modal-duration-unit" onchange="onDurationUnitChange()" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
                                 <option value="t">Ticks</option>
                                 <option value="s">Seconds</option>
-                                <option value="m">Minutes</option>
+                                <option value="m" selected>Minutes</option>
                                 <option value="h">Hours</option>
                             </select>
                         </div>
@@ -354,11 +354,11 @@
                 <div id="barrier-container" class="hidden pt-2 border-t border-slate-200 grid grid-cols-2 gap-3">
                     <div>
                         <label class="font-medium text-slate-600">Barrier / Offset (High)</label>
-                        <input type="text" id="modal-high" placeholder="+1.0" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
+                        <input type="text" id="modal-high" value="+1.0" placeholder="+1.0" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
                     </div>
                     <div>
                         <label class="font-medium text-slate-600">Barrier / Offset (Low)</label>
-                        <input type="text" id="modal-low" placeholder="-1.0" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
+                        <input type="text" id="modal-low" value="-1.0" placeholder="-1.0" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
                     </div>
                 </div>
             </div>
@@ -406,54 +406,43 @@
         };
 
         let ws = null;
-        let contractCache = {}; // Caching lokal agar tidak request berulang untuk simbol yang sama
+        let contractCache = {};
         let availableContracts = [];
         let selectedDigit = 5;
         let selectedSubTab = 'Matches';
         let selectedChoice = 'Rise';
 
-        // 1. KONEKSI WEBSOCKET PERSISTENT (GLOBAL & SINGLETON)
         function initWebSocket() {
             if (ws && ws.readyState === WebSocket.OPEN) return;
             ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
             
-            ws.onopen = () => {
-                console.log('Deriv WebSocket Connected');
-            };
-
+            ws.onopen = () => console.log('Deriv WebSocket Connected');
             ws.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
                     const symbol = data.echo_req.contracts_for;
-                    contractCache[symbol] = data.contracts_for.available; // Simpan ke cache
+                    contractCache[symbol] = data.contracts_for.available;
                     handleContractsForResponse(data.contracts_for.available);
                 }
             };
-
-            ws.onerror = (err) => {
-                console.error('WebSocket Error:', err);
-            };
         }
 
-        // 2. FUNGSI FETCH DENGAN CACHE & TIMEOUT AGAR TIDAK LOADING LAMA
         function fetchContractsForSymbol() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
 
-            // Cek apakah data sudah ada di cache lokal
-            if (contractCache[symbol]) {
-                document.getElementById('api-status-text').innerText = `Aturan muat cepat (Cache) untuk ${symbol}.`;
-                document.getElementById('api-status-badge').innerText = 'CACHED';
-                document.getElementById('api-status-badge').className = 'font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase';
-                availableContracts = contractCache[symbol];
-                applyApiValidationRules();
-                return;
-            }
+            applyInstantDefaults();
 
             document.getElementById('api-status-text').innerText = `Mengambil batasan aturan untuk ${symbol}...`;
             document.getElementById('api-status-badge').innerText = 'LOADING';
             document.getElementById('api-status-badge').className = 'font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase';
+
+            if (contractCache[symbol]) {
+                availableContracts = contractCache[symbol];
+                applyApiValidationRules();
+                return;
+            }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ contracts_for: symbol }));
@@ -462,20 +451,54 @@
                 setTimeout(() => {
                     if (ws && ws.readyState === WebSocket.OPEN) {
                         ws.send(JSON.stringify({ contracts_for: symbol }));
+                    } else {
+                        // Fallback jika WS gagal terhubung dalam 1 detik
+                        handleContractsForResponse([]);
                     }
-                }, 800);
+                }, 1000);
             }
         }
 
+        function applyInstantDefaults() {
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const amountInput = document.getElementById('modal-amount');
+            const durationInput = document.getElementById('modal-duration');
+            const unitSelect = document.getElementById('modal-duration-unit');
+            const highInput = document.getElementById('modal-high');
+            const lowInput = document.getElementById('modal-low');
+
+            if (tradeType === 'Higher/Lower') {
+                highInput.value = "+0.5";
+                lowInput.value = "-0.5";
+                durationInput.value = "15";
+                unitSelect.value = "m";
+                document.getElementById('min-duration-info').innerText = "Min: 1m";
+            } else if (tradeType === 'Touch/No Touch') {
+                highInput.value = "+1.0";
+                lowInput.value = "-1.0";
+                durationInput.value = "5";
+                unitSelect.value = "m";
+                document.getElementById('min-duration-info').innerText = "Min: 5m";
+            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
+                durationInput.value = "1";
+                unitSelect.value = "t";
+                document.getElementById('min-duration-info').innerText = "Min: 1t";
+            } else {
+                durationInput.value = "5";
+                unitSelect.value = "t";
+                document.getElementById('min-duration-info').innerText = "Min: 5t";
+            }
+            amountInput.value = "0.35";
+        }
+
         function handleContractsForResponse(contracts) {
-            availableContracts = contracts;
-            document.getElementById('api-status-text').innerText = `Validasi Deriv API Aktif (${contracts.length} kontrak tersedia).`;
+            availableContracts = contracts || [];
+            document.getElementById('api-status-text').innerText = `Validasi Deriv API Aktif (${availableContracts.length} jenis kontrak tersedia).`;
             document.getElementById('api-status-badge').innerText = 'VERIFIED';
             document.getElementById('api-status-badge').className = 'font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase';
             applyApiValidationRules();
         }
 
-        // 3. PENYESUAIAN NILAI DEFAULT & VALIDASI DARI API
         function applyApiValidationRules() {
             const tradeType = document.getElementById('modal-trade-type').value;
             let matchingContracts = [];
@@ -498,22 +521,37 @@
                 document.getElementById('min-duration-info').innerText = `Min: ${minDurationStr}`;
                 document.getElementById('min-stake-info').innerText = `Min Stake: $${minStakeVal}`;
                 
-                // Set default amount & min amount sesuai data API
                 const amountInput = document.getElementById('modal-amount');
                 amountInput.min = minStakeVal;
-                amountInput.value = (sample.default_stake || minStakeVal).toFixed(2);
-
-                // Set default duration & min duration sesuai data API
-                const durationNum = parseInt(minDurationStr) || 1;
-                const durationUnit = minDurationStr.slice(-1);
-                const durationInput = document.getElementById('modal-duration');
-                durationInput.min = durationNum;
-                durationInput.value = durationNum;
-
-                if (['t', 's', 'm', 'h'].includes(durationUnit)) {
-                    document.getElementById('modal-duration-unit').value = durationUnit;
+                if(parseFloat(amountInput.value) < minStakeVal) {
+                    amountInput.value = minStakeVal.toFixed(2);
                 }
+
+                // Parsing durasi minimum dinamis dari API (misal: "5m", "15s", "1t", "1h")
+                const durationMatch = minDurationStr.match(/^(\d+)([tsmhdy])$/i);
+                if (durationMatch) {
+                    const durNum = parseInt(durationMatch[1]);
+                    const durUnit = durationMatch[2].toLowerCase();
+                    
+                    const durationInput = document.getElementById('modal-duration');
+                    const unitSelect = document.getElementById('modal-duration-unit');
+                    
+                    durationInput.min = durNum;
+                    durationInput.value = durNum;
+                    unitSelect.value = durUnit;
+                }
+
+                if (sample.high_barrier) document.getElementById('modal-high').value = sample.high_barrier;
+                if (sample.low_barrier) document.getElementById('modal-low').value = sample.low_barrier;
+            } else {
+                document.getElementById('api-status-text').innerText = `Menggunakan aturan standar lokal untuk aset ini.`;
+                document.getElementById('api-status-badge').innerText = 'READY';
+                document.getElementById('api-status-badge').className = 'font-bold text-[10px] bg-blue-200 text-blue-800 px-2 py-0.5 rounded uppercase';
             }
+        }
+
+        function onDurationUnitChange() {
+            // Validasi tambahan jika unit durasi diganti manual oleh user
         }
 
         setInterval(() => {
@@ -690,6 +728,7 @@
             const digitContainer = document.getElementById('digit-prediction-container');
 
             renderChoiceButtons(tradeType);
+            applyInstantDefaults();
 
             if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
                 unitSelect.value = 'm';
@@ -709,7 +748,7 @@
                 digitContainer.classList.add('hidden');
             }
 
-            applyApiValidationRules();
+            fetchContractsForSymbol();
         }
 
         function confirmAddStrategy() {
