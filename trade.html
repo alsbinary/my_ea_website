@@ -144,7 +144,7 @@
                                     <th class="p-2 border-r border-slate-300">Duration</th>
                                     <th class="p-2 border-r border-slate-300">Unit</th>
                                     <th class="p-2 border-r border-slate-300">Amount</th>
-                                    <th class="p-2 border-r border-slate-300 text-emerald-700">Est. Payout</th>
+                                    <th class="p-2 border-r border-slate-300 text-emerald-600">Est. Payout</th>
                                 </tr>
                             </thead>
                             <tbody id="strategy-table-body" class="bg-white divide-y divide-slate-200">
@@ -313,7 +313,10 @@
 
                 <!-- CONTAINER DINAMIS DIGIT PREDICTION -->
                 <div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
-                    <div id="digit-subtabs" class="flex justify-start space-x-2 border-b border-slate-200 pb-2"></div>
+                    <div id="digit-subtabs" class="flex justify-start space-x-2 border-b border-slate-200 pb-2">
+                        <button type="button" onclick="switchDigitSubTab('Matches')" id="subtab-matches" class="subtab-btn active px-3 py-1 rounded font-bold text-xs bg-slate-900 text-white">Matches</button>
+                        <button type="button" onclick="switchDigitSubTab('Differs')" id="subtab-differs" class="subtab-btn px-3 py-1 rounded font-bold text-xs bg-white text-slate-700 border border-slate-200">Differs</button>
+                    </div>
 
                     <div id="digit-grid-wrapper" class="space-y-2">
                         <span class="font-bold text-slate-700 block">Last digit prediction</span>
@@ -328,7 +331,7 @@
                             <span id="min-duration-info" class="text-[10px] text-teal-600 font-semibold">Min: 5t</span>
                         </div>
                         <div class="flex space-x-1 mt-1">
-                            <input type="number" id="modal-duration" value="10" min="1" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2">
+                            <input type="number" id="modal-duration" value="10" min="1" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2">
                             <select id="modal-duration-unit" onchange="requestProposalUpdate()" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
                                 <option value="t" selected>Ticks</option>
                                 <option value="s">Seconds</option>
@@ -342,17 +345,17 @@
                             <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
                             <span id="min-stake-info" class="text-[10px] text-amber-600 font-semibold">Min Stake: $0.35</span>
                         </div>
-                        <input type="number" step="0.01" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
+                        <input type="number" step="0.01" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
                     </div>
                 </div>
 
                 <!-- BARRIER TUNGGAL SESUAI TAMPILAN TRADING -->
                 <div id="barrier-container" class="pt-2 border-t border-slate-200">
                     <label class="font-medium text-slate-600">Barrier Offset</label>
-                    <input type="text" id="modal-barrier" value="+0.676" placeholder="+0.676" oninput="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1 font-mono font-bold text-slate-800">
+                    <input type="text" id="modal-barrier" value="+0.676" placeholder="+0.676" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1 font-mono font-bold text-slate-800">
                 </div>
 
-                <!-- WIDGET SIMULASI PAYOUT DENGAN WARNA HIJAU -->
+                <!-- WIDGET SIMULASI PAYOUT PERSIS SEPERTI DERIV TRADER (WARNA HIJAU DERIV TRADER) -->
                 <div id="payout-summary-box" class="bg-emerald-600 text-white p-3.5 rounded-xl flex justify-between items-center shadow-md">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
@@ -523,6 +526,14 @@
                 contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
             } else if (tradeType === 'Rise/Fall') {
                 contractTypeApi = (selectedChoice === 'Rise') ? "CALL" : "PUT";
+            } else if (tradeType === 'Higher/Lower') {
+                contractTypeApi = (selectedChoice === 'Higher') ? "HIGHER" : "LOWER";
+            } else if (tradeType === 'Matches/Differs') {
+                contractTypeApi = (selectedSubTab === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
+            } else if (tradeType === 'Over/Under') {
+                contractTypeApi = (selectedSubTab === 'Over') ? "DIGITOVER" : "DIGITUNDER";
+            } else if (tradeType === 'Even/Odd') {
+                contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
             }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
@@ -538,12 +549,10 @@
                 };
                 if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
                     req.barrier = barrier;
+                } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
+                    req.barrier = selectedDigit;
                 }
                 ws.send(JSON.stringify(req));
-            } else {
-                const multiplier = (selectedChoice === 'No Touch') ? 1.675 : 1.90;
-                currentEstimatedPayout = amount * multiplier;
-                document.getElementById('payout-value').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
             }
         }
 
@@ -603,6 +612,33 @@
                 };
                 container.appendChild(btn);
             });
+        }
+
+        function renderDigitGrid() {
+            const grid = document.getElementById('digit-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            for (let i = 0; i <= 9; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = (selectedDigit === i);
+                btn.className = `digit-btn py-2 rounded-lg border font-bold text-xs transition ${isSelected ? 'active bg-indigo-600 text-white border-indigo-600 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
+                btn.innerText = i;
+                btn.onclick = () => {
+                    selectedDigit = i;
+                    renderDigitGrid();
+                    requestProposalUpdate();
+                };
+                grid.appendChild(btn);
+            }
+        }
+
+        function switchDigitSubTab(tabName) {
+            selectedSubTab = tabName;
+            document.getElementById('subtab-matches').className = `subtab-btn px-3 py-1 rounded font-bold text-xs ${tabName === 'Matches' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
+            document.getElementById('subtab-differs').className = `subtab-btn px-3 py-1 rounded font-bold text-xs ${tabName === 'Differs' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
+            requestProposalUpdate();
         }
 
         function renderStrategyTable(dataList) {
@@ -669,6 +705,7 @@
                 unitSelect.disabled = true;
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.remove('hidden');
+                renderDigitGrid();
             } else {
                 unitSelect.value = 't';
                 unitSelect.disabled = false;
@@ -702,7 +739,7 @@
                 submarket: subMarketText,
                 purchase_type: selectedChoice,
                 barrier: barrierVal,
-                last_digit: "",
+                last_digit: ['Matches/Differs', 'Over/Under'].includes(tradeType) ? selectedDigit : "",
                 duration_amount: durationAmount,
                 duration_unit: unitText,
                 amount: parseFloat(document.getElementById('modal-amount').value),
