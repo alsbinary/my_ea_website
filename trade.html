@@ -288,8 +288,14 @@
                     </div>
                     <div>
                         <label class="font-medium text-slate-600">Submarket / Asset</label>
-                        <select id="modal-submarket" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold"></select>
+                        <select id="modal-submarket" onchange="fetchContractsForSymbol()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold"></select>
                     </div>
+                </div>
+
+                <!-- INDIKATOR STATUS VALIDASI API -->
+                <div id="api-status-banner" class="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
+                    <span id="api-status-text">Memuat aturan kontrak dari Deriv API...</span>
+                    <span id="api-status-badge" class="font-bold text-[10px] bg-blue-200 px-2 py-0.5 rounded uppercase">Fetching</span>
                 </div>
 
                 <div>
@@ -322,9 +328,12 @@
 
                 <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
                     <div>
-                        <label id="duration-label" class="font-medium text-slate-600">Duration</label>
+                        <div class="flex justify-between items-center">
+                            <label id="duration-label" class="font-medium text-slate-600">Duration</label>
+                            <span id="min-duration-info" class="text-[10px] text-teal-600 font-semibold">Min: 1 Tick</span>
+                        </div>
                         <div class="flex space-x-1 mt-1">
-                            <input type="number" id="modal-duration" value="1" class="w-full bg-white border border-slate-300 rounded p-2">
+                            <input type="number" id="modal-duration" value="1" min="1" class="w-full bg-white border border-slate-300 rounded p-2">
                             <select id="modal-duration-unit" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
                                 <option value="t">Ticks</option>
                                 <option value="s">Seconds</option>
@@ -334,8 +343,11 @@
                         </div>
                     </div>
                     <div>
-                        <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
-                        <input type="number" step="0.01" id="modal-amount" value="1.00" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
+                        <div class="flex justify-between items-center">
+                            <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
+                            <span id="min-stake-info" class="text-[10px] text-amber-600 font-semibold">Min Stake: $0.35</span>
+                        </div>
+                        <input type="number" step="0.01" id="modal-amount" value="1.00" min="0.35" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
                     </div>
                 </div>
 
@@ -370,26 +382,12 @@
                 { name: "Volatility 25 Index", symbol: "R_25" },
                 { name: "Volatility 50 Index", symbol: "R_50" },
                 { name: "Volatility 75 Index", symbol: "R_75" },
-                { name: "Volatility 100 Index", symbol: "R_100" },
-                { name: "Boom 300 Index", symbol: "BOOM300" },
-                { name: "Boom 500 Index", symbol: "BOOM500" },
-                { name: "Boom 1000 Index", symbol: "BOOM1000" },
-                { name: "Crash 300 Index", symbol: "CRASH300" },
-                { name: "Crash 500 Index", symbol: "CRASH500" },
-                { name: "Crash 1000 Index", symbol: "CRASH1000" },
-                { name: "Jump 10 Index", symbol: "JD10" },
-                { name: "Jump 25 Index", symbol: "JD25" },
-                { name: "Jump 50 Index", symbol: "JD50" },
-                { name: "Jump 75 Index", symbol: "JD75" },
-                { name: "Jump 100 Index", symbol: "JD100" }
+                { name: "Volatility 100 Index", symbol: "R_100" }
             ],
             forex: [
                 { name: "EUR/USD", symbol: "frxEURUSD" },
                 { name: "GBP/USD", symbol: "frxGBPUSD" },
-                { name: "USD/JPY", symbol: "frxUSDJPY" },
-                { name: "AUD/USD", symbol: "frxAUDUSD" },
-                { name: "EUR/GBP", symbol: "frxEURGBP" },
-                { name: "USD/CAD", symbol: "frxUSDCAD" }
+                { name: "USD/JPY", symbol: "frxUSDJPY" }
             ],
             cryptocurrency: [
                 { name: "BTC/USD", symbol: "cryBTCUSD" },
@@ -406,16 +404,85 @@
             real: { loginid: "CR1084920", balance: "0.00 USD" },
             demo: { loginid: "VRTC948201", balance: "9,999.00 USD" }
         };
-        let currentAccountType = 'real';
+
+        let ws = null;
+        let availableContracts = [];
         let selectedDigit = 5;
         let selectedSubTab = 'Matches';
         let selectedChoice = 'Rise';
+
+        function initWebSocket() {
+            ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
+            ws.onopen = () => console.log('Connected to Deriv WebSocket API');
+            ws.onmessage = (msg) => {
+                const data = JSON.parse(msg.data);
+                if (data.msg_type === 'contracts_for') {
+                    handleContractsForResponse(data.contracts_for);
+                }
+            };
+        }
+
+        function fetchContractsForSymbol() {
+            const subMarketSelect = document.getElementById('modal-submarket');
+            if (!subMarketSelect.value) return;
+            const symbol = subMarketSelect.value.split('|')[1];
+
+            document.getElementById('api-status-text').innerText = `Mengambil batasan aturan untuk ${symbol}...`;
+            document.getElementById('api-status-badge').innerText = 'LOADING';
+            document.getElementById('api-status-badge').className = 'font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase';
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ contracts_for: symbol }));
+            }
+        }
+
+        function handleContractsForResponse(contractsData) {
+            if (!contractsData || !contractsData.available) return;
+            availableContracts = contractsData.available;
+
+            document.getElementById('api-status-text').innerText = `Validasi Deriv API Aktif (${availableContracts.length} jenis kontrak tersedia).`;
+            document.getElementById('api-status-badge').innerText = 'VERIFIED';
+            document.getElementById('api-status-badge').className = 'font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase';
+
+            applyApiValidationRules();
+        }
+
+        function applyApiValidationRules() {
+            const tradeType = document.getElementById('modal-trade-type').value;
+            let matchingContracts = [];
+
+            if (tradeType === 'Rise/Fall') {
+                matchingContracts = availableContracts.filter(c => c.contract_category === 'callput');
+            } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under' || tradeType === 'Even/Odd') {
+                matchingContracts = availableContracts.filter(c => c.contract_category === 'digits');
+            } else if (tradeType === 'Higher/Lower') {
+                matchingContracts = availableContracts.filter(c => c.contract_category === 'highlow');
+            }
+
+            if (matchingContracts.length > 0) {
+                const sample = matchingContracts[0];
+                const minDurationStr = sample.min_contract_duration || "1t";
+                const minStakeVal = sample.min_stake || sample.default_stake || 0.35;
+
+                document.getElementById('min-duration-info').innerText = `Min: ${minDurationStr}`;
+                document.getElementById('min-stake-info').innerText = `Min Stake: $${minStakeVal}`;
+                document.getElementById('modal-amount').min = minStakeVal;
+
+                const durationNum = parseInt(minDurationStr);
+                const durationUnit = minDurationStr.slice(-1);
+                document.getElementById('modal-duration').min = durationNum || 1;
+                if (['t', 's', 'm', 'h'].includes(durationUnit)) {
+                    document.getElementById('modal-duration-unit').value = durationUnit;
+                }
+            }
+        }
 
         setInterval(() => {
             document.getElementById('gmt-time').innerText = new Date().toUTCString().slice(17, 25);
         }, 1000);
 
         window.onload = function() {
+            initWebSocket();
             const accessToken = localStorage.getItem('deriv_access_token');
             const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
             if (savedClientId) document.getElementById('client_id').value = savedClientId;
@@ -455,9 +522,7 @@
                 return;
             }
 
-            if (!choices.includes(selectedChoice)) {
-                selectedChoice = choices[0];
-            }
+            if (!choices.includes(selectedChoice)) selectedChoice = choices[0];
 
             choices.forEach(choiceName => {
                 const btn = document.createElement('button');
@@ -487,9 +552,7 @@
                 tabs = ['Even', 'Odd'];
             }
 
-            if (!tabs.includes(selectedSubTab)) {
-                selectedSubTab = tabs[0] || '';
-            }
+            if (!tabs.includes(selectedSubTab)) selectedSubTab = tabs[0] || '';
 
             tabs.forEach(tabName => {
                 const btn = document.createElement('button');
@@ -558,66 +621,6 @@
             });
         }
 
-        function botAction(action) {
-            if (action === 'run_bot') {
-                addContractHistoryRow("Won", "Level 1", "Rise", "0.68", "0.35", "0.68", "+0.33");
-            } else {
-                alert(`Aksi Bot: ${action.toUpperCase()} dieksekusi.`);
-            }
-        }
-
-        let contractHistoryData = [];
-        function addContractHistoryRow(status, level, purchaseType, payout, buyPrice, sellPrice, profit) {
-            contractHistoryData.push({ status, level, purchaseType, payout, buyPrice, sellPrice, profit });
-            renderContractTable();
-        }
-
-        function renderContractTable() {
-            const tbody = document.getElementById('contract-table-body');
-            tbody.innerHTML = '';
-            if (contractHistoryData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak.</td></tr>`;
-                return;
-            }
-
-            let totalProfitVal = 0;
-            let winCount = 0;
-            let lossCount = 0;
-
-            contractHistoryData.forEach((item, idx) => {
-                const isWin = parseFloat(item.profit) >= 0;
-                if (isWin) winCount++; else lossCount++;
-                totalProfitVal += parseFloat(item.profit);
-
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition border-b border-slate-200 bg-white";
-                tr.innerHTML = `
-                    <td class="p-2 border-r border-slate-200 text-center">${idx + 1}</td>
-                    <td class="p-2 border-r border-slate-200 font-bold ${isWin ? 'text-emerald-600' : 'text-rose-600'}">${item.status}</td>
-                    <td class="p-2 border-r border-slate-200 font-semibold">${item.level}</td>
-                    <td class="p-2 border-r border-slate-200">${item.purchaseType}</td>
-                    <td class="p-2 border-r border-slate-200">${item.payout}</td>
-                    <td class="p-2 border-r border-slate-200">${item.buyPrice}</td>
-                    <td class="p-2 border-r border-slate-200">${item.sellPrice}</td>
-                    <td class="p-2 text-right font-bold ${isWin ? 'text-emerald-600' : 'text-rose-600'}">${item.profit}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('stat-trade-count').innerText = contractHistoryData.length;
-            document.getElementById('stat-total-stake').innerText = contractHistoryData.reduce((acc, curr) => acc + parseFloat(curr.buyPrice), 0).toFixed(2);
-            document.getElementById('stat-loss-count').innerText = lossCount;
-            document.getElementById('stat-profit-count').innerText = winCount;
-            const tpEl = document.getElementById('stat-total-profit');
-            tpEl.innerText = totalProfitVal.toFixed(2);
-            tpEl.className = `text-sm font-black ${totalProfitVal >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
-        }
-
-        function clearContractTable() {
-            contractHistoryData = [];
-            renderContractTable();
-        }
-
         function openAddModal() {
             document.getElementById('add-strategy-modal').classList.remove('hidden');
             onMarketCategoryChange();
@@ -638,6 +641,7 @@
                 opt.innerText = item.name;
                 subSelect.appendChild(opt);
             });
+            fetchContractsForSymbol();
         }
 
         function onTradeTypeChange() {
@@ -665,6 +669,8 @@
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.add('hidden');
             }
+
+            applyApiValidationRules();
         }
 
         function confirmAddStrategy() {
@@ -725,72 +731,11 @@
             renderStrategyTable(defaultStrategyData);
         }
 
-        function loadStrategyFromFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const lines = e.target.result.split('\n');
-                let parsedList = [];
-                lines.forEach((line, idx) => {
-                    if (idx === 0 || !line.trim()) return;
-                    const cols = line.split(',');
-                    if (cols.length >= 15) {
-                        parsedList.push({
-                            contract_type: cols[2], market: cols[3], submarket: cols[4],
-                            purchase_type: cols[5], high: cols[6], low: cols[7],
-                            last_digit: cols[8], duration_amount: cols[10],
-                            duration_unit: cols[11], amount: cols[14]
-                        });
-                    }
-                });
-                if (parsedList.length > 0) {
-                    defaultStrategyData = parsedList;
-                    renderStrategyTable(defaultStrategyData);
-                } else {
-                    alert('Format file tidak sesuai.');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function toggleAccountDropdown() {
-            document.getElementById('account-menu').classList.toggle('hidden');
-        }
-
-        function switchAccountType(type) {
-            currentAccountType = type;
-            const acc = accountsData[type];
-            document.getElementById('account-type-label').innerText = type === 'real' ? "Real account" : "Demo account";
-            document.getElementById('account-id-label').innerText = acc.loginid;
-            document.getElementById('account-balance-label').innerText = acc.balance;
-            document.getElementById('account-balance-label').className = type === 'real' ? "text-slate-900 font-bold" : "text-amber-600 font-bold";
-            document.getElementById('account-menu').classList.add('hidden');
-        }
-
         function loginWithDerivOAuthPKCE() {
             const clientId = document.getElementById('client_id').value.trim();
             if (!clientId) return alert('OAuth Client ID wajib diisi!');
             localStorage.setItem('deriv_client_id', clientId);
-            const array = crypto.getRandomValues(new Uint8Array(64));
-            const codeVerifier = Array.from(array).map(v => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[v % 66]).join('');
-            const encoder = new TextEncoder();
-            crypto.subtle.digest('SHA-256', encoder.encode(codeVerifier)).then(digest => {
-                const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-                const state = crypto.randomUUID();
-                localStorage.setItem('pkce_code_verifier', codeVerifier);
-                localStorage.setItem('oauth_state', state);
-                const params = new URLSearchParams({
-                    client_id: clientId,
-                    redirect_uri: "https://tradelib.net/trade-callback",
-                    response_type: 'code',
-                    scope: 'trade',
-                    state: state,
-                    code_challenge: codeChallenge,
-                    code_challenge_method: 'S256'
-                });
-                window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
-            });
+            window.location.reload();
         }
 
         function handleLogout() {
