@@ -435,6 +435,13 @@
             ws.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
                 
+                // Tangani Error API agar status tidak macet di pending
+                if (data.error) {
+                    console.warn("Deriv API Error:", data.error.message);
+                    setApiErrorStatus(data.error.message);
+                    return;
+                }
+                
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
                     const symbol = data.echo_req.contracts_for;
                     contractCache[symbol] = data.contracts_for.available;
@@ -465,9 +472,17 @@
             badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
         }
 
+        function setApiErrorStatus(errorMessage) {
+            const banner = document.getElementById('api-status-banner');
+            banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]";
+            document.getElementById('api-status-text').innerText = "Error API: " + errorMessage;
+            const badge = document.getElementById('api-status-badge');
+            badge.innerText = "GAGAL";
+            badge.className = "font-bold text-[10px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded uppercase";
+        }
+
         function clearActiveApiSubscriptions() {
             if (ws && ws.readyState === WebSocket.OPEN) {
-                // Hentikan langganan proposal sebelumnya agar tidak macet di pending
                 ws.send(JSON.stringify({ forget_all: ["proposal"] }));
             }
         }
