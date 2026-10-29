@@ -239,7 +239,7 @@
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">10.00</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">+0.676</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-slate-700 font-bold text-emerald-600">$3.35</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-emerald-600 font-bold">$3.35</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">$2.00</td></tr>
                                 <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">0.00</td></tr>
                             </tbody>
@@ -352,14 +352,14 @@
                     <input type="text" id="modal-barrier" value="+0.676" placeholder="+0.676" oninput="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1 font-mono font-bold text-slate-800">
                 </div>
 
-                <!-- WIDGET SIMULASI PAYOUT PERSIS SEPERTI DERIV TRADER -->
-                <div id="payout-summary-box" class="bg-gradient-to-r from-rose-500 to-pink-600 text-white p-3.5 rounded-xl flex justify-between items-center shadow-md">
+                <!-- WIDGET SIMULASI PAYOUT DENGAN WARNA HIJAU -->
+                <div id="payout-summary-box" class="bg-emerald-600 text-white p-3.5 rounded-xl flex justify-between items-center shadow-md">
                     <div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider block opacity-80">ESTIMATED PAYOUT</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
                         <span id="payout-type-label" class="text-xs font-semibold">Buy (No Touch)</span>
                     </div>
                     <div class="text-right">
-                        <span id="payout-value" class="text-lg font-black tracking-tight">$3.35</span>
+                        <span id="payout-value" class="text-lg font-black tracking-tight text-white">$3.35</span>
                     </div>
                 </div>
             </div>
@@ -372,7 +372,6 @@
     </div>
 
     <script>
-        // Peta barrier default otomatis berdasarkan simbol aset
         const defaultAssetBarriers = {
             "R_100": "+0.676",
             "R_75": "+0.350",
@@ -436,7 +435,6 @@
                     handleContractsForResponse(data.contracts_for.available);
                 }
 
-                // Menangani kalkulasi payout live dari API Proposal
                 if (data.msg_type === 'proposal' && data.proposal) {
                     currentEstimatedPayout = parseFloat(data.proposal.payout);
                     document.getElementById('payout-value').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
@@ -449,7 +447,6 @@
             if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
 
-            // Update Barrier secara otomatis sesuai aset yang dipilih
             if (defaultAssetBarriers[symbol]) {
                 document.getElementById('modal-barrier').value = defaultAssetBarriers[symbol];
             }
@@ -521,7 +518,6 @@
 
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
 
-            // Tentukan contract_type asli API
             let contractTypeApi = "NOTOUCH";
             if (tradeType === 'Touch/No Touch') {
                 contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
@@ -529,7 +525,6 @@
                 contractTypeApi = (selectedChoice === 'Rise') ? "CALL" : "PUT";
             }
 
-            // Kirim request proposal ke API untuk perhitungan Payout otomatis
             if (ws && ws.readyState === WebSocket.OPEN) {
                 const req = {
                     proposal: 1,
@@ -546,7 +541,6 @@
                 }
                 ws.send(JSON.stringify(req));
             } else {
-                // Estimasi Payout rasio standar jika WebSocket offline
                 const multiplier = (selectedChoice === 'No Touch') ? 1.675 : 1.90;
                 currentEstimatedPayout = amount * multiplier;
                 document.getElementById('payout-value').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
