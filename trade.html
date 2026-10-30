@@ -40,14 +40,14 @@
             <div class="text-center space-y-2">
                 <div class="inline-block bg-blue-600/20 text-blue-400 font-semibold px-3 py-1 rounded-full text-xs border border-blue-500/30">OAuth 2.0 PKCE Gateway</div>
                 <h2 class="text-base font-bold text-white">Masuk ke Dashboard Bot</h2>
-                <p class="text-xs text-slate-400">Masukkan OAuth Client ID / App ID Anda untuk login via Deriv OAuth PKCE.</p>
+                <p class="text-xs text-slate-400">Masukkan OAuth Client ID / App ID Anda.</p>
             </div>
             <div class="space-y-4 text-xs">
                 <div>
-                    <label class="block font-medium text-slate-400 mb-1">App ID / Client ID</label>
-                    <input type="text" id="app_id_input" value="34M4TGKofeTRkLOlcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500 text-xs">
+                    <label class="block font-medium text-slate-400 mb-1">OAuth Client ID / App ID</label>
+                    <input type="text" id="client_id" value="34M4TGKofeTRkLOlcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500 text-xs">
                 </div>
-                <button onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs uppercase cursor-pointer">Login Via Deriv (OAuth PKCE)</button>
+                <button onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs">LOGIN VIA DERIV (OAUTH PKCE)</button>
             </div>
         </div>
     </div>
@@ -66,24 +66,23 @@
                 <div class="relative">
                     <button onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
                         <div class="text-right">
-                            <div id="account-type-label" class="text-slate-500 text-[11px]">Selecting...</div>
+                            <div id="account-type-label" class="text-slate-500 text-[11px]">Belum terhubung</div>
                             <div class="flex items-center space-x-1">
-                                <span id="account-id-label" class="text-slate-400 text-[11px] font-mono">-</span>
-                                <span id="account-balance-label" class="text-slate-900 font-bold text-xs">0.00 USD</span>
+                                <span id="account-id-label" class="text-slate-400 text-[11px] font-mono">—</span>
+                                <span id="account-balance-label" class="text-slate-900 font-bold text-xs">—</span>
                             </div>
                         </div>
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     
-                    <div id="account-menu" class="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs max-h-64 overflow-y-auto">
-                        <div class="p-2 text-slate-400 text-[10px] uppercase font-bold tracking-wider">Daftar Akun Terhubung</div>
-                        <div id="account-list-container" class="space-y-1">
-                            <!-- Populated via API -->
+                    <div id="account-menu" class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
+                        <div id="account-list" class="space-y-1">
+                            <div class="p-2 text-slate-500">Daftar akun akan dimuat setelah login.</div>
                         </div>
                     </div>
                 </div>
 
-                <button class="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 py-1.5 rounded-lg text-xs shadow">Deposit</button>
+                <button class="bg-slate-700 hover:bg-slate-800 text-white font-semibold px-3 py-1.5 rounded-lg text-xs shadow" onclick="handleLogout()">Keluar</button>
             </div>
         </header>
 
@@ -114,7 +113,7 @@
             <!-- AREA TENGAH: TABEL STRATEGI & CONTRACT TABLE -->
             <main class="flex-1 bg-slate-50 p-4 flex flex-col space-y-4 overflow-y-auto text-xs">
                 
-                <!-- Panel Manajemen Strategi -->
+                <!-- Panel Manajemen Strategi (Tabel Atas) -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col">
                     <div class="bg-teal-600 text-white font-bold px-4 py-2.5 text-center text-xs tracking-wider uppercase">
                         STRATEGY MANAGEMENT PANEL
@@ -209,7 +208,7 @@
 
             </main>
 
-            <!-- PANEL KANAN: TRADING RUNNING -->
+            <!-- PANEL KANAN: TRADING RUNNING PERMANEN -->
             <aside id="right-panel" class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
                 <div id="panel-portfolio" class="space-y-3 flex flex-col h-full">
                     <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-xs tracking-wider uppercase rounded">
@@ -230,7 +229,7 @@
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">+0.676</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-emerald-600 font-bold">$0.00</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">$0.00</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">$2.00</td></tr>
                                 <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">0.00</td></tr>
                             </tbody>
                         </table>
@@ -247,7 +246,7 @@
                 </div>
 
                 <div class="text-center text-xs text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
-                    <span id="conn-status-indicator" class="flex items-center"><span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Connecting...</span>
+                    <span id="conn-status-indicator" class="flex items-center"><span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected</span>
                     <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
                 </div>
             </aside>
@@ -277,7 +276,7 @@
                     </div>
                 </div>
 
-                <!-- INDIKATOR STATUS VALIDASI API -->
+                <!-- INDIKATOR STATUS VALIDASI API (PENDING -> VERIFIED) -->
                 <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs">
                     <span id="api-status-text">Memproses permintaan data ke Deriv API...</span>
                     <span id="api-status-badge" class="font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase">PENDING</span>
@@ -377,7 +376,6 @@
     </div>
 
     <script>
-        // Static configuration mappings
         const defaultAssetBarriers = {
             "R_100": "+0.676",
             "R_75": "+0.350",
@@ -415,24 +413,24 @@
             ]
         };
 
-        // State management
-        let defaultStrategyData = [];
-        let ws = null;
-        let activeAccounts = []; 
-        let activeAccountId = "";
-        let currentCurrency = "USD";
+        let defaultStrategyData = [
+            { level: 1, contract_type: "Touch / No Touch", market: "Volatility", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.676", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 0.00 }
+        ];
+
+        let ws = null; // Public legacy WebSocket retained for existing market/proposal UI.
+        let accountWs = null; // Authenticated account WebSocket (OTP) for selected account balance.
+        let derivAccounts = [];
+        let selectedAccount = null;
+        let latestProposalReqId = 0;
         let contractCache = {};
         let availableContracts = [];
         let selectedDigit = 5;
         let selectedSubTab = 'Matches';
         let selectedChoice = 'No Touch';
-        let currentEstimatedPayout = 0.00;
+        let currentEstimatedPayout = 0;
         let isFetchingContracts = false;
-        let lastProposalReqId = 0;
 
-        // --- GLOBAL SCOPE FUNCTION DECLARATIONS ---
-
-        window.appendDebugLog = function(type, message) {
+        function appendDebugLog(type, message) {
             const consoleBox = document.getElementById('debug-log-console');
             if (!consoleBox) return;
             const item = document.createElement('div');
@@ -454,256 +452,256 @@
 
             consoleBox.appendChild(item);
             consoleBox.scrollTop = consoleBox.scrollHeight;
-        };
+        }
 
-        window.clearDebugConsole = function() {
+        function clearDebugConsole() {
             const consoleBox = document.getElementById('debug-log-console');
             if (consoleBox) consoleBox.innerHTML = '<div class="text-slate-500">[System] Log dibersihkan.</div>';
-        };
+        }
 
-        window.generateRandomString = function(length) {
-            const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-            const values = new Uint8Array(length);
-            window.crypto.getRandomValues(values);
-            return Array.from(values).map(x => possible[x % possible.length]).join('');
-        };
-
-        window.generateCodeChallenge = async function(codeVerifier) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(codeVerifier);
-            const digest = await window.crypto.subtle.digest('SHA-256', data);
-            return btoa(String.fromCharCode(...new Uint8Array(digest)))
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=+$/, '');
-        };
-
-        window.loginWithDerivOAuthPKCE = async function() {
-            const appIdInput = document.getElementById('app_id_input');
-            const appId = appIdInput ? appIdInput.value.trim() : '34M4TGKofeTRkLOlcJ9zO';
-            if (!appId) {
-                alert('App ID / Client ID wajib diisi!');
-                return;
-            }
-            localStorage.setItem('deriv_app_id', appId);
-
-            try {
-                const verifier = window.generateRandomString(128);
-                sessionStorage.setItem('deriv_code_verifier', verifier);
-                const challenge = await window.generateCodeChallenge(verifier);
-
-                const redirectUri = window.location.origin + window.location.pathname;
-                const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${encodeURIComponent(appId)}&code_challenge=${encodeURIComponent(challenge)}&code_challenge_method=S256&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-                window.location.href = oauthUrl;
-            } catch (err) {
-                console.error("PKCE Error:", err);
-                alert("Gagal menginisialisasi OAuth PKCE: " + err.message);
-            }
-        };
-
-        window.handleDerivOAuthCallback = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const accounts = [];
-            let index = 1;
-
-            while (urlParams.has(`acct${index}`) && urlParams.has(`token${index}`)) {
-                accounts.push({
-                    account: urlParams.get(`acct${index}`),
-                    token: urlParams.get(`token${index}`),
-                    currency: urlParams.get(`cur${index}`) || 'USD',
-                    is_virtual: urlParams.get(`acct${index}`).startsWith('VRTC')
-                });
-                index++;
-            }
-
-            if (accounts.length > 0) {
-                localStorage.setItem('deriv_accounts', JSON.stringify(accounts));
-                window.history.replaceState({}, document.title, window.location.pathname);
-                return true;
-            }
-
-            const stored = localStorage.getItem('deriv_accounts');
-            if (stored) {
-                try {
-                    activeAccounts = JSON.parse(stored);
-                    return activeAccounts.length > 0;
-                } catch (e) {
-                    return false;
-                }
-            }
-
-            return false;
-        };
-
-        window.populateAccountSwitcher = function() {
-            const container = document.getElementById('account-list-container');
-            if (!container) return;
-            container.innerHTML = '';
-
-            activeAccounts.forEach(acc => {
-                const item = document.createElement('div');
-                item.className = `p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border ${acc.account === activeAccountId ? 'border-teal-500 bg-teal-50/30' : 'border-transparent'}`;
-                item.onclick = () => window.switchAccountType(acc.account);
-
-                const accTypeLabel = acc.is_virtual ? 'Demo Account' : 'Real Account';
-                const labelClass = acc.is_virtual ? 'text-amber-600' : 'text-slate-500';
-
-                item.innerHTML = `
-                    <div>
-                        <span class="${labelClass} block text-[11px] font-semibold">${accTypeLabel}</span>
-                        <span class="font-bold text-slate-800 font-mono text-xs">${acc.account}</span>
-                    </div>
-                    <span id="bal-${acc.account}" class="font-bold text-slate-900 text-xs">${acc.balance || '0.00'} ${acc.currency}</span>
-                `;
-                container.appendChild(item);
-            });
-        };
-
-        window.toggleAccountDropdown = function(event) {
+        function toggleAccountDropdown(event) {
             if (event) event.stopPropagation();
             const menu = document.getElementById('account-menu');
             if (menu) menu.classList.toggle('hidden');
-        };
+        }
 
-        window.switchAccountType = function(accId) {
-            const selected = activeAccounts.find(a => a.account === accId);
-            if (!selected) return;
-
-            activeAccountId = selected.account;
-            currentCurrency = selected.currency || "USD";
-
-            document.getElementById('account-type-label').innerText = selected.is_virtual ? 'Demo account' : 'Real account';
-            document.getElementById('account-type-label').className = selected.is_virtual ? 'text-amber-600 text-[11px]' : 'text-slate-500 text-[11px]';
-            document.getElementById('account-id-label').innerText = selected.account;
-            document.getElementById('account-balance-label').innerText = `${selected.balance || '0.00'} ${currentCurrency}`;
-
-            window.populateAccountSwitcher();
-
+        window.addEventListener('click', function(e) {
             const menu = document.getElementById('account-menu');
-            if (menu) menu.classList.add('hidden');
-
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                window.appendDebugLog('SEND', `Authorize switching account to ${activeAccountId}`);
-                ws.send(JSON.stringify({ authorize: selected.token }));
+            const btn = document.getElementById('account-dropdown-btn');
+            if (menu && btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.add('hidden');
             }
-        };
+        });
 
-        window.initWebSocket = function() {
+        function accountIdOf(a) { return String(a.account_id || a.id || a.loginid || ''); }
+        function accountTypeOf(a) {
+            const raw = String(a.account_type || a.type || a.account_category || '').toLowerCase();
+            if (raw.includes('demo') || raw.includes('virtual') || a.is_virtual === true) return 'Demo';
+            if (raw.includes('real') || raw.includes('standard') || raw.includes('financial')) return 'Real';
+            return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : 'Deriv';
+        }
+        function accountCurrencyOf(a) { return String(a.currency || a.currency_code || 'USD'); }
+        function accountBalanceOf(a) {
+            const b = a.balance;
+            if (typeof b === 'number' || typeof b === 'string') return Number(b);
+            if (b && typeof b === 'object') return Number(b.amount ?? b.balance ?? NaN);
+            return NaN;
+        }
+        function formatMoney(value, currency) {
+            const n = Number(value);
+            return Number.isFinite(n) ? `${n.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currency || 'USD'}` : `— ${currency || 'USD'}`;
+        }
+        function updateAccountHeader(account, balanceOverride) {
+            if (!account) return;
+            const type = accountTypeOf(account);
+            const id = accountIdOf(account);
+            const currency = accountCurrencyOf(account);
+            const balance = Number.isFinite(Number(balanceOverride)) ? Number(balanceOverride) : accountBalanceOf(account);
+            const typeLabel = document.getElementById('account-type-label');
+            typeLabel.innerText = `${type} account`;
+            typeLabel.className = type.toLowerCase() === 'demo' ? 'text-amber-600 text-[11px]' : 'text-slate-500 text-[11px]';
+            document.getElementById('account-id-label').innerText = id || '—';
+            const balanceLabel = document.getElementById('account-balance-label');
+            balanceLabel.innerText = formatMoney(balance, currency);
+            balanceLabel.className = type.toLowerCase() === 'demo' ? 'text-amber-600 font-bold text-xs' : 'text-slate-900 font-bold text-xs';
+        }
+        function renderAccountList() {
+            const list = document.getElementById('account-list');
+            list.innerHTML = '';
+            if (!derivAccounts.length) {
+                const empty = document.createElement('div');
+                empty.className = 'p-2 text-slate-500';
+                empty.innerText = 'Tidak ada akun trading yang dikembalikan API.';
+                list.appendChild(empty);
+                return;
+            }
+            derivAccounts.forEach(account => {
+                const id = accountIdOf(account);
+                if (!id) return;
+                const type = accountTypeOf(account);
+                const currency = accountCurrencyOf(account);
+                const row = document.createElement('button');
+                row.type = 'button';
+                row.className = 'w-full text-left p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border-b border-slate-100';
+                const left = document.createElement('div');
+                const typeEl = document.createElement('span');
+                typeEl.className = type.toLowerCase() === 'demo' ? 'text-amber-600 block text-[11px] font-semibold' : 'text-slate-500 block text-[11px] font-semibold';
+                typeEl.innerText = `${type} account`;
+                const idEl = document.createElement('span');
+                idEl.className = 'font-bold text-slate-800 font-mono text-xs';
+                idEl.innerText = id;
+                left.append(typeEl, idEl);
+                const balanceEl = document.createElement('span');
+                balanceEl.className = type.toLowerCase() === 'demo' ? 'font-bold text-amber-600 text-xs' : 'font-bold text-slate-900 text-xs';
+                balanceEl.innerText = formatMoney(accountBalanceOf(account), currency);
+                row.append(left, balanceEl);
+                row.onclick = () => selectDerivAccount(id);
+                list.appendChild(row);
+            });
+        }
+        async function loadDerivAccounts() {
+            try {
+                const response = await fetch('api.php?action=accounts', {credentials: 'same-origin', cache: 'no-store'});
+                const payload = await response.json();
+                if (response.status === 401) { await showLogin(); return; }
+                if (!response.ok || !payload.ok) throw new Error(payload.error || 'Gagal mengambil daftar akun.');
+                const result = payload.result || {};
+                let accounts = result.data ?? result.accounts ?? result;
+                if (accounts && !Array.isArray(accounts) && Array.isArray(accounts.accounts)) accounts = accounts.accounts;
+                if (accounts && !Array.isArray(accounts) && Array.isArray(accounts.items)) accounts = accounts.items;
+                derivAccounts = Array.isArray(accounts) ? accounts : [];
+                renderAccountList();
+                appendDebugLog('INFO', `Daftar akun diterima dari API: ${derivAccounts.length} akun.`);
+                const firstId = accountIdOf(selectedAccount || {});
+                const chosen = derivAccounts.find(a => accountIdOf(a) === firstId) || derivAccounts[0];
+                if (chosen) await selectDerivAccount(accountIdOf(chosen), false);
+            } catch (error) {
+                appendDebugLog('ERR', `Daftar akun: ${error.message}`);
+                const list = document.getElementById('account-list');
+                if (list) list.innerText = error.message;
+            }
+        }
+        async function selectDerivAccount(accountId, closeMenu = true) {
+            const account = derivAccounts.find(a => accountIdOf(a) === String(accountId));
+            if (!account) return;
+            selectedAccount = account;
+            updateAccountHeader(account);
+            if (closeMenu) document.getElementById('account-menu').classList.add('hidden');
+            if (accountWs) { try { accountWs.onclose = null; accountWs.close(); } catch (_) {} accountWs = null; }
+            try {
+                const response = await fetch('api.php?action=otp', {
+                    method: 'POST', credentials: 'same-origin', cache: 'no-store',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({account_id: accountId})
+                });
+                const payload = await response.json();
+                if (response.status === 401) { await showLogin(); return; }
+                if (!response.ok || !payload.ok || !payload.url) throw new Error(payload.error || 'Tidak dapat membuka koneksi akun.');
+                accountWs = new WebSocket(payload.url);
+                accountWs.onopen = () => {
+                    appendDebugLog('INFO', `Koneksi akun aktif: ${accountId}`);
+                    accountWs.send(JSON.stringify({balance: 1, subscribe: 1}));
+                };
+                accountWs.onmessage = event => {
+                    let message;
+                    try { message = JSON.parse(event.data); } catch (_) { return; }
+                    if (message.error) { appendDebugLog('ERR', `Saldo akun: ${message.error.message}`); return; }
+                    if (message.msg_type === 'balance' && message.balance) {
+                        const value = Number(message.balance.balance ?? message.balance.amount);
+                        const currency = message.balance.currency || accountCurrencyOf(account);
+                        if (Number.isFinite(value)) {
+                            account.balance = value;
+                            account.currency = currency;
+                            updateAccountHeader(account, value);
+                            renderAccountList();
+                        }
+                    }
+                };
+                accountWs.onerror = () => appendDebugLog('ERR', 'Koneksi saldo akun gagal.');
+            } catch (error) {
+                appendDebugLog('ERR', `Pemilihan akun: ${error.message}`);
+                updateAccountHeader(account);
+            }
+        }
+        async function showLogin() {
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('login-view').classList.remove('hidden');
+            if (ws) { try { ws.onclose = null; ws.close(); } catch (_) {} ws = null; }
+            if (accountWs) { try { accountWs.onclose = null; accountWs.close(); } catch (_) {} accountWs = null; }
+        }
+
+        function initWebSocket() {
             if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+            
+            const appId = '1089'; // Public legacy app ID for market/proposal quote requests only.
 
-            const storedAccounts = localStorage.getItem('deriv_accounts');
-            if (storedAccounts) activeAccounts = JSON.parse(storedAccounts);
-            if (activeAccounts.length === 0) return;
-
-            if (!activeAccountId) activeAccountId = activeAccounts[0].account;
-            const currentAccObj = activeAccounts.find(a => a.account === activeAccountId) || activeAccounts[0];
-
-            const appId = localStorage.getItem('deriv_app_id') || "34M4TGKofeTRkLOlcJ9zO";
-
-            window.appendDebugLog('INFO', `Menghubungkan WebSocket ke App ID: ${appId}`);
+            appendDebugLog('INFO', 'Membuka koneksi harga/proposal publik Deriv.');
             ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${appId}`);
-
+            
             ws.onopen = () => {
-                window.appendDebugLog('INFO', 'Terhubung ke Deriv WebSocket Server.');
+                console.log('Deriv WebSocket Connected with App ID:', appId);
+                appendDebugLog('INFO', 'Terhubung ke Server Deriv WebSocket.');
                 document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected`;
-
-                if (currentAccObj && currentAccObj.token) {
-                    window.appendDebugLog('SEND', `Authorize account: ${currentAccObj.account}`);
-                    ws.send(JSON.stringify({ authorize: currentAccObj.token }));
-                }
+                requestProposalUpdate();
             };
 
             ws.onerror = (err) => {
                 console.error("WebSocket Error:", err);
-                window.appendDebugLog('ERR', 'Terjadi kesalahan pada WebSocket.');
-                document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Error`;
+                appendDebugLog('ERR', 'Terjadi kesalahan koneksi WebSocket.');
+                document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Error Connection`;
             };
 
             ws.onclose = () => {
-                window.appendDebugLog('ERR', 'Koneksi terputus. Mengisi ulang koneksi dalam 3 detik...');
+                console.warn("WebSocket Disconnected. Reconnecting...");
+                appendDebugLog('ERR', 'Koneksi terputus! Mencoba Reconnecting...');
                 document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Reconnecting...`;
-                setTimeout(window.initWebSocket, 3000);
+                setTimeout(initWebSocket, 3000);
             };
 
             ws.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
-
+                
                 if (data.error) {
-                    window.appendDebugLog('ERR', `${data.msg_type || 'API'}: ${data.error.message}`);
-                    window.setApiPendingStatus("Error: " + data.error.message);
+                    console.warn("Deriv API Error:", data.error.message);
+                    appendDebugLog('ERR', `${data.msg_type || 'API'}: ${data.error.message}`);
+                    setApiPendingStatus("Error: " + data.error.message);
                     return;
                 }
-
-                if (data.msg_type === 'authorize' && data.authorize) {
-                    window.appendDebugLog('RECV', `Authorize Berhasil! Akun: ${data.authorize.loginid} | Balance: ${data.authorize.balance}`);
-                    const accObj = activeAccounts.find(a => a.account === data.authorize.loginid);
-                    if (accObj) {
-                        accObj.balance = data.authorize.balance;
-                        currentCurrency = data.authorize.currency || "USD";
-                        document.getElementById('account-balance-label').innerText = `${data.authorize.balance} ${currentCurrency}`;
-                    }
-                    window.populateAccountSwitcher();
-                    window.requestProposalUpdate();
-                }
-
+                
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
                     isFetchingContracts = false;
-                    window.appendDebugLog('RECV', `contracts_for (${data.echo_req.contracts_for}) -> Total: ${data.contracts_for.available.length} kontrak.`);
+                    appendDebugLog('RECV', `contracts_for (${data.echo_req.contracts_for}) -> Total: ${data.contracts_for.available.length} kontrak.`);
                     const symbol = data.echo_req.contracts_for;
                     contractCache[symbol] = data.contracts_for.available;
-                    window.handleContractsForResponse(data.contracts_for.available);
+                    handleContractsForResponse(data.contracts_for.available);
                 }
 
                 if (data.msg_type === 'proposal' && data.proposal) {
-                    if (data.echo_req && data.echo_req.req_id && data.echo_req.req_id !== lastProposalReqId) return;
-
-                    currentEstimatedPayout = parseFloat(data.proposal.payout);
-                    window.appendDebugLog('RECV', `Proposal Diterima! Payout: $${currentEstimatedPayout.toFixed(2)} | ID: ${data.proposal.id}`);
+                    if (data.req_id && Number(data.req_id) !== Number(latestProposalReqId)) return;
+                    const payout = Number(data.proposal.payout);
+                    if (!Number.isFinite(payout)) return;
+                    currentEstimatedPayout = payout;
+                    appendDebugLog('RECV', `Proposal Diterima! Payout: $${currentEstimatedPayout.toFixed(2)} | ID: ${data.proposal.id}`);
                     document.getElementById('payout-value').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
-
+                    const potentialPayout = document.getElementById('pf-payout');
+                    if (potentialPayout) potentialPayout.innerText = `$${currentEstimatedPayout.toFixed(2)}`;
+                    
                     const banner = document.getElementById('api-status-banner');
-                    if (banner) {
-                        banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
-                        document.getElementById('api-status-text').innerText = "Proposal valid. Payout berhasil diperbarui dari API.";
-                        const badge = document.getElementById('api-status-badge');
-                        if (badge) {
-                            badge.innerText = "VERIFIED";
-                            badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
-                        }
-                    }
+                    banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
+                    document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
+                    const badge = document.getElementById('api-status-badge');
+                    badge.innerText = "VERIFIED";
+                    badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
                 }
             };
-        };
+        }
 
-        window.startGMTClock = function() {
+        function startGMTClock() {
             setInterval(() => {
                 const now = new Date();
                 const gmtString = now.toUTCString().split(' ')[4] + ' GMT';
                 const el = document.getElementById('gmt-time');
                 if (el) el.innerText = gmtString;
             }, 1000);
-        };
+        }
 
-        window.setApiPendingStatus = function(message) {
+        function setApiPendingStatus(message) {
             const banner = document.getElementById('api-status-banner');
-            if (!banner) return;
+            if(!banner) return;
             banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
             document.getElementById('api-status-text').innerText = message;
             const badge = document.getElementById('api-status-badge');
-            if (badge) {
-                badge.innerText = "PENDING";
-                badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
-            }
-        };
+            badge.innerText = "PENDING";
+            badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
+        }
 
-        window.clearActiveApiSubscriptions = function() {
+        function clearActiveApiSubscriptions() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ forget_all: ["proposal"] }));
             }
-        };
+        }
 
-        window.onSubmarketChange = function() {
+        function onSubmarketChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
@@ -712,39 +710,39 @@
                 document.getElementById('modal-barrier').value = defaultAssetBarriers[symbol];
             }
 
-            window.setApiPendingStatus("Mengambil data proposal baru...");
-            window.clearActiveApiSubscriptions();
-            window.fetchContractsForSymbol();
-        };
+            setApiPendingStatus("Mengambil data proposal baru...");
+            clearActiveApiSubscriptions();
+            fetchContractsForSymbol();
+        }
 
-        window.fetchContractsForSymbol = function() {
+        function fetchContractsForSymbol() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
 
             if (contractCache[symbol]) {
                 availableContracts = contractCache[symbol];
-                window.applyApiValidationRules();
+                applyApiValidationRules();
                 return;
             }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 if (!isFetchingContracts) {
                     isFetchingContracts = true;
-                    window.appendDebugLog('SEND', `contracts_for: "${symbol}"`);
+                    appendDebugLog('SEND', `contracts_for: "${symbol}"`);
                     ws.send(JSON.stringify({ contracts_for: symbol }));
                 }
             } else {
-                window.initWebSocket();
+                initWebSocket();
             }
-        };
+        }
 
-        window.handleContractsForResponse = function(contracts) {
+        function handleContractsForResponse(contracts) {
             availableContracts = contracts || [];
-            window.applyApiValidationRules();
-        };
+            applyApiValidationRules();
+        }
 
-        window.applyApiValidationRules = function() {
+        function applyApiValidationRules() {
             const tradeType = document.getElementById('modal-trade-type').value;
             let matchingContracts = [];
 
@@ -764,82 +762,89 @@
                 else if (sample.barrier) document.getElementById('modal-barrier').value = sample.barrier;
             }
 
-            window.requestProposalUpdate();
-        };
+            requestProposalUpdate();
+        }
 
-        window.requestProposalUpdate = function() {
+        function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
-
             const tradeType = document.getElementById('modal-trade-type').value;
-            const duration = parseInt(document.getElementById('modal-duration').value) || 10;
+            const duration = parseInt(document.getElementById('modal-duration').value, 10) || 10;
             const durationUnit = document.getElementById('modal-duration-unit').value;
-            const amount = parseFloat(document.getElementById('modal-amount').value) || 2.0;
-            let barrier = document.getElementById('modal-barrier').value;
-
+            const amount = parseFloat(document.getElementById('modal-amount').value);
+            let barrier = document.getElementById('modal-barrier').value.trim();
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
-
-            if (isNaN(amount) || amount <= 0) {
-                window.setApiPendingStatus("Jumlah stake tidak valid.");
+            if (!Number.isFinite(amount) || amount <= 0 || duration <= 0) {
+                setApiPendingStatus('Periksa nilai stake dan durasi.');
                 return;
             }
-
-            window.setApiPendingStatus("Mengirim request proposal baru ke API...");
-            window.clearActiveApiSubscriptions();
-
-            let contractTypeApi = "NOTOUCH";
-            if (tradeType === 'Touch/No Touch') {
-                contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
-            } else if (tradeType === 'Rise/Fall') {
-                contractTypeApi = (selectedChoice === 'Rise') ? "CALL" : "PUT";
-            } else if (tradeType === 'Higher/Lower') {
-                contractTypeApi = (selectedChoice === 'Higher') ? "HIGHER" : "LOWER";
-            } else if (tradeType === 'Matches/Differs') {
-                contractTypeApi = (selectedSubTab === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
-            } else if (tradeType === 'Over/Under') {
-                contractTypeApi = (selectedSubTab === 'Over') ? "DIGITOVER" : "DIGITUNDER";
-            } else if (tradeType === 'Even/Odd') {
-                contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
-            }
-
-            lastProposalReqId = Date.now();
-
+            setApiPendingStatus('Mengirim request proposal baru ke API...');
+            clearActiveApiSubscriptions();
+            let contractTypeApi = 'NOTOUCH';
+            if (tradeType === 'Touch/No Touch') contractTypeApi = selectedChoice === 'Touch' ? 'ONETOUCH' : 'NOTOUCH';
+            else if (tradeType === 'Rise/Fall') contractTypeApi = selectedChoice === 'Rise' ? 'CALL' : 'PUT';
+            else if (tradeType === 'Higher/Lower') contractTypeApi = selectedChoice === 'Higher' ? 'HIGHER' : 'LOWER';
+            else if (tradeType === 'Matches/Differs') contractTypeApi = selectedSubTab === 'Matches' ? 'DIGITMATCH' : 'DIGITDIFF';
+            else if (tradeType === 'Over/Under') contractTypeApi = selectedSubTab === 'Over' ? 'DIGITOVER' : 'DIGITUNDER';
+            else if (tradeType === 'Even/Odd') contractTypeApi = selectedSubTab === 'Even' ? 'DIGITEVEN' : 'DIGITODD';
+            const unitMap = {Ticks: 't', Tick: 't', Seconds: 's', Second: 's', Minutes: 'm', Minute: 'm', Hours: 'h', Hour: 'h', Days: 'd', Day: 'd'};
+            const reqId = Date.now() * 1000 + Math.floor(Math.random() * 1000);
+            latestProposalReqId = reqId;
             const req = {
-                proposal: 1,
-                amount: amount,
-                basis: "stake",
-                currency: currentCurrency || "USD",
-                symbol: symbol,
-                contract_type: contractTypeApi,
-                duration: duration,
-                duration_unit: durationUnit,
-                req_id: lastProposalReqId
+                proposal: 1, amount, basis: 'stake',
+                currency: selectedAccount ? accountCurrencyOf(selectedAccount) : 'USD',
+                symbol, contract_type: contractTypeApi, duration,
+                duration_unit: unitMap[durationUnit] || durationUnit,
+                req_id: reqId
             };
-
             if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
-                if (barrier && !barrier.startsWith('+') && !barrier.startsWith('-')) {
-                    barrier = '+' + barrier;
-                }
-                req.barrier = barrier;
-            } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
-                req.barrier = selectedDigit.toString();
-            }
-
+                if (barrier && !barrier.startsWith('+') && !barrier.startsWith('-')) barrier = '+' + barrier;
+                if (barrier) req.barrier = barrier;
+            } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) req.barrier = String(selectedDigit);
+            appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi} | duration: ${duration}${req.duration_unit} | req_id: ${reqId}`);
             if (ws && ws.readyState === WebSocket.OPEN) {
-                window.appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`);
                 ws.send(JSON.stringify(req));
             } else {
-                window.appendDebugLog('ERR', 'WebSocket belum siap. Menghubungkan ulang...');
-                window.initWebSocket();
+                appendDebugLog('ERR', 'WebSocket belum siap. Menghubungkan ulang...');
+                initWebSocket();
+                setTimeout(() => { if (ws && ws.readyState === WebSocket.OPEN && latestProposalReqId === reqId) ws.send(JSON.stringify(req)); }, 1000);
+            }
+        }
+
+        window.onload = async function() {
+            startGMTClock();
+            const savedClientId = localStorage.getItem('deriv_client_id');
+            if (savedClientId) document.getElementById('client_id').value = savedClientId;
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('oauth') || params.has('oauth_error')) {
+                const message = params.get('oauth_error');
+                if (message) alert(message);
+                history.replaceState({}, document.title, window.location.pathname);
+            }
+            try {
+                const response = await fetch('api.php?action=session', {credentials: 'same-origin', cache: 'no-store'});
+                const status = await response.json();
+                if (status.authenticated) {
+                    document.getElementById('login-view').classList.add('hidden');
+                    document.getElementById('dashboard-view').classList.remove('hidden');
+                    renderStrategyTable(defaultStrategyData);
+                    await loadDerivAccounts();
+                    initWebSocket();
+                } else {
+                    await showLogin();
+                }
+            } catch (error) {
+                await showLogin();
+                appendDebugLog('ERR', 'Tidak dapat memeriksa sesi login. Pastikan file PHP diunggah ke hosting yang mendukung PHP.');
             }
         };
 
-        window.renderChoiceButtons = function(tradeType) {
+        function renderChoiceButtons(tradeType) {
             const container = document.getElementById('choice-buttons-grid');
             const wrapper = document.getElementById('choice-buttons-container');
             const label = document.getElementById('choice-label');
-            if (!container) return;
+            if(!container) return;
             container.innerHTML = '';
 
             let choices = [];
@@ -870,14 +875,14 @@
                 btn.innerText = choiceName;
                 btn.onclick = () => {
                     selectedChoice = choiceName;
-                    window.renderChoiceButtons(tradeType);
-                    window.requestProposalUpdate();
+                    renderChoiceButtons(tradeType);
+                    requestProposalUpdate();
                 };
                 container.appendChild(btn);
             });
-        };
+        }
 
-        window.renderDigitGrid = function() {
+        function renderDigitGrid() {
             const grid = document.getElementById('digit-grid');
             if (!grid) return;
             grid.innerHTML = '';
@@ -890,23 +895,23 @@
                 btn.innerText = i;
                 btn.onclick = () => {
                     selectedDigit = i;
-                    window.renderDigitGrid();
-                    window.requestProposalUpdate();
+                    renderDigitGrid();
+                    requestProposalUpdate();
                 };
                 grid.appendChild(btn);
             }
-        };
+        }
 
-        window.switchDigitSubTab = function(tabName) {
+        function switchDigitSubTab(tabName) {
             selectedSubTab = tabName;
             document.getElementById('subtab-matches').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs ${tabName === 'Matches' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
             document.getElementById('subtab-differs').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs ${tabName === 'Differs' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
-            window.requestProposalUpdate();
-        };
+            requestProposalUpdate();
+        }
 
-        window.renderStrategyTable = function(dataList) {
+        function renderStrategyTable(dataList) {
             const tbody = document.getElementById('strategy-table-body');
-            if (!tbody) return;
+            if(!tbody) return;
             tbody.innerHTML = '';
             dataList.forEach((item, index) => {
                 const tr = document.createElement('tr');
@@ -922,23 +927,23 @@
                     <td><input type="number" value="${item.duration_amount}"></td>
                     <td><select><option ${item.duration_unit === 'Ticks' ? 'selected' : ''}>Ticks</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option><option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option><option ${item.duration_unit === 'Hours' ? 'selected' : ''}>Hours</option></select></td>
                     <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
-                    <td class="font-bold text-emerald-600">$${(item.payout || 0).toFixed(2)}</td>
+                    <td class="font-bold text-emerald-600">$${(Number.isFinite(Number(item.payout)) ? Number(item.payout) : 0).toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
             });
-        };
+        }
 
-        window.openAddModal = function() {
+        function openAddModal() {
             document.getElementById('add-strategy-modal').classList.remove('hidden');
-            window.onMarketCategoryChange();
-            window.onTradeTypeChange();
-        };
+            onMarketCategoryChange();
+            onTradeTypeChange();
+        }
 
-        window.closeAddModal = function() {
+        function closeAddModal() {
             document.getElementById('add-strategy-modal').classList.add('hidden');
-        };
+        }
 
-        window.onMarketCategoryChange = function() {
+        function onMarketCategoryChange() {
             const cat = document.getElementById('modal-market-cat').value;
             const subSelect = document.getElementById('modal-submarket');
             subSelect.innerHTML = '';
@@ -948,16 +953,16 @@
                 opt.innerText = item.name;
                 subSelect.appendChild(opt);
             });
-            window.onSubmarketChange();
-        };
+            onSubmarketChange();
+        }
 
-        window.onTradeTypeChange = function() {
+        function onTradeTypeChange() {
             const tradeType = document.getElementById('modal-trade-type').value;
             const unitSelect = document.getElementById('modal-duration-unit');
             const barrierContainer = document.getElementById('barrier-container');
             const digitContainer = document.getElementById('digit-prediction-container');
 
-            window.renderChoiceButtons(tradeType);
+            renderChoiceButtons(tradeType);
 
             if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
                 unitSelect.value = 't';
@@ -969,7 +974,7 @@
                 unitSelect.disabled = true;
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.remove('hidden');
-                window.renderDigitGrid();
+                renderDigitGrid();
             } else {
                 unitSelect.value = 't';
                 unitSelect.disabled = false;
@@ -977,13 +982,13 @@
                 digitContainer.classList.add('hidden');
             }
 
-            window.setApiPendingStatus("Menyesuaikan parameter tipe perdagangan dengan API...");
-            window.clearActiveApiSubscriptions();
-            window.fetchContractsForSymbol();
-            window.requestProposalUpdate();
-        };
+            setApiPendingStatus("Menyesuaikan parameter tipe perdagangan dengan API...");
+            clearActiveApiSubscriptions();
+            fetchContractsForSymbol();
+            requestProposalUpdate();
+        }
 
-        window.confirmAddStrategy = function() {
+        function confirmAddStrategy() {
             const marketCat = document.getElementById('modal-market-cat').value;
             const subMarketSelect = document.getElementById('modal-submarket');
             const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex].text;
@@ -1014,72 +1019,50 @@
             };
 
             defaultStrategyData.push(newItem);
-            window.renderStrategyTable(defaultStrategyData);
-            window.closeAddModal();
-        };
+            renderStrategyTable(defaultStrategyData);
+            closeAddModal();
+        }
 
-        window.deleteLastRow = function() {
+        function deleteLastRow() {
             if (defaultStrategyData.length > 0) {
                 defaultStrategyData.pop();
-                window.renderStrategyTable(defaultStrategyData);
+                renderStrategyTable(defaultStrategyData);
             }
-        };
+        }
 
-        window.clearStrategy = function() {
+        function clearStrategy() {
             defaultStrategyData = [];
-            window.renderStrategyTable(defaultStrategyData);
-        };
+            renderStrategyTable(defaultStrategyData);
+        }
 
-        window.handleLogout = function() {
-            localStorage.removeItem('deriv_accounts');
-            localStorage.removeItem('deriv_app_id');
-            sessionStorage.removeItem('deriv_code_verifier');
-            activeAccounts = [];
-            activeAccountId = "";
-            if (ws) ws.close();
-            document.getElementById('dashboard-view').classList.add('hidden');
-            document.getElementById('login-view').classList.remove('hidden');
-        };
-
-        window.botAction = function(actionType) {
-            window.appendDebugLog('INFO', `Aksi Bot Dipicu: ${actionType}`);
-        };
-
-        window.clearContractTable = function() {
-            document.getElementById('contract-table-body').innerHTML = `
-                <tr>
-                    <td colspan="8" class="p-4 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
-                </tr>
-            `;
-        };
-
-        window.addEventListener('click', function(e) {
-            const menu = document.getElementById('account-menu');
-            const btn = document.getElementById('account-dropdown-btn');
-            if (menu && btn && !btn.contains(e.target) && !menu.contains(e.target)) {
-                menu.classList.add('hidden');
+        async function loginWithDerivOAuthPKCE() {
+            const clientId = document.getElementById('client_id').value.trim();
+            if (!clientId) return alert('OAuth Client ID wajib diisi!');
+            localStorage.setItem('deriv_client_id', clientId); // Public identifier only; no access token is stored in browser storage.
+            try {
+                const response = await fetch('oauth-start.php', {
+                    method: 'POST', credentials: 'same-origin', cache: 'no-store',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({client_id: clientId})
+                });
+                const payload = await response.json();
+                if (!response.ok || !payload.ok || !payload.url) throw new Error(payload.error || 'Gagal memulai OAuth PKCE.');
+                window.location.assign(payload.url);
+            } catch (error) {
+                alert(`Login Deriv gagal dimulai: ${error.message}`);
             }
-        });
+        }
 
-        // Initialize application flow
-        window.onload = function() {
-            window.startGMTClock();
-            const isLoggedIn = window.handleDerivOAuthCallback();
-            const savedAppId = localStorage.getItem('deriv_app_id') || "34M4TGKofeTRkLOlcJ9zO";
-            
-            const appIdInput = document.getElementById('app_id_input');
-            if (appIdInput) appIdInput.value = savedAppId;
+        async function handleLogout() {
+            try { await fetch('api.php?action=logout', {method: 'POST', credentials: 'same-origin', cache: 'no-store'}); }
+            catch (_) {}
+            derivAccounts = [];
+            selectedAccount = null;
+            if (ws) { try { ws.onclose = null; ws.close(); } catch (_) {} ws = null; }
+            if (accountWs) { try { accountWs.onclose = null; accountWs.close(); } catch (_) {} accountWs = null; }
+            await showLogin();
+        }
 
-            if (isLoggedIn) {
-                document.getElementById('login-view').classList.add('hidden');
-                document.getElementById('dashboard-view').classList.remove('hidden');
-                window.renderStrategyTable(defaultStrategyData);
-                window.initWebSocket();
-            } else {
-                document.getElementById('login-view').classList.remove('hidden');
-                document.getElementById('dashboard-view').classList.add('hidden');
-            }
-        };
     </script>
 </body>
 </html>
