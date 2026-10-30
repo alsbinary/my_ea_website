@@ -3,151 +3,493 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALS Pro - Deriv Trading Engine Dashboard</title>
+    <title>ALS Pro - Automated Strategy Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .strategy-table input, .strategy-table select {
+            background-color: transparent;
+            width: 100%;
+            font-size: 11px;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .strategy-table input:focus, .strategy-table select:focus {
+            background-color: #ffffff;
+            outline: 2px solid #0d9488;
+        }
+        .strategy-table td {
+            padding: 2px 4px;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+        }
+        .digit-btn, .choice-btn, .subtab-btn {
+            transition: all 0.2s ease;
+        }
+        .digit-btn.active, .choice-btn.active, .subtab-btn.active {
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+            border-color: #0f172a !important;
+        }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
 
-    <!-- Header -->
-    <header class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex justify-between items-center shadow-lg">
-        <div class="flex items-center space-x-3">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-3 py-1.5 rounded-lg text-xs tracking-wider shadow">ALS PRO</div>
-            <h1 class="text-sm font-bold tracking-wide text-slate-200">Advanced Level Strategy Web Engine</h1>
-        </div>
-        <div class="flex items-center space-x-4">
-            <div id="connection-badge" class="flex items-center space-x-2 bg-emerald-950/80 px-3 py-1.5 rounded-full text-xs font-medium text-emerald-400 border border-emerald-800">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span id="badge-text">Connected (OAuth Session)</span>
-            </div>
-            <div class="text-xs text-slate-400 hidden md:block">GMT: <span id="gmt-time" class="text-slate-200 font-mono">-</span></div>
-        </div>
-    </header>
-
-    <!-- VIEW 1: LOGIN (Hidden jika token ada) -->
-    <div id="login-view" class="flex-1 flex items-center justify-center p-4 hidden">
+    <!-- VIEW 1: LOGIN PAGE -->
+    <div id="login-view" class="flex-1 flex items-center justify-center p-4 bg-slate-950 text-slate-100">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
                 <div class="inline-block bg-blue-600/20 text-blue-400 font-semibold px-3 py-1 rounded-full text-xs border border-blue-500/30">OAuth 2.0 PKCE Gateway</div>
                 <h2 class="text-lg font-bold text-white">Masuk ke Dashboard Bot</h2>
-                <p class="text-xs text-slate-400">Masukkan OAuth Client ID (Alfanumerik) Anda.</p>
+                <p class="text-xs text-slate-400">Masukkan OAuth Client ID / App ID Anda.</p>
             </div>
             <div class="space-y-4 text-xs">
                 <div>
                     <label class="block font-medium text-slate-400 mb-1">OAuth Client ID</label>
                     <input type="text" id="client_id" value="34M4TGKofeTRkLOlcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
                 </div>
-                <button onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider">LOGIN VIA DERIV (OAUTH PKCE)</button>
+                <button type="button" onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider cursor-pointer">LOGIN VIA DERIV (OAUTH PKCE)</button>
             </div>
         </div>
     </div>
 
     <!-- VIEW 2: DASHBOARD UTAMA -->
-    <main id="dashboard-view" class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 space-y-6">
+    <div id="dashboard-view" class="flex-1 flex flex-col hidden relative">
         
-        <!-- Baris Atas: Status & Aksi Akun -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-widest flex items-center">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-pulse"></span> Sesi Token Aktif (Berdasarkan Skema API Deriv)
-                </h2>
-                <button onclick="handleLogout()" class="text-rose-400 hover:text-rose-300 underline text-xs">Keluar / Switch Akun</button>
+        <!-- HEADER ATAS -->
+        <header class="bg-white border-b border-slate-200 px-4 py-2.5 flex justify-between items-center shadow-sm">
+            <div class="flex items-center space-x-3">
+                <div class="bg-teal-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">ALS</div>
+                <span class="text-sm font-bold text-slate-800 tracking-wide">ALS Pro Automated Strategy Engine</span>
             </div>
 
-            <!-- Kartu Informasi Berdasarkan Schema (Balance & Portfolio) -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
-                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
-                    <span class="text-slate-500 block mb-1">Status Autentikasi</span>
-                    <span class="text-emerald-400 font-bold">Scope: Trade (Authorized)</span>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <button type="button" onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
+                        <div class="text-right">
+                            <div id="account-type-label" class="text-slate-500 text-[10px]">Memuat...</div>
+                            <div class="flex items-center space-x-1">
+                                <span id="account-id-label" class="text-slate-400 text-[10px] font-mono">---</span>
+                                <span id="account-balance-label" class="text-slate-900 font-bold">0.00 USD</span>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    
+                    <!-- MENU DROPDOWN AKUN DINAMIS -->
+                    <div id="account-menu" class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
+                        <div id="account-list-container" class="space-y-1">
+                            <div class="p-2.5 text-slate-500 text-center">Memuat daftar akun dari API...</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
-                    <span class="text-slate-500 block mb-1">Saldo Akun (Balance Schema)[cite: 11]</span>
-                    <span id="disp-balance" class="text-cyan-300 font-bold text-sm">$10,000.00 USD (Demo Mode)</span>
+
+                <button class="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 py-1.5 rounded-lg text-xs shadow">Deposit</button>
+            </div>
+        </header>
+
+        <!-- KONTEN UTAMA -->
+        <div class="flex-1 flex overflow-hidden">
+            
+            <!-- SIDEBAR KIRI -->
+            <aside class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 space-y-6 text-[10px] text-slate-500">
+                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
+                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    Home
                 </div>
-                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
-                    <span class="text-slate-500 block mb-1">Portofolio Aktif (Portfolio Schema)</span>
-                    <span class="text-indigo-400 font-bold text-sm">0 Kontrak Berjalan</span>
+                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
+                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Positions
                 </div>
-                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
-                    <span class="text-slate-500 block mb-1">Stream Transaksi (Transactions Schema)[cite: 7]</span>
-                    <span class="text-amber-400 font-semibold">Siap Menerima Notifikasi</span>
+                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
+                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a1 1 0 01-1 1z"></path></svg>
+                    Reports
                 </div>
+                <div class="flex-1"></div>
+                <div onclick="handleLogout()" class="flex flex-col items-center cursor-pointer hover:text-rose-600 pb-2">
+                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Log out
+                </div>
+            </aside>
+
+            <!-- AREA TENGAH: TABEL STRATEGI & CONTRACT TABLE -->
+            <main class="flex-1 bg-slate-50 p-4 flex flex-col space-y-4 overflow-y-auto">
+                
+                <!-- Panel Manajemen Strategi (Tabel Atas) -->
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col">
+                    <div class="bg-teal-600 text-white font-bold px-4 py-2 text-center text-sm tracking-wider uppercase">
+                        STRATEGY MANAGEMENT PANEL
+                    </div>
+
+                    <div class="overflow-x-auto max-h-48">
+                        <table class="w-full text-left border-collapse strategy-table text-xs">
+                            <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b border-slate-300 shadow-sm">
+                                <tr>
+                                    <th class="p-2 border-r border-slate-300 text-center w-12">Level</th>
+                                    <th class="p-2 border-r border-slate-300">Contract Type</th>
+                                    <th class="p-2 border-r border-slate-300">Market</th>
+                                    <th class="p-2 border-r border-slate-300">Sub Market</th>
+                                    <th class="p-2 border-r border-slate-300">Purchase Type</th>
+                                    <th class="p-2 border-r border-slate-300">High</th>
+                                    <th class="p-2 border-r border-slate-300">Low</th>
+                                    <th class="p-2 border-r border-slate-300">Last Digit</th>
+                                    <th class="p-2 border-r border-slate-300">Duration</th>
+                                    <th class="p-2 border-r border-slate-300">Unit</th>
+                                    <th class="p-2 border-r border-slate-300">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="strategy-table-body" class="bg-white divide-y divide-slate-200">
+                                <!-- Diisi via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tombol Kontrol Dinamis -->
+                    <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="openAddModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm">Add Level (+)</button>
+                            <button onclick="deleteLastRow()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Delete Last</button>
+                            <button onclick="clearStrategy()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Clear</button>
+                        </div>
+
+                        <div class="flex items-center space-x-6 font-semibold">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-slate-600">Target Profit:</span>
+                                <input type="number" id="target-profit" value="10" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold">
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-slate-600">Stop Loss:</span>
+                                <input type="number" id="stop-loss" value="-33" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTRACT TABLE / HISTORY TRADE -->
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col flex-1">
+                    <div class="bg-slate-200 text-slate-800 font-bold px-4 py-2 text-center text-xs tracking-wider uppercase border-b border-slate-300">
+                        CONTRACT TABLE
+                    </div>
+
+                    <div class="flex-1 overflow-x-auto min-h-[160px] bg-slate-300">
+                        <table class="w-full text-left border-collapse text-xs bg-white">
+                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
+                                <tr>
+                                    <th class="p-2 border-r border-slate-300 text-center w-10">#</th>
+                                    <th class="p-2 border-r border-slate-300">Status</th>
+                                    <th class="p-2 border-r border-slate-300">Level</th>
+                                    <th class="p-2 border-r border-slate-300">Purchase Type</th>
+                                    <th class="p-2 border-r border-slate-300">Payout</th>
+                                    <th class="p-2 border-r border-slate-300">Buy Price</th>
+                                    <th class="p-2 border-r border-slate-300">Sell Price</th>
+                                    <th class="p-2 text-right">Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contract-table-body" class="divide-y divide-slate-200 text-slate-600">
+                                <tr>
+                                    <td colspan="8" class="p-4 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-3 bg-slate-50 border-t border-slate-300 flex flex-wrap items-center justify-between text-xs font-semibold">
+                        <button onclick="clearContractTable()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded shadow-sm">Clear Contract Table</button>
+                        <div class="flex items-center space-x-6">
+                            <div>Trade Count : <span id="stat-trade-count" class="font-bold text-slate-800">0</span></div>
+                            <div>Total Stake : <span id="stat-total-stake" class="font-bold text-slate-800">0</span></div>
+                            <div>Loss Count : <span id="stat-loss-count" class="font-bold text-rose-600">0</span></div>
+                            <div>Profit Count : <span id="stat-profit-count" class="font-bold text-emerald-600">0</span></div>
+                            <div class="bg-slate-100 border border-slate-300 px-3 py-1 rounded text-right">
+                                <span class="block text-[10px] text-slate-500 uppercase">Total Profit</span>
+                                <span id="stat-total-profit" class="text-sm font-black text-slate-800">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- PANEL KANAN: TRADING RUNNING PERMANEN -->
+            <aside id="right-panel" class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
+                <div id="panel-portfolio" class="space-y-3 flex flex-col h-full">
+                    <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-xs tracking-wider uppercase rounded">
+                        TRADING RUNNING
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-hidden text-xs">
+                        <table class="w-full border-collapse">
+                            <tbody>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-2 font-bold text-slate-800">Level 1</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">Volatility 25 (1s)</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Rise / Fall</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start time</td><td id="pf-starttime" class="p-2 font-mono text-slate-600">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-2 font-mono text-slate-600">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">0s</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Entry spot</td><td id="pf-entry" class="p-2 font-mono text-slate-700">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">10.00</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Low Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-slate-700">0.68</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">0.35</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Price</td><td id="pf-price" class="p-2 text-slate-700">0.35</td></tr>
+                                <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">0.00</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tombol Kontrol -->
+                    <div class="grid grid-cols-2 gap-1.5 pt-1">
+                        <button onclick="botAction('run_bot')" class="py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-[11px]">RUN BOT</button>
+                        <button onclick="botAction('sell_continue')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[10px]">SELL & CONTINUE</button>
+                        <button onclick="botAction('sell_stop')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[10px]">SELL & STOP</button>
+                        <button onclick="botAction('stop_level')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[11px]">STOP LEVEL</button>
+                    </div>
+                    <button onclick="botAction('stop_trade')" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow text-xs">STOP TRADE</button>
+                </div>
+
+                <div class="text-center text-[10px] text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
+                    <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected</span>
+                    <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: ADD LEVEL -->
+    <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
+                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru (Deriv API Proposal)</h3>
+                <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-lg">&times;</button>
+            </div>
+            <div class="p-6 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-medium text-slate-600">Market Category</label>
+                        <select id="modal-market-cat" onchange="onMarketCategoryChange(); requestProposalUpdate();" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold">
+                            <option value="derived">Derived (Synthetics)</option>
+                            <option value="forex">Forex</option>
+                            <option value="cryptocurrency">Cryptocurrency</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="font-medium text-slate-600">Submarket / Asset</label>
+                        <select id="modal-submarket" onchange="fetchContractsForSymbol(); requestProposalUpdate();" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold"></select>
+                    </div>
+                </div>
+
+                <!-- INDIKATOR STATUS VALIDASI API -->
+                <div id="api-status-banner" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
+                    <span id="api-status-text">Siap & Terhubung dengan Standar Deriv API.</span>
+                    <span id="api-status-badge" class="font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase">Ready</span>
+                </div>
+
+                <div>
+                    <label class="font-medium text-slate-600">Trade Type</label>
+                    <select id="modal-trade-type" onchange="onTradeTypeChange(); requestProposalUpdate();" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
+                        <option value="Rise/Fall">Rise / Fall</option>
+                        <option value="Higher/Lower">Higher / Lower</option>
+                        <option value="Matches/Differs">Matches / Differs</option>
+                        <option value="Over/Under">Over / Under</option>
+                        <option value="Even/Odd">Even / Odd</option>
+                        <option value="Touch/No Touch">Touch / No Touch</option>
+                    </select>
+                </div>
+
+                <!-- TOMBOL PILIHAN ARAH INTERAKTIF -->
+                <div id="choice-buttons-container" class="space-y-1 pt-1">
+                    <label class="font-medium text-slate-600 block" id="choice-label">Prediction Direction</label>
+                    <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
+                </div>
+
+                <!-- CONTAINER DINAMIS DIGIT PREDICTION -->
+                <div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
+                    <div id="digit-subtabs" class="flex justify-start space-x-2 border-b border-slate-200 pb-2"></div>
+
+                    <div id="digit-grid-wrapper" class="space-y-2">
+                        <span class="font-bold text-slate-700 block">Last digit prediction</span>
+                        <div class="grid grid-cols-5 gap-2" id="digit-grid"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
+                    <div>
+                        <div class="flex justify-between items-center">
+                            <label id="duration-label" class="font-medium text-slate-600">Duration</label>
+                            <span id="min-duration-info" class="text-[10px] text-teal-600 font-semibold">Min: 5m</span>
+                        </div>
+                        <div class="flex space-x-1 mt-1">
+                            <input type="number" id="modal-duration" value="5" min="1" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2">
+                            <select id="modal-duration-unit" onchange="requestProposalUpdate()" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
+                                <option value="t">Ticks</option>
+                                <option value="s">Seconds</option>
+                                <option value="m" selected>Minutes</option>
+                                <option value="h">Hours</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center">
+                            <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
+                            <span id="min-stake-info" class="text-[10px] text-amber-600 font-semibold">Min Stake: $0.35</span>
+                        </div>
+                        <input type="number" step="0.01" id="modal-amount" value="0.35" min="0.35" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
+                    </div>
+                </div>
+
+                <div id="barrier-container" class="hidden pt-2 border-t border-slate-200 grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-medium text-slate-600">Barrier / Offset (High)</label>
+                        <input type="text" id="modal-high" value="+1.0" placeholder="+1.0" oninput="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
+                    </div>
+                    <div>
+                        <label class="font-medium text-slate-600">Barrier / Offset (Low)</label>
+                        <input type="text" id="modal-low" value="-1.0" placeholder="-1.0" oninput="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
+                    </div>
+                </div>
+
+                <!-- ESTIMASI PAYOUT DI KOTAK BAWAH MODAL -->
+                <div class="bg-emerald-600 text-white p-3 rounded-xl flex justify-between items-center shadow-md">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
+                        <span id="payout-type-label" class="text-xs font-semibold">Buy (Proposal API)</span>
+                    </div>
+                    <div class="text-right">
+                        <span id="payout-value" class="text-lg font-black tracking-tight text-white">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- MONITOR TRANSMISI DATA WEBSOCKET (LIVE LOG) -->
+                <div class="pt-2 border-t border-slate-200 space-y-1">
+                    <div class="flex justify-between items-center text-[11px]">
+                        <span class="font-bold text-slate-600">Monitor Transmisi Data API (Live Log)</span>
+                        <button type="button" onclick="clearDebugConsole()" class="text-slate-400 hover:text-slate-600 underline text-[10px]">Clear Log</button>
+                    </div>
+                    <div id="debug-log-console" class="bg-slate-900 text-slate-200 p-2.5 rounded-lg h-24 overflow-y-auto font-mono text-[10px] space-y-1 border border-slate-800 leading-tight">
+                        <div class="text-slate-500">[System] Menunggu aktivitas transmisi data...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-100 border-t border-slate-200 flex justify-end space-x-3">
+                <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-white border border-slate-300 rounded text-xs">Batal</button>
+                <button type="button" onclick="confirmAddStrategy()" class="px-5 py-2 bg-teal-600 text-white rounded font-bold text-xs shadow">Tambahkan ke Tabel</button>
             </div>
         </div>
+    </div>
 
-        <!-- Panel Tabel Berdasarkan Profit Table & Statement Schema -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Profit Table Panel -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Tabel Keuntungan (Profit Table Schema)</h3>
-                    <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400">Limit: 50 | Sort: DESC[cite: 9]</span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-400">
-                        <thead class="bg-slate-950 text-slate-300 border-b border-slate-800">
-                            <tr>
-                                <th class="p-3">Tipe Kontrak[cite: 9]</th>
-                                <th class="p-3">ID Transaksi</th>
-                                <th class="p-3 text-right">Profit / Loss</th>
-                            </tr>
-                        </thead>
-                        <tbody id="profit-table-body" class="divide-y divide-slate-800/50">
-                            <tr>
-                                <td class="p-3 text-slate-500" colspan="3">Belum ada riwayat profit tercatat pada sesi ini.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Statement / Riwayat Transaksi Panel -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Riwayat Transaksi (Statement Schema)</h3>
-                    <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400">Action: All[cite: 8]</span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-400">
-                        <thead class="bg-slate-950 text-slate-300 border-b border-slate-800">
-                            <tr>
-                                <th class="p-3">Waktu</th>
-                                <th class="p-3">Aksi[cite: 8]</th>
-                                <th class="p-3 text-right">Jumlah</th>
-                            </tr>
-                        </thead>
-                        <tbody id="statement-table-body" class="divide-y divide-slate-800/50">
-                            <tr>
-                                <td class="p-3 text-slate-500" colspan="3">Menunggu pembaruan aliran transaksi (Transactions Stream)...[cite: 7]</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </main>
-
+    <!-- JAVASCRIPT UTAMA -->
     <script>
-        setInterval(() => {
-            document.getElementById('gmt-time').innerText = new Date().toUTCString().slice(17, 25);
-        }, 1000);
-
-        window.onload = function() {
-            const accessToken = localStorage.getItem('deriv_access_token');
-            const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
-
-            if (savedClientId) document.getElementById('client_id').value = savedClientId;
-
-            if (accessToken) {
-                // Tampilkan Dashboard karena token sah
-                document.getElementById('login-view').classList.add('hidden');
-                document.getElementById('dashboard-view').classList.remove('hidden');
-            } else {
-                // Tampilkan Login jika belum ada token
-                document.getElementById('login-view').classList.remove('hidden');
-                document.getElementById('dashboard-view').classList.add('hidden');
-            }
+        const marketSymbolsData = {
+            derived: [
+                { name: "Volatility 10 (1s) Index", symbol: "1HZ10V" },
+                { name: "Volatility 25 (1s) Index", symbol: "1HZ25V" },
+                { name: "Volatility 50 (1s) Index", symbol: "1HZ50V" },
+                { name: "Volatility 75 (1s) Index", symbol: "1HZ75V" },
+                { name: "Volatility 100 (1s) Index", symbol: "1HZ100V" },
+                { name: "Volatility 10 Index", symbol: "R_10" },
+                { name: "Volatility 25 Index", symbol: "R_25" },
+                { name: "Volatility 50 Index", symbol: "R_50" },
+                { name: "Volatility 75 Index", symbol: "R_75" },
+                { name: "Volatility 100 Index", symbol: "R_100" }
+            ],
+            forex: [
+                { name: "EUR/USD", symbol: "frxEURUSD" },
+                { name: "GBP/USD", symbol: "frxGBPUSD" },
+                { name: "USD/JPY", symbol: "frxUSDJPY" }
+            ],
+            cryptocurrency: [
+                { name: "BTC/USD", symbol: "cryBTCUSD" },
+                { name: "ETH/USD", symbol: "cryETHUSD" }
+            ]
         };
 
+        let defaultStrategyData = [
+            { level: 1, contract_type: "Rise/Fall", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Rise", high: "", low: "", last_digit: "", duration_amount: 5, duration_unit: "Ticks", amount: 0.35 },
+            { level: 2, contract_type: "Matches/Differs", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Matches", high: "", low: "", last_digit: "5", duration_amount: 1, duration_unit: "Ticks", amount: 1.00 }
+        ];
+
+        let ws = null;
+        let contractCache = {};
+        let availableContracts = [];
+        let allUserAccounts = [];
+        let selectedDigit = 5;
+        let selectedSubTab = 'Matches';
+        let selectedChoice = 'Rise';
+        let contractFetchTimeout = null;
+
+        function appendDebugLog(type, message) {
+            const consoleBox = document.getElementById('debug-log-console');
+            if (!consoleBox) return;
+            const item = document.createElement('div');
+            const timeStr = new Date().toLocaleTimeString();
+
+            if (type === 'SEND') {
+                item.className = 'text-cyan-400';
+                item.innerText = `[${timeStr}] 📤 SEND -> ${message}`;
+            } else if (type === 'RECV') {
+                item.className = 'text-emerald-400';
+                item.innerText = `[${timeStr}] 📥 RECV <- ${message}`;
+            } else if (type === 'ERR') {
+                item.className = 'text-rose-400 font-bold';
+                item.innerText = `[${timeStr}] ⚠️ ERR  <- ${message}`;
+            } else {
+                item.className = 'text-slate-400';
+                item.innerText = `[${timeStr}] ℹ️ INFO -> ${message}`;
+            }
+            consoleBox.appendChild(item);
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        function clearDebugConsole() {
+            const consoleBox = document.getElementById('debug-log-console');
+            if (consoleBox) consoleBox.innerHTML = '<div class="text-slate-500">[System] Log dibersihkan.</div>';
+        }
+
+        function toggleAccountDropdown(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('account-menu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        window.addEventListener('click', function(e) {
+            const menu = document.getElementById('account-menu');
+            const btn = document.getElementById('account-dropdown-btn');
+            if (menu && btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        // --- RENDER DROPDOWN AKUN DINAMIS DARI API ---
+        function renderAccountDropdownList(accountList, currentLoginId) {
+            const container = document.getElementById('account-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            accountList.forEach(acc => {
+                const isSelected = (acc.loginid === currentLoginId);
+                const isVirtual = acc.is_virtual === 1;
+                
+                const item = document.createElement('div');
+                item.className = `p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition ${isSelected ? 'bg-teal-50 border border-teal-200' : 'border-b border-slate-100'}`;
+                item.onclick = () => {
+                    const menu = document.getElementById('account-menu');
+                    if (menu) menu.classList.add('hidden');
+                    appendDebugLog('INFO', `Akun dipilih: ${acc.loginid}`);
+                };
+
+                item.innerHTML = `
+                    <div>
+                        <span class="${isVirtual ? 'text-amber-600' : 'text-slate-500'} block text-[10px] font-semibold">${isVirtual ? 'Demo account' : 'Real account'}</span>
+                        <span class="font-bold text-slate-800 font-mono">${acc.loginid}</span>
+                    </div>
+                    <span class="font-bold ${isVirtual ? 'text-amber-600' : 'text-slate-900'}">${acc.currency || 'USD'}</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // --- FUNGSI LOGIN OAUTH 2.0 PKCE ---
         function loginWithDerivOAuthPKCE() {
             const clientId = document.getElementById('client_id').value.trim();
             if (!clientId) {
@@ -175,7 +517,7 @@
                 localStorage.setItem('oauth_state', state);
                 localStorage.setItem('pending_client_id', clientId);
 
-                const redirectUri = "https://tradelib.net/trade-callback";
+                const redirectUri = window.location.origin + window.location.pathname;
                 const params = new URLSearchParams({
                     client_id: clientId,
                     redirect_uri: redirectUri,
@@ -190,12 +532,539 @@
             });
         }
 
+        // --- FUNGSI LOGOUT (MENUTUP WEBSOCKET & MENGHAPUS TOKEN LOKAL) ---
         function handleLogout() {
+            if (ws) {
+                ws.close(); // Menutup koneksi WebSocket aktif sesuai instruksi CS
+                ws = null;
+            }
             localStorage.removeItem('deriv_access_token');
             localStorage.removeItem('pkce_code_verifier');
             localStorage.removeItem('oauth_state');
+            
             document.getElementById('dashboard-view').classList.add('hidden');
             document.getElementById('login-view').classList.remove('hidden');
+        }
+
+        // --- PENGECEKAN KONDISI SAAT HALAMAN DIMUAT ---
+        window.onload = function() {
+            const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
+            const clientIdField = document.getElementById('client_id');
+            if (clientIdField && savedClientId) clientIdField.value = savedClientId;
+
+            // Cek parameter URL jika dikembalikan dari OAuth redirect
+            const urlParams = new URLSearchParams(window.location.search);
+            const authCode = urlParams.get('code');
+            if (authCode) {
+                localStorage.setItem('deriv_access_token', 'mock_token_' + authCode);
+                window.history.replaceState({}, document.title, window.location.pathname);
+                window.location.reload();
+                return;
+            }
+
+            const activeToken = localStorage.getItem('deriv_access_token');
+            if (activeToken) {
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+                initWebSocket();
+                renderStrategyTable(defaultStrategyData);
+            } else {
+                document.getElementById('login-view').classList.remove('hidden');
+                document.getElementById('dashboard-view').classList.add('hidden');
+            }
+        };
+
+        function initWebSocket() {
+            if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+                return;
+            }
+
+            const clientId = document.getElementById('client_id') ? document.getElementById('client_id').value.trim() : "34M4TGKofeTRkLOlcJ9zO";
+            appendDebugLog('INFO', `Membuka koneksi WebSocket ke App ID: ${clientId}`);
+            ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${clientId}`);
+            
+            ws.onopen = () => {
+                appendDebugLog('INFO', 'Deriv WebSocket Connected Successfully');
+                
+                const token = localStorage.getItem('deriv_access_token');
+                if (token && !token.startsWith('mock_token_')) {
+                    ws.send(JSON.stringify({ authorize: token }));
+                } else {
+                    ws.send(JSON.stringify({ balance: 1 }));
+                }
+
+                setTimeout(requestProposalUpdate, 500);
+            };
+
+            ws.onmessage = (msg) => {
+                const data = JSON.parse(msg.data);
+                
+                if (data.error) {
+                    appendDebugLog('ERR', `${data.msg_type || 'API'}: ${data.error.message}`);
+                    document.getElementById('payout-value').innerText = `$0.00`;
+                    return;
+                }
+
+                if (data.msg_type === 'authorize' && data.authorize) {
+                    const user = data.authorize;
+                    document.getElementById('account-id-label').innerText = user.loginid;
+                    document.getElementById('account-type-label').innerText = user.is_virtual ? "Demo account" : "Real account";
+                    document.getElementById('account-balance-label').innerText = `${parseFloat(user.balance).toFixed(2)} ${user.currency}`;
+                    
+                    if (user.account_list) {
+                        allUserAccounts = user.account_list;
+                        renderAccountDropdownList(allUserAccounts, user.loginid);
+                    }
+                    
+                    appendDebugLog('RECV', `Authorize Berhasil: ${user.loginid} (${user.is_virtual ? 'Demo' : 'Real'})`);
+                    ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+                }
+
+                if (data.msg_type === 'balance' && data.balance) {
+                    const balanceVal = parseFloat(data.balance.balance).toFixed(2);
+                    const currency = data.balance.currency || 'USD';
+                    document.getElementById('account-balance-label').innerText = `${balanceVal} ${currency}`;
+                }
+
+                if (data.msg_type === 'contracts_for' && data.contracts_for) {
+                    const symbol = data.echo_req.contracts_for;
+                    contractCache[symbol] = data.contracts_for.available;
+                    handleContractsForResponse(data.contracts_for.available);
+                }
+
+                if (data.msg_type === 'proposal' && data.proposal) {
+                    const payout = parseFloat(data.proposal.payout);
+                    appendDebugLog('RECV', `Proposal Diterima! Payout: $${payout.toFixed(2)}`);
+                    document.getElementById('payout-value').innerText = `$${payout.toFixed(2)}`;
+                }
+            };
+
+            ws.onclose = () => {
+                appendDebugLog('ERR', 'WebSocket terputus.');
+                ws = null;
+            };
+        }
+
+        function requestProposalUpdate() {
+            const subMarketSelect = document.getElementById('modal-submarket');
+            if (!subMarketSelect || !subMarketSelect.value) return;
+            const symbol = subMarketSelect.value.split('|')[1];
+
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const duration = parseInt(document.getElementById('modal-duration').value) || 5;
+            const durationUnit = document.getElementById('modal-duration-unit').value;
+            const amount = parseFloat(document.getElementById('modal-amount').value) || 0.35;
+            const highBarrier = document.getElementById('modal-high').value;
+            const lowBarrier = document.getElementById('modal-low').value;
+
+            let contractTypeApi = "CALL";
+            if (tradeType === 'Rise/Fall') {
+                contractTypeApi = (selectedChoice === 'Rise') ? "CALL" : "PUT";
+            } else if (tradeType === 'Higher/Lower') {
+                contractTypeApi = (selectedChoice === 'Higher') ? "HIGHER" : "LOWER";
+            } else if (tradeType === 'Touch/No Touch') {
+                contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
+            } else if (tradeType === 'Matches/Differs') {
+                contractTypeApi = (selectedSubTab === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
+            } else if (tradeType === 'Over/Under') {
+                contractTypeApi = (selectedSubTab === 'Over') ? "DIGITOVER" : "DIGITUNDER";
+            } else if (tradeType === 'Even/Odd') {
+                contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
+            }
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ forget_all: ["proposal"] }));
+
+                const req = {
+                    proposal: 1,
+                    amount: amount,
+                    basis: "stake",
+                    currency: "USD",
+                    symbol: symbol,
+                    contract_type: contractTypeApi,
+                    duration: duration,
+                    duration_unit: durationUnit
+                };
+
+                if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
+                    req.barrier = (selectedChoice === 'Higher' || selectedChoice === 'Touch') ? highBarrier : lowBarrier;
+                } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
+                    req.barrier = selectedDigit.toString();
+                }
+
+                appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi}`);
+                ws.send(JSON.stringify(req));
+            } else {
+                initWebSocket();
+            }
+        }
+
+        function fetchContractsForSymbol() {
+            const subMarketSelect = document.getElementById('modal-submarket');
+            if (!subMarketSelect || !subMarketSelect.value) return;
+            const symbol = subMarketSelect.value.split('|')[1];
+
+            applyInstantDefaults();
+
+            document.getElementById('api-status-text').innerText = `Mengambil batasan aturan untuk ${symbol}...`;
+            document.getElementById('api-status-badge').innerText = 'LOADING';
+            document.getElementById('api-status-badge').className = 'font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase';
+
+            if (contractCache[symbol]) {
+                handleContractsForResponse(contractCache[symbol]);
+                return;
+            }
+
+            if (contractFetchTimeout) clearTimeout(contractFetchTimeout);
+            contractFetchTimeout = setTimeout(() => {
+                if (document.getElementById('api-status-badge').innerText === 'LOADING') {
+                    appendDebugLog('ERR', `Timeout contracts_for untuk ${symbol}. Menggunakan aturan lokal.`);
+                    handleContractsForResponse([]);
+                }
+            }, 2000);
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                appendDebugLog('SEND', `contracts_for: ${symbol}`);
+                ws.send(JSON.stringify({ contracts_for: symbol }));
+            } else {
+                initWebSocket();
+            }
+        }
+
+        function handleContractsForResponse(contracts) {
+            if (contractFetchTimeout) clearTimeout(contractFetchTimeout);
+            availableContracts = contracts || [];
+            
+            if (availableContracts.length > 0) {
+                document.getElementById('api-status-text').innerText = `Validasi Deriv API Aktif (${availableContracts.length} jenis kontrak).`;
+                document.getElementById('api-status-badge').innerText = 'VERIFIED';
+                document.getElementById('api-status-badge').className = 'font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase';
+            } else {
+                document.getElementById('api-status-text').innerText = `Menggunakan aturan standar lokal untuk aset ini.`;
+                document.getElementById('api-status-badge').innerText = 'READY';
+                document.getElementById('api-status-badge').className = 'font-bold text-[10px] bg-blue-200 text-blue-800 px-2 py-0.5 rounded uppercase';
+            }
+            applyApiValidationRules();
+        }
+
+        function applyInstantDefaults() {
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const amountInput = document.getElementById('modal-amount');
+            const durationInput = document.getElementById('modal-duration');
+            const unitSelect = document.getElementById('modal-duration-unit');
+            const highInput = document.getElementById('modal-high');
+            const lowInput = document.getElementById('modal-low');
+
+            if (tradeType === 'Higher/Lower') {
+                highInput.value = "+0.5";
+                lowInput.value = "-0.5";
+                durationInput.value = "15";
+                unitSelect.value = "m";
+            } else if (tradeType === 'Touch/No Touch') {
+                highInput.value = "+1.0";
+                lowInput.value = "-1.0";
+                durationInput.value = "5";
+                unitSelect.value = "m";
+            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
+                durationInput.value = "1";
+                unitSelect.value = "t";
+            } else {
+                durationInput.value = "5";
+                unitSelect.value = "t";
+            }
+            amountInput.value = "0.35";
+        }
+
+        function applyApiValidationRules() {
+            const tradeType = document.getElementById('modal-trade-type').value;
+            let matchingContracts = [];
+
+            if (tradeType === 'Rise/Fall') {
+                matchingContracts = availableContracts.filter(c => c.contract_category === 'callput');
+            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
+                matchingContracts = availableContracts.filter(c => c.contract_category === 'digits');
+            } else if (tradeType === 'Higher/Lower') {
+                matchingContracts = availableContracts.filter(c => c.contract_category === 'highlow');
+            } else if (tradeType === 'Touch/No Touch') {
+                matchingContracts = availableContracts.filter(c => c.contract_category === 'touchnotouch');
+            }
+
+            if (matchingContracts.length > 0) {
+                const sample = matchingContracts[0];
+                const minDurationStr = sample.min_contract_duration || "1t";
+                const minStakeVal = sample.min_stake || sample.default_stake || 0.35;
+
+                document.getElementById('min-duration-info').innerText = `Min: ${minDurationStr}`;
+                document.getElementById('min-stake-info').innerText = `Min Stake: $${minStakeVal}`;
+                
+                const amountInput = document.getElementById('modal-amount');
+                amountInput.min = minStakeVal;
+                if(parseFloat(amountInput.value) < minStakeVal) {
+                    amountInput.value = minStakeVal.toFixed(2);
+                }
+
+                const durationMatch = minDurationStr.match(/^(\d+)([tsmhdy])$/i);
+                if (durationMatch) {
+                    const durNum = parseInt(durationMatch[1]);
+                    const durUnit = durationMatch[2].toLowerCase();
+                    
+                    const durationInput = document.getElementById('modal-duration');
+                    const unitSelect = document.getElementById('modal-duration-unit');
+                    
+                    durationInput.min = durNum;
+                    durationInput.value = durNum;
+                    unitSelect.value = durUnit;
+                }
+
+                if (sample.high_barrier) document.getElementById('modal-high').value = sample.high_barrier;
+                if (sample.low_barrier) document.getElementById('modal-low').value = sample.low_barrier;
+            }
+            requestProposalUpdate();
+        }
+
+        setInterval(() => {
+            const gmtElement = document.getElementById('gmt-time');
+            if (gmtElement) {
+                gmtElement.innerText = new Date().toUTCString().slice(17, 25);
+            }
+        }, 1000);
+
+        function renderChoiceButtons(tradeType) {
+            const container = document.getElementById('choice-buttons-grid');
+            const wrapper = document.getElementById('choice-buttons-container');
+            const label = document.getElementById('choice-label');
+            if(!container) return;
+            container.innerHTML = '';
+
+            let choices = [];
+            if (tradeType === 'Rise/Fall') {
+                choices = ['Rise', 'Fall'];
+                label.innerText = 'Prediction Direction';
+                wrapper.classList.remove('hidden');
+            } else if (tradeType === 'Higher/Lower') {
+                choices = ['Higher', 'Lower'];
+                label.innerText = 'Barrier Type';
+                wrapper.classList.remove('hidden');
+            } else if (tradeType === 'Touch/No Touch') {
+                choices = ['Touch', 'No Touch'];
+                label.innerText = 'Touch Type';
+                wrapper.classList.remove('hidden');
+            } else {
+                wrapper.classList.add('hidden');
+                return;
+            }
+
+            if (!choices.includes(selectedChoice)) selectedChoice = choices[0];
+
+            choices.forEach(choiceName => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = (selectedChoice === choiceName);
+                btn.className = `choice-btn py-2 rounded-xl border font-bold text-xs transition ${isSelected ? 'active bg-slate-900 text-white border-slate-900 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
+                btn.innerText = choiceName;
+                btn.onclick = () => {
+                    selectedChoice = choiceName;
+                    renderChoiceButtons(tradeType);
+                    requestProposalUpdate();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderDigitSubTabs(tradeType) {
+            const container = document.getElementById('digit-subtabs');
+            if(!container) return;
+            container.innerHTML = '';
+
+            let tabs = [];
+            if (tradeType === 'Matches/Differs') {
+                tabs = ['Matches', 'Differs'];
+            } else if (tradeType === 'Over/Under') {
+                tabs = ['Over', 'Under'];
+            } else if (tradeType === 'Even/Odd') {
+                tabs = ['Even', 'Odd'];
+            }
+
+            if (!tabs.includes(selectedSubTab)) selectedSubTab = tabs[0] || '';
+
+            tabs.forEach(tabName => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = (selectedSubTab === tabName);
+                btn.className = `subtab-btn px-4 py-1.5 rounded-lg font-bold text-xs transition ${isSelected ? 'active bg-teal-600 text-white shadow-sm' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`;
+                btn.innerText = tabName;
+                btn.onclick = () => {
+                    selectedSubTab = tabName;
+                    renderDigitSubTabs(tradeType);
+                    requestProposalUpdate();
+                };
+                container.appendChild(btn);
+            });
+
+            const gridWrapper = document.getElementById('digit-grid-wrapper');
+            if (tradeType === 'Even/Odd') {
+                gridWrapper.classList.add('hidden');
+            } else {
+                gridWrapper.classList.remove('hidden');
+                renderDigitGrid();
+            }
+        }
+
+        function renderDigitGrid() {
+            const grid = document.getElementById('digit-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            const percentages = ["9.1%", "11.3%", "10.1%", "9.2%", "9.8%", "10.1%", "10.9%", "8.7%", "9.8%", "11.0%"];
+
+            for (let i = 0; i <= 9; i++) {
+                const btn = document.createElement('div');
+                const isSelected = (selectedDigit === i);
+                btn.className = `digit-btn border rounded-xl p-2 text-center cursor-pointer bg-white ${isSelected ? 'active bg-slate-900 text-white border-slate-900 shadow' : 'border-slate-200 hover:border-slate-400'}`;
+                btn.innerHTML = `
+                    <div class="text-sm font-bold ${isSelected ? 'text-white' : 'text-slate-800'}">${i}</div>
+                    <div class="text-[9px] ${isSelected ? 'text-slate-300' : (i === 7 ? 'text-rose-500 font-bold' : (i === 1 ? 'text-emerald-600 font-bold' : 'text-slate-500'))}">${percentages[i]}</div>
+                `;
+                btn.onclick = () => {
+                    selectedDigit = i;
+                    renderDigitGrid();
+                    requestProposalUpdate();
+                };
+                grid.appendChild(btn);
+            }
+        }
+
+        function renderStrategyTable(dataList) {
+            const tbody = document.getElementById('strategy-table-body');
+            tbody.innerHTML = '';
+            dataList.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200";
+                tr.innerHTML = `
+                    <td class="text-center font-bold text-slate-600 bg-slate-50">Level ${index + 1}</td>
+                    <td><input type="text" value="${item.contract_type}"></td>
+                    <td><input type="text" value="${item.market}"></td>
+                    <td><input type="text" value="${item.submarket}"></td>
+                    <td><input type="text" value="${item.purchase_type}"></td>
+                    <td><input type="text" value="${item.high || ''}"></td>
+                    <td><input type="text" value="${item.low || ''}"></td>
+                    <td><input type="text" value="${item.last_digit || ''}" class="font-bold text-indigo-600 text-center"></td>
+                    <td><input type="number" value="${item.duration_amount}"></td>
+                    <td><select><option ${item.duration_unit === 'Ticks' ? 'selected' : ''}>Ticks</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option><option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option><option ${item.duration_unit === 'Hours' ? 'selected' : ''}>Hours</option></select></td>
+                    <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openAddModal() {
+            document.getElementById('add-strategy-modal').classList.remove('hidden');
+            onMarketCategoryChange();
+            onTradeTypeChange();
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-strategy-modal').classList.add('hidden');
+        }
+
+        function onMarketCategoryChange() {
+            const cat = document.getElementById('modal-market-cat').value;
+            const subSelect = document.getElementById('modal-submarket');
+            subSelect.innerHTML = '';
+            marketSymbolsData[cat].forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.name + "|" + item.symbol;
+                opt.innerText = item.name;
+                subSelect.appendChild(opt);
+            });
+            fetchContractsForSymbol();
+        }
+
+        function onTradeTypeChange() {
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const unitSelect = document.getElementById('modal-duration-unit');
+            const barrierContainer = document.getElementById('barrier-container');
+            const digitContainer = document.getElementById('digit-prediction-container');
+
+            renderChoiceButtons(tradeType);
+            applyInstantDefaults();
+
+            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
+                unitSelect.value = 'm';
+                unitSelect.disabled = false;
+                barrierContainer.classList.remove('hidden');
+                digitContainer.classList.add('hidden');
+            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
+                unitSelect.value = 't';
+                unitSelect.disabled = true;
+                barrierContainer.classList.add('hidden');
+                digitContainer.classList.remove('hidden');
+                renderDigitSubTabs(tradeType);
+            } else {
+                unitSelect.value = 't';
+                unitSelect.disabled = false;
+                barrierContainer.classList.add('hidden');
+                digitContainer.classList.add('hidden');
+            }
+
+            fetchContractsForSymbol();
+        }
+
+        function confirmAddStrategy() {
+            const marketCat = document.getElementById('modal-market-cat').value;
+            const subMarketSelect = document.getElementById('modal-submarket');
+            const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex].text;
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const durationAmount = document.getElementById('modal-duration').value;
+            const durationUnitEl = document.getElementById('modal-duration-unit');
+
+            let unitText = "Ticks";
+            const valUnit = durationUnitEl.value;
+            if (valUnit === 's') unitText = "Seconds";
+            else if (valUnit === 'm') unitText = "Minutes";
+            else if (valUnit === 'h') unitText = "Hours";
+
+            const highVal = document.getElementById('modal-high').value;
+            const lowVal = document.getElementById('modal-low').value;
+
+            let digitVal = "";
+            let purchaseTypeVal = selectedChoice;
+
+            if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
+                purchaseTypeVal = selectedSubTab;
+                if (tradeType !== 'Even/Odd') {
+                    digitVal = selectedDigit.toString();
+                }
+            }
+
+            const newItem = {
+                level: defaultStrategyData.length + 1,
+                contract_type: tradeType,
+                market: marketCat === 'derived' ? 'Volatility' : (marketCat === 'forex' ? 'Forex' : 'Crypto'),
+                submarket: subMarketText,
+                purchase_type: purchaseTypeVal,
+                high: highVal,
+                low: lowVal,
+                last_digit: digitVal,
+                duration_amount: durationAmount,
+                duration_unit: unitText,
+                amount: parseFloat(document.getElementById('modal-amount').value)
+            };
+
+            defaultStrategyData.push(newItem);
+            renderStrategyTable(defaultStrategyData);
+            closeAddModal();
+        }
+
+        function deleteLastRow() {
+            if (defaultStrategyData.length > 0) {
+                defaultStrategyData.pop();
+                renderStrategyTable(defaultStrategyData);
+            }
+        }
+
+        function clearStrategy() {
+            defaultStrategyData = [];
+            renderStrategyTable(defaultStrategyData);
         }
     </script>
 </body>
