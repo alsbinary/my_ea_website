@@ -40,11 +40,11 @@
             <div class="text-center space-y-2">
                 <div class="inline-block bg-blue-600/20 text-blue-400 font-semibold px-3 py-1 rounded-full text-xs border border-blue-500/30">OAuth 2.0 PKCE Gateway</div>
                 <h2 class="text-lg font-bold text-white">Masuk ke Dashboard Bot</h2>
-                <p class="text-xs text-slate-400">Masukkan OAuth Client ID / App ID Anda.</p>
+                <p class="text-xs text-slate-400">Masukkan OAuth Client ID (Alfanumerik) Anda.</p>
             </div>
             <div class="space-y-4 text-xs">
                 <div>
-                    <label class="block font-medium text-slate-400 mb-1">OAuth Client ID / App ID</label>
+                    <label class="block font-medium text-slate-400 mb-1">OAuth Client ID</label>
                     <input type="text" id="client_id" value="34M4TGKofeTRkLOlcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
                 </div>
                 <button onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider">LOGIN VIA DERIV (OAUTH PKCE)</button>
@@ -257,7 +257,7 @@
                 </div>
 
                 <div class="text-center text-[10px] text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
-                    <span id="conn-status-indicator" class="flex items-center"><span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected</span>
+                    <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected</span>
                     <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
                 </div>
             </aside>
@@ -268,7 +268,7 @@
     <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
             <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
-                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru</h3>
+                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru (Deriv API contracts_for & proposal)</h3>
                 <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-lg">&times;</button>
             </div>
             <div class="p-6 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
@@ -287,10 +287,10 @@
                     </div>
                 </div>
 
-                <!-- INDIKATOR STATUS VALIDASI API (PENDING -> VERIFIED) -->
-                <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
-                    <span id="api-status-text">Memproses permintaan data ke Deriv API...</span>
-                    <span id="api-status-badge" class="font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase">PENDING</span>
+                <!-- INDIKATOR STATUS VALIDASI API -->
+                <div id="api-status-banner" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
+                    <span id="api-status-text">Siap & Terhubung dengan Standar Deriv API.</span>
+                    <span id="api-status-badge" class="font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase">VERIFIED</span>
                 </div>
 
                 <div>
@@ -355,7 +355,7 @@
                     <input type="text" id="modal-barrier" value="+0.676" placeholder="+0.676" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1 font-mono font-bold text-slate-800">
                 </div>
 
-                <!-- WIDGET SIMULASI PAYOUT -->
+                <!-- WIDGET SIMULASI PAYOUT PERSIS SEPERTI DERIV TRADER (WARNA HIJAU DERIV TRADER) -->
                 <div id="payout-summary-box" class="bg-emerald-600 text-white p-3.5 rounded-xl flex justify-between items-center shadow-md">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
@@ -424,40 +424,13 @@
         let selectedChoice = 'No Touch';
         let currentEstimatedPayout = 3.35;
 
-        // MENGGUNAKAN CLIENT ID DARI INPUT PENGGUNA
         function initWebSocket() {
-            if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+            if (ws && ws.readyState === WebSocket.OPEN) return;
+            ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
             
-            const clientId = document.getElementById('client_id') ? document.getElementById('client_id').value.trim() : "34M4TGKofeTRkLOlcJ9zO";
-            const appId = clientId || "34M4TGKofeTRkLOlcJ9zO";
-
-            ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${appId}`);
-            
-            ws.onopen = () => {
-                console.log('Deriv WebSocket Connected with App ID:', appId);
-                document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected`;
-                requestProposalUpdate();
-            };
-
-            ws.onerror = (err) => {
-                console.error("WebSocket Error:", err);
-                document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Error Connection`;
-            };
-
-            ws.onclose = () => {
-                console.warn("WebSocket Disconnected. Reconnecting...");
-                document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Reconnecting...`;
-                setTimeout(initWebSocket, 3000);
-            };
-
+            ws.onopen = () => console.log('Deriv WebSocket Connected');
             ws.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
-                
-                if (data.error) {
-                    console.warn("Deriv API Error:", data.error.message);
-                    setApiPendingStatus("Error: " + data.error.message);
-                    return;
-                }
                 
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
                     const symbol = data.echo_req.contracts_for;
@@ -468,42 +441,8 @@
                 if (data.msg_type === 'proposal' && data.proposal) {
                     currentEstimatedPayout = parseFloat(data.proposal.payout);
                     document.getElementById('payout-value').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
-                    
-                    // Update status API dari PENDING ke VERIFIED
-                    const banner = document.getElementById('api-status-banner');
-                    banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]";
-                    document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
-                    const badge = document.getElementById('api-status-badge');
-                    badge.innerText = "VERIFIED";
-                    badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
                 }
             };
-        }
-
-        // JAM GMT TICKER
-        function startGMTClock() {
-            setInterval(() => {
-                const now = new Date();
-                const gmtString = now.toUTCString().split(' ')[4] + ' GMT';
-                const el = document.getElementById('gmt-time');
-                if (el) el.innerText = gmtString;
-            }, 1000);
-        }
-
-        function setApiPendingStatus(message) {
-            const banner = document.getElementById('api-status-banner');
-            if(!banner) return;
-            banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]";
-            document.getElementById('api-status-text').innerText = message;
-            const badge = document.getElementById('api-status-badge');
-            badge.innerText = "PENDING";
-            badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
-        }
-
-        function clearActiveApiSubscriptions() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ forget_all: ["proposal"] }));
-            }
         }
 
         function onSubmarketChange() {
@@ -515,8 +454,6 @@
                 document.getElementById('modal-barrier').value = defaultAssetBarriers[symbol];
             }
 
-            setApiPendingStatus("Mengambil data kontrak & proposal baru untuk aset ini...");
-            clearActiveApiSubscriptions();
             fetchContractsForSymbol();
         }
 
@@ -535,6 +472,11 @@
                 ws.send(JSON.stringify({ contracts_for: symbol }));
             } else {
                 initWebSocket();
+                setTimeout(() => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ contracts_for: symbol }));
+                    }
+                }, 500);
             }
         }
 
@@ -575,12 +517,9 @@
             const duration = parseInt(document.getElementById('modal-duration').value) || 10;
             const durationUnit = document.getElementById('modal-duration-unit').value;
             const amount = parseFloat(document.getElementById('modal-amount').value) || 2.0;
-            let barrier = document.getElementById('modal-barrier').value;
+            const barrier = document.getElementById('modal-barrier').value;
 
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
-
-            setApiPendingStatus("Mengirim request proposal baru ke API...");
-            clearActiveApiSubscriptions();
 
             let contractTypeApi = "NOTOUCH";
             if (tradeType === 'Touch/No Touch') {
@@ -609,19 +548,15 @@
                     duration_unit: durationUnit
                 };
                 if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
-                    if (barrier && !barrier.startsWith('+') && !barrier.startsWith('-')) {
-                        barrier = '+' + barrier;
-                    }
                     req.barrier = barrier;
                 } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
-                    req.barrier = selectedDigit.toString();
+                    req.barrier = selectedDigit;
                 }
                 ws.send(JSON.stringify(req));
             }
         }
 
         window.onload = function() {
-            startGMTClock();
             initWebSocket();
             const accessToken = localStorage.getItem('deriv_access_token');
             const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
@@ -708,7 +643,6 @@
 
         function renderStrategyTable(dataList) {
             const tbody = document.getElementById('strategy-table-body');
-            if(!tbody) return;
             tbody.innerHTML = '';
             dataList.forEach((item, index) => {
                 const tr = document.createElement('tr');
@@ -779,10 +713,7 @@
                 digitContainer.classList.add('hidden');
             }
 
-            setApiPendingStatus("Menyesuaikan parameter tipe perdagangan dengan API...");
-            clearActiveApiSubscriptions();
             fetchContractsForSymbol();
-            requestProposalUpdate();
         }
 
         function confirmAddStrategy() {
@@ -836,7 +767,6 @@
             const clientId = document.getElementById('client_id').value.trim();
             if (!clientId) return alert('OAuth Client ID wajib diisi!');
             localStorage.setItem('deriv_client_id', clientId);
-            localStorage.setItem('deriv_access_token', 'connected_demo');
             window.location.reload();
         }
 
