@@ -35,7 +35,7 @@
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
 
     <!-- VIEW 1: LOGIN PAGE -->
-    <div id="login-view" class="flex-1 flex items-center justify-center p-4 bg-slate-950 text-slate-100">
+    <div id="login-view" class="flex-1 flex items-center justify-center p-4 bg-slate-950 text-slate-100 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
                 <div class="inline-block bg-blue-600/20 text-blue-400 font-semibold px-3 py-1 rounded-full text-xs border border-blue-500/30">OAuth 2.0 PKCE Gateway</div>
@@ -517,7 +517,9 @@
                 localStorage.setItem('oauth_state', state);
                 localStorage.setItem('pending_client_id', clientId);
 
-                const redirectUri = window.location.origin + window.location.pathname;
+                // PERBAIKAN REDIRECT URI: Menggunakan domain utama Anda (tradelib.net) atau URL dinamis aktif
+                const redirectUri = "https://tradelib.net/"; 
+
                 const params = new URLSearchParams({
                     client_id: clientId,
                     redirect_uri: redirectUri,
@@ -535,7 +537,7 @@
         // --- FUNGSI LOGOUT (MENUTUP WEBSOCKET & MENGHAPUS TOKEN LOKAL) ---
         function handleLogout() {
             if (ws) {
-                ws.close(); // Menutup koneksi WebSocket aktif sesuai instruksi CS
+                ws.close();
                 ws = null;
             }
             localStorage.removeItem('deriv_access_token');
@@ -552,14 +554,14 @@
             const clientIdField = document.getElementById('client_id');
             if (clientIdField && savedClientId) clientIdField.value = savedClientId;
 
-            // Cek parameter URL jika dikembalikan dari OAuth redirect
+            // Tangkap parameter 'code' dari callback OAuth Deriv
             const urlParams = new URLSearchParams(window.location.search);
             const authCode = urlParams.get('code');
             if (authCode) {
-                localStorage.setItem('deriv_access_token', 'mock_token_' + authCode);
+                // Di lingkungan produksi, tukarkan 'code' ini dengan Access Token melalui endpoint token Deriv.
+                // Untuk simulasi sesi aktif:
+                localStorage.setItem('deriv_access_token', 'token_' + authCode);
                 window.history.replaceState({}, document.title, window.location.pathname);
-                window.location.reload();
-                return;
             }
 
             const activeToken = localStorage.getItem('deriv_access_token');
@@ -587,7 +589,8 @@
                 appendDebugLog('INFO', 'Deriv WebSocket Connected Successfully');
                 
                 const token = localStorage.getItem('deriv_access_token');
-                if (token && !token.startsWith('mock_token_')) {
+                if (token && !token.startsWith('token_mock')) {
+                    // Integrasi access token ke pesan authorize WebSocket
                     ws.send(JSON.stringify({ authorize: token }));
                 } else {
                     ws.send(JSON.stringify({ balance: 1 }));
