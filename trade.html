@@ -366,7 +366,7 @@
                     </div>
                 </div>
 
-                <!-- PANEL LOG TRANSMISI DATA WEBSOCKET (DILETAKKAN DI PALING BAWAH MODAL) -->
+                <!-- PANEL LOG TRANSMISI DATA WEBSOCKET -->
                 <div class="pt-2 border-t border-slate-200 space-y-1">
                     <div class="flex justify-between items-center text-[11px]">
                         <span class="font-bold text-slate-600">Monitor Transmisi Data API (Live Log)</span>
@@ -435,8 +435,8 @@
         let selectedSubTab = 'Matches';
         let selectedChoice = 'No Touch';
         let currentEstimatedPayout = 3.35;
+        let isFetchingContracts = false;
 
-        // LOGGING VISUAL DI PALING BAWAH MODAL
         function appendDebugLog(type, message) {
             const consoleBox = document.getElementById('debug-log-console');
             if (!consoleBox) return;
@@ -543,6 +543,7 @@
                 }
                 
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
+                    isFetchingContracts = false;
                     appendDebugLog('RECV', `contracts_for (${data.echo_req.contracts_for}) -> Total: ${data.contracts_for.available.length} kontrak.`);
                     const symbol = data.echo_req.contracts_for;
                     contractCache[symbol] = data.contracts_for.available;
@@ -585,7 +586,6 @@
 
         function clearActiveApiSubscriptions() {
             if (ws && ws.readyState === WebSocket.OPEN) {
-                appendDebugLog('SEND', 'forget_all: ["proposal"]');
                 ws.send(JSON.stringify({ forget_all: ["proposal"] }));
             }
         }
@@ -616,8 +616,11 @@
             }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
-                appendDebugLog('SEND', `contracts_for: "${symbol}"`);
-                ws.send(JSON.stringify({ contracts_for: symbol }));
+                if (!isFetchingContracts) {
+                    isFetchingContracts = true;
+                    appendDebugLog('SEND', `contracts_for: "${symbol}"`);
+                    ws.send(JSON.stringify({ contracts_for: symbol }));
+                }
             } else {
                 initWebSocket();
             }
@@ -705,8 +708,14 @@
                 appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`);
                 ws.send(JSON.stringify(req));
             } else {
-                appendDebugLog('ERR', 'WebSocket belum siap/terputus. Mencoba menghubungkan kembali...');
+                appendDebugLog('ERR', 'WebSocket belum siap. Menghubungkan ulang...');
                 initWebSocket();
+                setTimeout(() => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        clearActiveApiSubscriptions();
+                        ws.send(JSON.stringify(req));
+                    }
+                }, 1000);
             }
         }
 
