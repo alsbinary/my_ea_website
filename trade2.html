@@ -139,7 +139,8 @@
                                     <th class="p-2 border-r border-slate-300">Market</th>
                                     <th class="p-2 border-r border-slate-300">Sub Market</th>
                                     <th class="p-2 border-r border-slate-300">Purchase Type</th>
-                                    <th class="p-2 border-r border-slate-300">Barrier</th>
+                                    <th class="p-2 border-r border-slate-300">High</th>
+                                    <th class="p-2 border-r border-slate-300">Low</th>
                                     <th class="p-2 border-r border-slate-300">Last Digit</th>
                                     <th class="p-2 border-r border-slate-300">Duration</th>
                                     <th class="p-2 border-r border-slate-300">Unit</th>
@@ -233,17 +234,18 @@
                         <table class="w-full border-collapse">
                             <tbody>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-2 font-bold text-slate-800">Level 1</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">Volatility 100 Index</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Touch / No Touch</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">Volatility 25 (1s)</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Rise / Fall</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start time</td><td id="pf-starttime" class="p-2 font-mono text-slate-600">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-2 font-mono text-slate-600">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">0s</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Entry spot</td><td id="pf-entry" class="p-2 font-mono text-slate-700">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">10.00</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">+0.19</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Low Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-slate-700">3.43</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">2.00</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-slate-700">0.68</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">0.35</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Price</td><td id="pf-price" class="p-2 text-slate-700">0.35</td></tr>
                                 <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">0.00</td></tr>
                             </tbody>
                         </table>
@@ -304,13 +306,13 @@
                         <option value="Matches/Differs">Matches / Differs</option>
                         <option value="Over/Under">Over / Under</option>
                         <option value="Even/Odd">Even / Odd</option>
-                        <option value="Touch/No Touch" selected>Touch / No Touch</option>
+                        <option value="Touch/No Touch">Touch / No Touch</option>
                     </select>
                 </div>
 
                 <!-- TOMBOL PILIHAN ARAH INTERAKTIF -->
                 <div id="choice-buttons-container" class="space-y-1 pt-1">
-                    <label class="font-medium text-slate-600 block" id="choice-label">Touch Type</label>
+                    <label class="font-medium text-slate-600 block" id="choice-label">Prediction Direction</label>
                     <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
                 </div>
 
@@ -328,14 +330,14 @@
                     <div>
                         <div class="flex justify-between items-center">
                             <label id="duration-label" class="font-medium text-slate-600">Duration</label>
-                            <span id="min-duration-info" class="text-[10px] text-teal-600 font-semibold">Min: 5t</span>
+                            <span id="min-duration-info" class="text-[10px] text-teal-600 font-semibold">Min: 5m</span>
                         </div>
                         <div class="flex space-x-1 mt-1">
-                            <input type="number" id="modal-duration" value="10" min="1" class="w-full bg-white border border-slate-300 rounded p-2">
-                            <select id="modal-duration-unit" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
-                                <option value="t" selected>Ticks</option>
+                            <input type="number" id="modal-duration" value="5" min="1" class="w-full bg-white border border-slate-300 rounded p-2">
+                            <select id="modal-duration-unit" onchange="onDurationUnitChange()" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
+                                <option value="t">Ticks</option>
                                 <option value="s">Seconds</option>
-                                <option value="m">Minutes</option>
+                                <option value="m" selected>Minutes</option>
                                 <option value="h">Hours</option>
                             </select>
                         </div>
@@ -345,14 +347,19 @@
                             <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
                             <span id="min-stake-info" class="text-[10px] text-amber-600 font-semibold">Min Stake: $0.35</span>
                         </div>
-                        <input type="number" step="0.01" id="modal-amount" value="2.00" min="0.35" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
+                        <input type="number" step="0.01" id="modal-amount" value="0.35" min="0.35" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
                     </div>
                 </div>
 
-                <!-- BARRIER TUNGGAL SESUAI TAMPILAN TRADING -->
-                <div id="barrier-container" class="pt-2 border-t border-slate-200">
-                    <label class="font-medium text-slate-600">Barrier Offset</label>
-                    <input type="text" id="modal-barrier" value="+0.19" placeholder="+0.19" class="w-full bg-white border border-slate-300 rounded p-2 mt-1 font-mono font-bold text-slate-800">
+                <div id="barrier-container" class="hidden pt-2 border-t border-slate-200 grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-medium text-slate-600">Barrier / Offset (High)</label>
+                        <input type="text" id="modal-high" value="+1.0" placeholder="+1.0" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
+                    </div>
+                    <div>
+                        <label class="font-medium text-slate-600">Barrier / Offset (Low)</label>
+                        <input type="text" id="modal-low" value="-1.0" placeholder="-1.0" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
+                    </div>
                 </div>
             </div>
 
@@ -366,16 +373,16 @@
     <script>
         const marketSymbolsData = {
             derived: [
-                { name: "Volatility 100 Index", symbol: "R_100" },
-                { name: "Volatility 75 Index", symbol: "R_75" },
-                { name: "Volatility 50 Index", symbol: "R_50" },
-                { name: "Volatility 25 Index", symbol: "R_25" },
-                { name: "Volatility 10 Index", symbol: "R_10" },
-                { name: "Volatility 100 (1s) Index", symbol: "1HZ100V" },
-                { name: "Volatility 75 (1s) Index", symbol: "1HZ75V" },
-                { name: "Volatility 50 (1s) Index", symbol: "1HZ50V" },
+                { name: "Volatility 10 (1s) Index", symbol: "1HZ10V" },
                 { name: "Volatility 25 (1s) Index", symbol: "1HZ25V" },
-                { name: "Volatility 10 (1s) Index", symbol: "1HZ10V" }
+                { name: "Volatility 50 (1s) Index", symbol: "1HZ50V" },
+                { name: "Volatility 75 (1s) Index", symbol: "1HZ75V" },
+                { name: "Volatility 100 (1s) Index", symbol: "1HZ100V" },
+                { name: "Volatility 10 Index", symbol: "R_10" },
+                { name: "Volatility 25 Index", symbol: "R_25" },
+                { name: "Volatility 50 Index", symbol: "R_50" },
+                { name: "Volatility 75 Index", symbol: "R_75" },
+                { name: "Volatility 100 Index", symbol: "R_100" }
             ],
             forex: [
                 { name: "EUR/USD", symbol: "frxEURUSD" },
@@ -389,15 +396,21 @@
         };
 
         let defaultStrategyData = [
-            { level: 1, contract_type: "Touch / No Touch", market: "Volatility", submarket: "Volatility 100 Index", purchase_type: "Touch", barrier: "+0.19", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00 }
+            { level: 1, contract_type: "Rise/Fall", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Rise", high: "", low: "", last_digit: "", duration_amount: 5, duration_unit: "Ticks", amount: 0.35 },
+            { level: 2, contract_type: "Matches/Differs", market: "Volatility", submarket: "Volatility 25 (1s) Index", purchase_type: "Matches", high: "", low: "", last_digit: "5", duration_amount: 1, duration_unit: "Ticks", amount: 1.00 }
         ];
+
+        let accountsData = {
+            real: { loginid: "CR1084920", balance: "0.00 USD" },
+            demo: { loginid: "VRTC948201", balance: "9,999.00 USD" }
+        };
 
         let ws = null;
         let contractCache = {};
         let availableContracts = [];
         let selectedDigit = 5;
         let selectedSubTab = 'Matches';
-        let selectedChoice = 'Touch';
+        let selectedChoice = 'Rise';
 
         function initWebSocket() {
             if (ws && ws.readyState === WebSocket.OPEN) return;
@@ -439,6 +452,7 @@
                     if (ws && ws.readyState === WebSocket.OPEN) {
                         ws.send(JSON.stringify({ contracts_for: symbol }));
                     } else {
+                        // Fallback jika WS gagal terhubung dalam 1 detik
                         handleContractsForResponse([]);
                     }
                 }, 1000);
@@ -450,13 +464,21 @@
             const amountInput = document.getElementById('modal-amount');
             const durationInput = document.getElementById('modal-duration');
             const unitSelect = document.getElementById('modal-duration-unit');
-            const barrierInput = document.getElementById('modal-barrier');
+            const highInput = document.getElementById('modal-high');
+            const lowInput = document.getElementById('modal-low');
 
-            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
-                barrierInput.value = "+0.19";
-                durationInput.value = "10";
-                unitSelect.value = "t";
-                document.getElementById('min-duration-info').innerText = "Min: 5t";
+            if (tradeType === 'Higher/Lower') {
+                highInput.value = "+0.5";
+                lowInput.value = "-0.5";
+                durationInput.value = "15";
+                unitSelect.value = "m";
+                document.getElementById('min-duration-info').innerText = "Min: 1m";
+            } else if (tradeType === 'Touch/No Touch') {
+                highInput.value = "+1.0";
+                lowInput.value = "-1.0";
+                durationInput.value = "5";
+                unitSelect.value = "m";
+                document.getElementById('min-duration-info').innerText = "Min: 5m";
             } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
                 durationInput.value = "1";
                 unitSelect.value = "t";
@@ -466,7 +488,7 @@
                 unitSelect.value = "t";
                 document.getElementById('min-duration-info').innerText = "Min: 5t";
             }
-            amountInput.value = "2.00";
+            amountInput.value = "0.35";
         }
 
         function handleContractsForResponse(contracts) {
@@ -493,7 +515,7 @@
 
             if (matchingContracts.length > 0) {
                 const sample = matchingContracts[0];
-                const minDurationStr = sample.min_contract_duration || "5t";
+                const minDurationStr = sample.min_contract_duration || "1t";
                 const minStakeVal = sample.min_stake || sample.default_stake || 0.35;
 
                 document.getElementById('min-duration-info').innerText = `Min: ${minDurationStr}`;
@@ -501,15 +523,40 @@
                 
                 const amountInput = document.getElementById('modal-amount');
                 amountInput.min = minStakeVal;
-                
-                // Ambil rekomendasi barrier dari API jika tersedia (misalnya barrier, high_barrier, atau low_barrier)
-                if (sample.barrier) {
-                    document.getElementById('modal-barrier').value = sample.barrier;
-                } else if (sample.high_barrier) {
-                    document.getElementById('modal-barrier').value = sample.high_barrier;
+                if(parseFloat(amountInput.value) < minStakeVal) {
+                    amountInput.value = minStakeVal.toFixed(2);
                 }
+
+                // Parsing durasi minimum dinamis dari API (misal: "5m", "15s", "1t", "1h")
+                const durationMatch = minDurationStr.match(/^(\d+)([tsmhdy])$/i);
+                if (durationMatch) {
+                    const durNum = parseInt(durationMatch[1]);
+                    const durUnit = durationMatch[2].toLowerCase();
+                    
+                    const durationInput = document.getElementById('modal-duration');
+                    const unitSelect = document.getElementById('modal-duration-unit');
+                    
+                    durationInput.min = durNum;
+                    durationInput.value = durNum;
+                    unitSelect.value = durUnit;
+                }
+
+                if (sample.high_barrier) document.getElementById('modal-high').value = sample.high_barrier;
+                if (sample.low_barrier) document.getElementById('modal-low').value = sample.low_barrier;
+            } else {
+                document.getElementById('api-status-text').innerText = `Menggunakan aturan standar lokal untuk aset ini.`;
+                document.getElementById('api-status-badge').innerText = 'READY';
+                document.getElementById('api-status-badge').className = 'font-bold text-[10px] bg-blue-200 text-blue-800 px-2 py-0.5 rounded uppercase';
             }
         }
+
+        function onDurationUnitChange() {
+            // Validasi tambahan jika unit durasi diganti manual oleh user
+        }
+
+        setInterval(() => {
+            document.getElementById('gmt-time').innerText = new Date().toUTCString().slice(17, 25);
+        }, 1000);
 
         window.onload = function() {
             initWebSocket();
@@ -568,6 +615,66 @@
             });
         }
 
+        function renderDigitSubTabs(tradeType) {
+            const container = document.getElementById('digit-subtabs');
+            if(!container) return;
+            container.innerHTML = '';
+
+            let tabs = [];
+            if (tradeType === 'Matches/Differs') {
+                tabs = ['Matches', 'Differs'];
+            } else if (tradeType === 'Over/Under') {
+                tabs = ['Over', 'Under'];
+            } else if (tradeType === 'Even/Odd') {
+                tabs = ['Even', 'Odd'];
+            }
+
+            if (!tabs.includes(selectedSubTab)) selectedSubTab = tabs[0] || '';
+
+            tabs.forEach(tabName => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = (selectedSubTab === tabName);
+                btn.className = `subtab-btn px-4 py-1.5 rounded-lg font-bold text-xs transition ${isSelected ? 'active bg-teal-600 text-white shadow-sm' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`;
+                btn.innerText = tabName;
+                btn.onclick = () => {
+                    selectedSubTab = tabName;
+                    renderDigitSubTabs(tradeType);
+                };
+                container.appendChild(btn);
+            });
+
+            const gridWrapper = document.getElementById('digit-grid-wrapper');
+            if (tradeType === 'Even/Odd') {
+                gridWrapper.classList.add('hidden');
+            } else {
+                gridWrapper.classList.remove('hidden');
+                renderDigitGrid();
+            }
+        }
+
+        function renderDigitGrid() {
+            const grid = document.getElementById('digit-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            const percentages = ["9.1%", "11.3%", "10.1%", "9.2%", "9.8%", "10.1%", "10.9%", "8.7%", "9.8%", "11.0%"];
+
+            for (let i = 0; i <= 9; i++) {
+                const btn = document.createElement('div');
+                const isSelected = (selectedDigit === i);
+                btn.className = `digit-btn border rounded-xl p-2 text-center cursor-pointer bg-white ${isSelected ? 'active bg-slate-900 text-white border-slate-900 shadow' : 'border-slate-200 hover:border-slate-400'}`;
+                btn.innerHTML = `
+                    <div class="text-sm font-bold ${isSelected ? 'text-white' : 'text-slate-800'}">${i}</div>
+                    <div class="text-[9px] ${isSelected ? 'text-slate-300' : (i === 7 ? 'text-rose-500 font-bold' : (i === 1 ? 'text-emerald-600 font-bold' : 'text-slate-500'))}">${percentages[i]}</div>
+                `;
+                btn.onclick = () => {
+                    selectedDigit = i;
+                    renderDigitGrid();
+                };
+                grid.appendChild(btn);
+            }
+        }
+
         function renderStrategyTable(dataList) {
             const tbody = document.getElementById('strategy-table-body');
             tbody.innerHTML = '';
@@ -580,7 +687,8 @@
                     <td><input type="text" value="${item.market}"></td>
                     <td><input type="text" value="${item.submarket}"></td>
                     <td><input type="text" value="${item.purchase_type}"></td>
-                    <td><input type="text" value="${item.barrier || ''}" class="font-mono font-bold text-slate-700"></td>
+                    <td><input type="text" value="${item.high || ''}"></td>
+                    <td><input type="text" value="${item.low || ''}"></td>
                     <td><input type="text" value="${item.last_digit || ''}" class="font-bold text-indigo-600 text-center"></td>
                     <td><input type="number" value="${item.duration_amount}"></td>
                     <td><select><option ${item.duration_unit === 'Ticks' ? 'selected' : ''}>Ticks</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option><option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option><option ${item.duration_unit === 'Hours' ? 'selected' : ''}>Hours</option></select></td>
@@ -623,7 +731,7 @@
             applyInstantDefaults();
 
             if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
-                unitSelect.value = 't';
+                unitSelect.value = 'm';
                 unitSelect.disabled = false;
                 barrierContainer.classList.remove('hidden');
                 digitContainer.classList.add('hidden');
@@ -632,6 +740,7 @@
                 unitSelect.disabled = true;
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.remove('hidden');
+                renderDigitSubTabs(tradeType);
             } else {
                 unitSelect.value = 't';
                 unitSelect.disabled = false;
@@ -656,16 +765,28 @@
             else if (valUnit === 'm') unitText = "Minutes";
             else if (valUnit === 'h') unitText = "Hours";
 
-            const barrierVal = document.getElementById('modal-barrier').value;
+            const highVal = document.getElementById('modal-high').value;
+            const lowVal = document.getElementById('modal-low').value;
+
+            let digitVal = "";
+            let purchaseTypeVal = selectedChoice;
+
+            if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
+                purchaseTypeVal = selectedSubTab;
+                if (tradeType !== 'Even/Odd') {
+                    digitVal = selectedDigit.toString();
+                }
+            }
 
             const newItem = {
                 level: defaultStrategyData.length + 1,
                 contract_type: tradeType,
                 market: marketCat === 'derived' ? 'Volatility' : (marketCat === 'forex' ? 'Forex' : 'Crypto'),
                 submarket: subMarketText,
-                purchase_type: selectedChoice,
-                barrier: barrierVal,
-                last_digit: "",
+                purchase_type: purchaseTypeVal,
+                high: highVal,
+                low: lowVal,
+                last_digit: digitVal,
                 duration_amount: durationAmount,
                 duration_unit: unitText,
                 amount: parseFloat(document.getElementById('modal-amount').value)
