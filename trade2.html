@@ -388,7 +388,7 @@
         </div>
     </div>
 
-    <script>
+   <script>
         const marketSymbolsData = {
             derived: [
                 { name: "Volatility 10 (1s) Index", symbol: "1HZ10V" },
@@ -467,35 +467,58 @@
             }
         });
 
+        // Fungsionalitas Akun Dinamis via API / LocalStorage Token
         function switchAccountType(type) {
-            const typeLabel = document.getElementById('account-type-label');
-            const idLabel = document.getElementById('account-id-label');
-            const balLabel = document.getElementById('account-balance-label');
-
-            if (type === 'real') {
-                typeLabel.innerText = "Real account";
-                typeLabel.className = "text-slate-500 text-[10px]";
-                idLabel.innerText = "CR1084920";
-                balLabel.innerText = "0.00 USD";
+            const token = localStorage.getItem('deriv_access_token');
+            if (token && ws && ws.readyState === WebSocket.OPEN) {
+                // Jika token tersedia, kirim authorize untuk meminta data akun asli dari server Deriv
+                ws.send(JSON.stringify({ authorize: token }));
             } else {
-                typeLabel.innerText = "Demo account";
-                typeLabel.className = "text-amber-600 text-[10px]";
-                idLabel.innerText = "VRTC948201";
-                balLabel.innerText = "9,999.00 USD";
+                // Fallback jika mode demo/tanpa token aktif
+                const typeLabel = document.getElementById('account-type-label');
+                const idLabel = document.getElementById('account-id-label');
+                const balLabel = document.getElementById('account-balance-label');
+
+                if (type === 'real') {
+                    typeLabel.innerText = "Real account";
+                    typeLabel.className = "text-slate-500 text-[10px]";
+                    idLabel.innerText = "CR1084920";
+                    balLabel.innerText = "0.00 USD";
+                } else {
+                    typeLabel.innerText = "Demo account";
+                    typeLabel.className = "text-amber-600 text-[10px]";
+                    idLabel.innerText = "VRTC948201";
+                    balLabel.innerText = "9,999.00 USD";
+                }
             }
             const menu = document.getElementById('account-menu');
             if (menu) menu.classList.add('hidden');
         }
 
+        // Inisialisasi WebSocket Tunggal (Singleton)
         function initWebSocket() {
-            if (ws && ws.readyState === WebSocket.OPEN) return;
+            if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+                return; // Jangan buka koneksi baru jika sudah ada yang aktif/menghubungkan
+            }
+
             const clientId = document.getElementById('client_id') ? document.getElementById('client_id').value.trim() : "34M4TGKofeTRkLOlcJ9zO";
             appendDebugLog('INFO', `Membuka koneksi WebSocket ke App ID: ${clientId}`);
             ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${clientId}`);
             
             ws.onopen = () => {
-                appendDebugLog('INFO', 'Deriv WebSocket Connected');
-                requestProposalUpdate();
+                appendDebugLog('INFO', 'Deriv WebSocket Connected Successfully');
+                
+                // Cek apakah ada token tersimpan untuk otorisasi akun otomatis
+                const token = localStorage.getItem('deriv_access_token');
+                if (token) {
+                    ws.send(JSON.stringify({ authorize: token }));
+                } else {
+                    // Jika belum login token, ambil saldo dasar/publik atau langsung request proposal
+                    ws.send(JSON.stringify({ balance: 1 }));
+                }
+
+                // Kirim request proposal awal setelah koneksi terbuka
+                setTimeout(requestProposalUpdate, 500);
             };
 
             ws.onmessage = (msg) => {
@@ -505,6 +528,23 @@
                     appendDebugLog('ERR', `${data.msg_type || 'API'}: ${data.error.message}`);
                     document.getElementById('payout-value').innerText = `$0.00`;
                     return;
+                }
+
+                if (data.msg_type === 'authorize' && data.authorize) {
+                    const user = data.authorize;
+                    document.getElementById('account-id-label').innerText = user.loginid;
+                    document.getElementById('account-type-label').innerText = user.is_virtual ? "Demo account" : "Real account";
+                    document.getElementById('account-balance-label').innerText = `${parseFloat(user.balance).toFixed(2)} ${user.currency}`;
+                    appendDebugLog('RECV', `Authorize Berhasil: ${user.loginid} (${user.email})`);
+                    
+                    // Langganan update saldo real-time
+                    ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+                }
+
+                if (data.msg_type === 'balance' && data.balance) {
+                    const balanceVal = parseFloat(data.balance.balance).toFixed(2);
+                    const currency = data.balance.currency || 'USD';
+                    document.getElementById('account-balance-label').innerText = `${balanceVal} ${currency}`;
                 }
 
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
@@ -518,6 +558,12 @@
                     appendDebugLog('RECV', `Proposal Diterima! Payout: $${payout.toFixed(2)} | ID: ${data.proposal.id}`);
                     document.getElementById('payout-value').innerText = `$${payout.toFixed(2)}`;
                 }
+            };
+
+            ws.onclose = () => {
+                appendDebugLog('ERR', 'WebSocket terputus. Mencoba menghubungkan kembali dalam 3 detik...');
+                ws = null;
+                setTimeout(initWebSocket, 3000);
             };
         }
 
@@ -596,13 +642,6 @@
                 ws.send(JSON.stringify({ contracts_for: symbol }));
             } else {
                 initWebSocket();
-                setTimeout(() => {
-                    if (ws && ws.readyState === WebSocket.OPEN) {
-                        ws.send(JSON.stringify({ contracts_for: symbol }));
-                    } else {
-                        handleContractsForResponse([]);
-                    }
-                }, 1000);
             }
         }
 
@@ -704,8 +743,10 @@
                 document.getElementById('dashboard-view').classList.remove('hidden');
                 renderStrategyTable(defaultStrategyData);
             } else {
-                document.getElementById('login-view').classList.remove('hidden');
-                document.getElementById('dashboard-view').classList.add('hidden');
+                // Jika ingin langsung masuk dashboard untuk uji coba UI & WebSocket:
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+                renderStrategyTable(defaultStrategyData);
             }
         };
 
