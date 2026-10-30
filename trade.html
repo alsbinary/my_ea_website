@@ -75,7 +75,6 @@
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     
-                    <!-- MENU DROPDOWN AKUN YANG DIPERBAIKI -->
                     <div id="account-menu" class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
                         <div onclick="switchAccountType('real')" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition">
                             <div>
@@ -366,6 +365,18 @@
                         <span id="payout-value" class="text-base font-black tracking-tight text-white">$3.35</span>
                     </div>
                 </div>
+
+                <!-- PANEL LOG TRANSMISI DATA WEBSOCKET (DILETAKKAN DI PALING BAWAH MODAL) -->
+                <div class="pt-2 border-t border-slate-200 space-y-1">
+                    <div class="flex justify-between items-center text-[11px]">
+                        <span class="font-bold text-slate-600">Monitor Transmisi Data API (Live Log)</span>
+                        <button type="button" onclick="clearDebugConsole()" class="text-slate-400 hover:text-slate-600 underline text-[10px]">Clear Log</button>
+                    </div>
+                    <div id="debug-log-console" class="bg-slate-900 text-slate-200 p-2.5 rounded-lg h-28 overflow-y-auto font-mono text-[10px] space-y-1 border border-slate-800 leading-tight">
+                        <div class="text-slate-500">[System] Menunggu aktivitas transmisi data...</div>
+                    </div>
+                </div>
+
             </div>
 
             <div class="p-4 bg-slate-100 border-t border-slate-200 flex justify-end space-x-3">
@@ -425,16 +436,42 @@
         let selectedChoice = 'No Touch';
         let currentEstimatedPayout = 3.35;
 
-        // FUNGSI DROPDOWN AKUN YANG DIPERBAIKI (AGAR BISA DIKLIK)
+        // LOGGING VISUAL DI PALING BAWAH MODAL
+        function appendDebugLog(type, message) {
+            const consoleBox = document.getElementById('debug-log-console');
+            if (!consoleBox) return;
+            const item = document.createElement('div');
+            const timeStr = new Date().toLocaleTimeString();
+
+            if (type === 'SEND') {
+                item.className = 'text-cyan-400';
+                item.innerText = `[${timeStr}] 📤 SEND -> ${message}`;
+            } else if (type === 'RECV') {
+                item.className = 'text-emerald-400';
+                item.innerText = `[${timeStr}] 📥 RECV <- ${message}`;
+            } else if (type === 'ERR') {
+                item.className = 'text-rose-400 font-bold';
+                item.innerText = `[${timeStr}] ⚠️ ERR  <- ${message}`;
+            } else {
+                item.className = 'text-slate-400';
+                item.innerText = `[${timeStr}] ℹ️ INFO -> ${message}`;
+            }
+
+            consoleBox.appendChild(item);
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        function clearDebugConsole() {
+            const consoleBox = document.getElementById('debug-log-console');
+            if (consoleBox) consoleBox.innerHTML = '<div class="text-slate-500">[System] Log dibersihkan.</div>';
+        }
+
         function toggleAccountDropdown(event) {
             if (event) event.stopPropagation();
             const menu = document.getElementById('account-menu');
-            if (menu) {
-                menu.classList.toggle('hidden');
-            }
+            if (menu) menu.classList.toggle('hidden');
         }
 
-        // Tutup dropdown jika klik di luar area
         window.addEventListener('click', function(e) {
             const menu = document.getElementById('account-menu');
             const btn = document.getElementById('account-dropdown-btn');
@@ -472,21 +509,25 @@
             const clientId = document.getElementById('client_id') ? document.getElementById('client_id').value.trim() : "34M4TGKofeTRkLOlcJ9zO";
             const appId = clientId || "34M4TGKofeTRkLOlcJ9zO";
 
+            appendDebugLog('INFO', `Membuka koneksi WebSocket ke App ID: ${appId}`);
             ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${appId}`);
             
             ws.onopen = () => {
                 console.log('Deriv WebSocket Connected with App ID:', appId);
+                appendDebugLog('INFO', 'Terhubung ke Server Deriv WebSocket.');
                 document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected`;
                 requestProposalUpdate();
             };
 
             ws.onerror = (err) => {
                 console.error("WebSocket Error:", err);
+                appendDebugLog('ERR', 'Terjadi kesalahan koneksi WebSocket.');
                 document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Error Connection`;
             };
 
             ws.onclose = () => {
                 console.warn("WebSocket Disconnected. Reconnecting...");
+                appendDebugLog('ERR', 'Koneksi terputus! Mencoba Reconnecting...');
                 document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Reconnecting...`;
                 setTimeout(initWebSocket, 3000);
             };
@@ -496,11 +537,13 @@
                 
                 if (data.error) {
                     console.warn("Deriv API Error:", data.error.message);
+                    appendDebugLog('ERR', `${data.msg_type || 'API'}: ${data.error.message}`);
                     setApiPendingStatus("Error: " + data.error.message);
                     return;
                 }
                 
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
+                    appendDebugLog('RECV', `contracts_for (${data.echo_req.contracts_for}) -> Total: ${data.contracts_for.available.length} kontrak.`);
                     const symbol = data.echo_req.contracts_for;
                     contractCache[symbol] = data.contracts_for.available;
                     handleContractsForResponse(data.contracts_for.available);
@@ -508,6 +551,7 @@
 
                 if (data.msg_type === 'proposal' && data.proposal) {
                     currentEstimatedPayout = parseFloat(data.proposal.payout);
+                    appendDebugLog('RECV', `Proposal Diterima! Payout: $${currentEstimatedPayout.toFixed(2)} | ID: ${data.proposal.id}`);
                     document.getElementById('payout-value').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
                     
                     const banner = document.getElementById('api-status-banner');
@@ -541,6 +585,7 @@
 
         function clearActiveApiSubscriptions() {
             if (ws && ws.readyState === WebSocket.OPEN) {
+                appendDebugLog('SEND', 'forget_all: ["proposal"]');
                 ws.send(JSON.stringify({ forget_all: ["proposal"] }));
             }
         }
@@ -554,7 +599,7 @@
                 document.getElementById('modal-barrier').value = defaultAssetBarriers[symbol];
             }
 
-            setApiPendingStatus("Mengambil data kontrak & proposal baru untuk aset ini...");
+            setApiPendingStatus("Mengambil data proposal baru...");
             clearActiveApiSubscriptions();
             fetchContractsForSymbol();
         }
@@ -571,6 +616,7 @@
             }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
+                appendDebugLog('SEND', `contracts_for: "${symbol}"`);
                 ws.send(JSON.stringify({ contracts_for: symbol }));
             } else {
                 initWebSocket();
@@ -655,7 +701,12 @@
                 } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
                     req.barrier = selectedDigit.toString();
                 }
+
+                appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`);
                 ws.send(JSON.stringify(req));
+            } else {
+                appendDebugLog('ERR', 'WebSocket belum siap/terputus. Mencoba menghubungkan kembali...');
+                initWebSocket();
             }
         }
 
