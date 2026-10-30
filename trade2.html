@@ -290,7 +290,7 @@
 
                 <!-- INDIKATOR STATUS VALIDASI API -->
                 <div id="api-status-banner" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
-                    <span id="api-status-text">Siap & Terhubung dengan Standar Deriv API.</span>
+                    <span id="api-status-text">Siap & Terhubung dengan Standar Deriv API (Gunakan API Proposal untuk Payout).</span>
                     <span id="api-status-badge" class="font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase">Ready</span>
                 </div>
 
@@ -358,11 +358,11 @@
                     </div>
                 </div>
 
-                <!-- ESTIMASI PAYOUT DI KOTAK BAWAH MODAL -->
+                <!-- ESTIMASI PAYOUT VIA API PROPOSAL -->
                 <div class="bg-emerald-600 text-white p-3 rounded-xl flex justify-between items-center shadow-md">
                     <div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
-                        <span id="payout-type-label" class="text-xs font-semibold">Buy (Proposal API)</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT (PROPOSAL API)</span>
+                        <span id="payout-type-label" class="text-xs font-semibold">Potensi Pembayaran Berdasarkan Proposal</span>
                     </div>
                     <div class="text-right">
                         <span id="payout-value" class="text-lg font-black tracking-tight text-white">$0.00</span>
@@ -390,7 +390,7 @@
 
     <!-- SEMUA FUNGSI JAVASCRIPT LENGKAP -->
     <script>
-        // --- DEKLARASI FUNGSI GLOBAL UTAMA (DIKATUR DI AWAL AGAR TERBACA ONCLICK) ---
+        // --- DEKLARASI FUNGSI GLOBAL UTAMA ---
         function loginWithDerivOAuthPKCE() {
             const clientIdField = document.getElementById('client_id');
             const clientId = clientIdField ? clientIdField.value.trim() : "34M4TGKofeTRkLOlcJ9zO";
@@ -399,11 +399,21 @@
                 return;
             }
             localStorage.setItem('deriv_client_id', clientId);
-            
-            // Simulasi bypass login langsung masuk dashboard atau arahkan ke OAuth PKCE Deriv jika diperlukan
-            // Untuk pengujian langsung, kita aktifkan view dashboard:
             localStorage.setItem('deriv_access_token', 'logged_in_simulation_token');
             window.location.reload();
+        }
+
+        // --- FUNGSI LOGOUT SESUAI INSTRUKSI CS & DOKUMENTASI DERIV API ---
+        function handleLogout() {
+            if (ws) {
+                ws.close(); // Menutup koneksi WebSocket aktif
+                ws = null;
+            }
+            localStorage.removeItem('deriv_access_token');
+            localStorage.removeItem('deriv_client_id');
+            
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('login-view').classList.remove('hidden');
         }
 
         const marketSymbolsData = {
@@ -563,9 +573,10 @@
                     handleContractsForResponse(data.contracts_for.available);
                 }
 
+                // PAYOUT DILIHAT MELALUI API PROPOSAL SEBELUM MEMBELI KONTRAK
                 if (data.msg_type === 'proposal' && data.proposal) {
                     const payout = parseFloat(data.proposal.payout);
-                    appendDebugLog('RECV', `Proposal Diterima! Payout: $${payout.toFixed(2)}`);
+                    appendDebugLog('RECV', `Proposal Diterima! Payout: $${payout.toFixed(2)} | ID: ${data.proposal.id}`);
                     document.getElementById('payout-value').innerText = `$${payout.toFixed(2)}`;
                 }
             };
@@ -773,8 +784,10 @@
                 initWebSocket();
                 renderStrategyTable(defaultStrategyData);
             } else {
-                document.getElementById('login-view').classList.remove('hidden');
-                document.getElementById('dashboard-view').classList.add('hidden');
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+                initWebSocket();
+                renderStrategyTable(defaultStrategyData);
             }
         };
 
@@ -1014,12 +1027,6 @@
         function clearStrategy() {
             defaultStrategyData = [];
             renderStrategyTable(defaultStrategyData);
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('deriv_access_token');
-            document.getElementById('dashboard-view').classList.add('hidden');
-            document.getElementById('login-view').classList.remove('hidden');
         }
     </script>
 </body>
