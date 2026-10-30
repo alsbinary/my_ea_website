@@ -47,7 +47,7 @@
                     <label class="block font-medium text-slate-400 mb-1">App ID / Client ID</label>
                     <input type="text" id="app_id_input" value="34M4TGKofeTRkLOlcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500 text-xs">
                 </div>
-                <button onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs uppercase">Login Via Deriv (OAuth PKCE)</button>
+                <button onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs uppercase cursor-pointer">Login Via Deriv (OAuth PKCE)</button>
             </div>
         </div>
     </div>
@@ -377,6 +377,7 @@
     </div>
 
     <script>
+        // Static configuration mappings
         const defaultAssetBarriers = {
             "R_100": "+0.676",
             "R_75": "+0.350",
@@ -414,10 +415,10 @@
             ]
         };
 
+        // State management
         let defaultStrategyData = [];
-
         let ws = null;
-        let activeAccounts = []; // [{ account, token, currency, balance, is_virtual }]
+        let activeAccounts = []; 
         let activeAccountId = "";
         let currentCurrency = "USD";
         let contractCache = {};
@@ -429,15 +430,45 @@
         let isFetchingContracts = false;
         let lastProposalReqId = 0;
 
-        // PKCE Utility Functions
-        function generateRandomString(length) {
+        // --- GLOBAL SCOPE FUNCTION DECLARATIONS ---
+
+        window.appendDebugLog = function(type, message) {
+            const consoleBox = document.getElementById('debug-log-console');
+            if (!consoleBox) return;
+            const item = document.createElement('div');
+            const timeStr = new Date().toLocaleTimeString();
+
+            if (type === 'SEND') {
+                item.className = 'text-cyan-400';
+                item.innerText = `[${timeStr}] 📤 SEND -> ${message}`;
+            } else if (type === 'RECV') {
+                item.className = 'text-emerald-400';
+                item.innerText = `[${timeStr}] 📥 RECV <- ${message}`;
+            } else if (type === 'ERR') {
+                item.className = 'text-rose-400 font-bold';
+                item.innerText = `[${timeStr}] ⚠️ ERR  <- ${message}`;
+            } else {
+                item.className = 'text-slate-400';
+                item.innerText = `[${timeStr}] ℹ️ INFO -> ${message}`;
+            }
+
+            consoleBox.appendChild(item);
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        };
+
+        window.clearDebugConsole = function() {
+            const consoleBox = document.getElementById('debug-log-console');
+            if (consoleBox) consoleBox.innerHTML = '<div class="text-slate-500">[System] Log dibersihkan.</div>';
+        };
+
+        window.generateRandomString = function(length) {
             const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
             const values = new Uint8Array(length);
             window.crypto.getRandomValues(values);
             return Array.from(values).map(x => possible[x % possible.length]).join('');
-        }
+        };
 
-        async function generateCodeChallenge(codeVerifier) {
+        window.generateCodeChallenge = async function(codeVerifier) {
             const encoder = new TextEncoder();
             const data = encoder.encode(codeVerifier);
             const digest = await window.crypto.subtle.digest('SHA-256', data);
@@ -445,22 +476,216 @@
                 .replace(/\+/g, '-')
                 .replace(/\//g, '_')
                 .replace(/=+$/, '');
-        }
-        function handleContractsForResponse(contracts) {
-            availableContracts = contracts || [];
-            applyApiValidationRules();
-        }
+        };
 
-        function startGMTClock() {
+        window.loginWithDerivOAuthPKCE = async function() {
+            const appIdInput = document.getElementById('app_id_input');
+            const appId = appIdInput ? appIdInput.value.trim() : '34M4TGKofeTRkLOlcJ9zO';
+            if (!appId) {
+                alert('App ID / Client ID wajib diisi!');
+                return;
+            }
+            localStorage.setItem('deriv_app_id', appId);
+
+            try {
+                const verifier = window.generateRandomString(128);
+                sessionStorage.setItem('deriv_code_verifier', verifier);
+                const challenge = await window.generateCodeChallenge(verifier);
+
+                const redirectUri = window.location.origin + window.location.pathname;
+                const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${encodeURIComponent(appId)}&code_challenge=${encodeURIComponent(challenge)}&code_challenge_method=S256&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+                window.location.href = oauthUrl;
+            } catch (err) {
+                console.error("PKCE Error:", err);
+                alert("Gagal menginisialisasi OAuth PKCE: " + err.message);
+            }
+        };
+
+        window.handleDerivOAuthCallback = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const accounts = [];
+            let index = 1;
+
+            while (urlParams.has(`acct${index}`) && urlParams.has(`token${index}`)) {
+                accounts.push({
+                    account: urlParams.get(`acct${index}`),
+                    token: urlParams.get(`token${index}`),
+                    currency: urlParams.get(`cur${index}`) || 'USD',
+                    is_virtual: urlParams.get(`acct${index}`).startsWith('VRTC')
+                });
+                index++;
+            }
+
+            if (accounts.length > 0) {
+                localStorage.setItem('deriv_accounts', JSON.stringify(accounts));
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return true;
+            }
+
+            const stored = localStorage.getItem('deriv_accounts');
+            if (stored) {
+                try {
+                    activeAccounts = JSON.parse(stored);
+                    return activeAccounts.length > 0;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            return false;
+        };
+
+        window.populateAccountSwitcher = function() {
+            const container = document.getElementById('account-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            activeAccounts.forEach(acc => {
+                const item = document.createElement('div');
+                item.className = `p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border ${acc.account === activeAccountId ? 'border-teal-500 bg-teal-50/30' : 'border-transparent'}`;
+                item.onclick = () => window.switchAccountType(acc.account);
+
+                const accTypeLabel = acc.is_virtual ? 'Demo Account' : 'Real Account';
+                const labelClass = acc.is_virtual ? 'text-amber-600' : 'text-slate-500';
+
+                item.innerHTML = `
+                    <div>
+                        <span class="${labelClass} block text-[11px] font-semibold">${accTypeLabel}</span>
+                        <span class="font-bold text-slate-800 font-mono text-xs">${acc.account}</span>
+                    </div>
+                    <span id="bal-${acc.account}" class="font-bold text-slate-900 text-xs">${acc.balance || '0.00'} ${acc.currency}</span>
+                `;
+                container.appendChild(item);
+            });
+        };
+
+        window.toggleAccountDropdown = function(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('account-menu');
+            if (menu) menu.classList.toggle('hidden');
+        };
+
+        window.switchAccountType = function(accId) {
+            const selected = activeAccounts.find(a => a.account === accId);
+            if (!selected) return;
+
+            activeAccountId = selected.account;
+            currentCurrency = selected.currency || "USD";
+
+            document.getElementById('account-type-label').innerText = selected.is_virtual ? 'Demo account' : 'Real account';
+            document.getElementById('account-type-label').className = selected.is_virtual ? 'text-amber-600 text-[11px]' : 'text-slate-500 text-[11px]';
+            document.getElementById('account-id-label').innerText = selected.account;
+            document.getElementById('account-balance-label').innerText = `${selected.balance || '0.00'} ${currentCurrency}`;
+
+            window.populateAccountSwitcher();
+
+            const menu = document.getElementById('account-menu');
+            if (menu) menu.classList.add('hidden');
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                window.appendDebugLog('SEND', `Authorize switching account to ${activeAccountId}`);
+                ws.send(JSON.stringify({ authorize: selected.token }));
+            }
+        };
+
+        window.initWebSocket = function() {
+            if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+
+            const storedAccounts = localStorage.getItem('deriv_accounts');
+            if (storedAccounts) activeAccounts = JSON.parse(storedAccounts);
+            if (activeAccounts.length === 0) return;
+
+            if (!activeAccountId) activeAccountId = activeAccounts[0].account;
+            const currentAccObj = activeAccounts.find(a => a.account === activeAccountId) || activeAccounts[0];
+
+            const appId = localStorage.getItem('deriv_app_id') || "34M4TGKofeTRkLOlcJ9zO";
+
+            window.appendDebugLog('INFO', `Menghubungkan WebSocket ke App ID: ${appId}`);
+            ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${appId}`);
+
+            ws.onopen = () => {
+                window.appendDebugLog('INFO', 'Terhubung ke Deriv WebSocket Server.');
+                document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected`;
+
+                if (currentAccObj && currentAccObj.token) {
+                    window.appendDebugLog('SEND', `Authorize account: ${currentAccObj.account}`);
+                    ws.send(JSON.stringify({ authorize: currentAccObj.token }));
+                }
+            };
+
+            ws.onerror = (err) => {
+                console.error("WebSocket Error:", err);
+                window.appendDebugLog('ERR', 'Terjadi kesalahan pada WebSocket.');
+                document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Error`;
+            };
+
+            ws.onclose = () => {
+                window.appendDebugLog('ERR', 'Koneksi terputus. Mengisi ulang koneksi dalam 3 detik...');
+                document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Reconnecting...`;
+                setTimeout(window.initWebSocket, 3000);
+            };
+
+            ws.onmessage = (msg) => {
+                const data = JSON.parse(msg.data);
+
+                if (data.error) {
+                    window.appendDebugLog('ERR', `${data.msg_type || 'API'}: ${data.error.message}`);
+                    window.setApiPendingStatus("Error: " + data.error.message);
+                    return;
+                }
+
+                if (data.msg_type === 'authorize' && data.authorize) {
+                    window.appendDebugLog('RECV', `Authorize Berhasil! Akun: ${data.authorize.loginid} | Balance: ${data.authorize.balance}`);
+                    const accObj = activeAccounts.find(a => a.account === data.authorize.loginid);
+                    if (accObj) {
+                        accObj.balance = data.authorize.balance;
+                        currentCurrency = data.authorize.currency || "USD";
+                        document.getElementById('account-balance-label').innerText = `${data.authorize.balance} ${currentCurrency}`;
+                    }
+                    window.populateAccountSwitcher();
+                    window.requestProposalUpdate();
+                }
+
+                if (data.msg_type === 'contracts_for' && data.contracts_for) {
+                    isFetchingContracts = false;
+                    window.appendDebugLog('RECV', `contracts_for (${data.echo_req.contracts_for}) -> Total: ${data.contracts_for.available.length} kontrak.`);
+                    const symbol = data.echo_req.contracts_for;
+                    contractCache[symbol] = data.contracts_for.available;
+                    window.handleContractsForResponse(data.contracts_for.available);
+                }
+
+                if (data.msg_type === 'proposal' && data.proposal) {
+                    if (data.echo_req && data.echo_req.req_id && data.echo_req.req_id !== lastProposalReqId) return;
+
+                    currentEstimatedPayout = parseFloat(data.proposal.payout);
+                    window.appendDebugLog('RECV', `Proposal Diterima! Payout: $${currentEstimatedPayout.toFixed(2)} | ID: ${data.proposal.id}`);
+                    document.getElementById('payout-value').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
+
+                    const banner = document.getElementById('api-status-banner');
+                    if (banner) {
+                        banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
+                        document.getElementById('api-status-text').innerText = "Proposal valid. Payout berhasil diperbarui dari API.";
+                        const badge = document.getElementById('api-status-badge');
+                        if (badge) {
+                            badge.innerText = "VERIFIED";
+                            badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
+                        }
+                    }
+                }
+            };
+        };
+
+        window.startGMTClock = function() {
             setInterval(() => {
                 const now = new Date();
                 const gmtString = now.toUTCString().split(' ')[4] + ' GMT';
                 const el = document.getElementById('gmt-time');
                 if (el) el.innerText = gmtString;
             }, 1000);
-        }
+        };
 
-        function setApiPendingStatus(message) {
+        window.setApiPendingStatus = function(message) {
             const banner = document.getElementById('api-status-banner');
             if (!banner) return;
             banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
@@ -470,15 +695,15 @@
                 badge.innerText = "PENDING";
                 badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
             }
-        }
+        };
 
-        function clearActiveApiSubscriptions() {
+        window.clearActiveApiSubscriptions = function() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ forget_all: ["proposal"] }));
             }
-        }
+        };
 
-        function onSubmarketChange() {
+        window.onSubmarketChange = function() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
@@ -487,229 +712,39 @@
                 document.getElementById('modal-barrier').value = defaultAssetBarriers[symbol];
             }
 
-            setApiPendingStatus("Mengambil data proposal baru...");
-            clearActiveApiSubscriptions();
-            fetchContractsForSymbol();
-        }
+            window.setApiPendingStatus("Mengambil data proposal baru...");
+            window.clearActiveApiSubscriptions();
+            window.fetchContractsForSymbol();
+        };
 
-        function fetchContractsForSymbol() {
+        window.fetchContractsForSymbol = function() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
 
             if (contractCache[symbol]) {
                 availableContracts = contractCache[symbol];
-                applyApiValidationRules();
+                window.applyApiValidationRules();
                 return;
             }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 if (!isFetchingContracts) {
                     isFetchingContracts = true;
-                    appendDebugLog('SEND', `contracts_for: "${symbol}"`);
+                    window.appendDebugLog('SEND', `contracts_for: "${symbol}"`);
                     ws.send(JSON.stringify({ contracts_for: symbol }));
                 }
             } else {
-                initWebSocket();
+                window.initWebSocket();
             }
-        }
+        };
 
-        function renderChoiceButtons(tradeType) {
-            const container = document.getElementById('choice-buttons-grid');
-            const wrapper = document.getElementById('choice-buttons-container');
-            const label = document.getElementById('choice-label');
-            if (!container) return;
-            container.innerHTML = '';
+        window.handleContractsForResponse = function(contracts) {
+            availableContracts = contracts || [];
+            window.applyApiValidationRules();
+        };
 
-            let choices = [];
-            if (tradeType === 'Rise/Fall') {
-                choices = ['Rise', 'Fall'];
-                label.innerText = 'Prediction Direction';
-                wrapper.classList.remove('hidden');
-            } else if (tradeType === 'Higher/Lower') {
-                choices = ['Higher', 'Lower'];
-                label.innerText = 'Barrier Type';
-                wrapper.classList.remove('hidden');
-            } else if (tradeType === 'Touch/No Touch') {
-                choices = ['Touch', 'No Touch'];
-                label.innerText = 'Touch Type';
-                wrapper.classList.remove('hidden');
-            } else {
-                wrapper.classList.add('hidden');
-                return;
-            }
-
-            if (!choices.includes(selectedChoice)) selectedChoice = choices[0];
-
-            choices.forEach(choiceName => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                const isSelected = (selectedChoice === choiceName);
-                btn.className = `choice-btn py-2 rounded-xl border font-bold text-xs transition ${isSelected ? 'active bg-slate-900 text-white border-slate-900 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
-                btn.innerText = choiceName;
-                btn.onclick = () => {
-                    selectedChoice = choiceName;
-                    renderChoiceButtons(tradeType);
-                    requestProposalUpdate();
-                };
-                container.appendChild(btn);
-            });
-        }
-
-        function renderDigitGrid() {
-            const grid = document.getElementById('digit-grid');
-            if (!grid) return;
-            grid.innerHTML = '';
-
-            for (let i = 0; i <= 9; i++) {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                const isSelected = (selectedDigit === i);
-                btn.className = `digit-btn py-2 rounded-lg border font-bold text-xs transition ${isSelected ? 'active bg-indigo-600 text-white border-indigo-600 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
-                btn.innerText = i;
-                btn.onclick = () => {
-                    selectedDigit = i;
-                    renderDigitGrid();
-                    requestProposalUpdate();
-                };
-                grid.appendChild(btn);
-            }
-        }
-
-        function switchDigitSubTab(tabName) {
-            selectedSubTab = tabName;
-            document.getElementById('subtab-matches').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs ${tabName === 'Matches' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
-            document.getElementById('subtab-differs').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs ${tabName === 'Differs' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
-            requestProposalUpdate();
-        }
-
-        function renderStrategyTable(dataList) {
-            const tbody = document.getElementById('strategy-table-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            dataList.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200 text-xs";
-                tr.innerHTML = `
-                    <td class="text-center font-bold text-slate-600 bg-slate-50">Level ${index + 1}</td>
-                    <td><input type="text" value="${item.contract_type}"></td>
-                    <td><input type="text" value="${item.market}"></td>
-                    <td><input type="text" value="${item.submarket}"></td>
-                    <td><input type="text" value="${item.purchase_type}"></td>
-                    <td><input type="text" value="${item.barrier || ''}" class="font-mono font-bold text-slate-700"></td>
-                    <td><input type="text" value="${item.last_digit || ''}" class="font-bold text-indigo-600 text-center"></td>
-                    <td><input type="number" value="${item.duration_amount}"></td>
-                    <td><select><option ${item.duration_unit === 'Ticks' ? 'selected' : ''}>Ticks</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option><option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option><option ${item.duration_unit === 'Hours' ? 'selected' : ''}>Hours</option></select></td>
-                    <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
-                    <td class="font-bold text-emerald-600">$${(item.payout || 0).toFixed(2)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function openAddModal() {
-            document.getElementById('add-strategy-modal').classList.remove('hidden');
-            onMarketCategoryChange();
-            onTradeTypeChange();
-        }
-
-        function closeAddModal() {
-            document.getElementById('add-strategy-modal').classList.add('hidden');
-        }
-
-        function onMarketCategoryChange() {
-            const cat = document.getElementById('modal-market-cat').value;
-            const subSelect = document.getElementById('modal-submarket');
-            subSelect.innerHTML = '';
-            marketSymbolsData[cat].forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item.name + "|" + item.symbol;
-                opt.innerText = item.name;
-                subSelect.appendChild(opt);
-            });
-            onSubmarketChange();
-        }
-
-        function onTradeTypeChange() {
-            const tradeType = document.getElementById('modal-trade-type').value;
-            const unitSelect = document.getElementById('modal-duration-unit');
-            const barrierContainer = document.getElementById('barrier-container');
-            const digitContainer = document.getElementById('digit-prediction-container');
-
-            renderChoiceButtons(tradeType);
-
-            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
-                unitSelect.value = 't';
-                unitSelect.disabled = false;
-                barrierContainer.classList.remove('hidden');
-                digitContainer.classList.add('hidden');
-            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
-                unitSelect.value = 't';
-                unitSelect.disabled = true;
-                barrierContainer.classList.add('hidden');
-                digitContainer.classList.remove('hidden');
-                renderDigitGrid();
-            } else {
-                unitSelect.value = 't';
-                unitSelect.disabled = false;
-                barrierContainer.classList.add('hidden');
-                digitContainer.classList.add('hidden');
-            }
-
-            setApiPendingStatus("Menyesuaikan parameter tipe perdagangan dengan API...");
-            clearActiveApiSubscriptions();
-            fetchContractsForSymbol();
-            requestProposalUpdate();
-        }
-
-        function confirmAddStrategy() {
-            const marketCat = document.getElementById('modal-market-cat').value;
-            const subMarketSelect = document.getElementById('modal-submarket');
-            const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex].text;
-            const tradeType = document.getElementById('modal-trade-type').value;
-            const durationAmount = document.getElementById('modal-duration').value;
-            const durationUnitEl = document.getElementById('modal-duration-unit');
-
-            let unitText = "Ticks";
-            const valUnit = durationUnitEl.value;
-            if (valUnit === 's') unitText = "Seconds";
-            else if (valUnit === 'm') unitText = "Minutes";
-            else if (valUnit === 'h') unitText = "Hours";
-
-            const barrierVal = document.getElementById('modal-barrier').value;
-
-            const newItem = {
-                level: defaultStrategyData.length + 1,
-                contract_type: tradeType,
-                market: marketCat === 'derived' ? 'Volatility' : (marketCat === 'forex' ? 'Forex' : 'Crypto'),
-                submarket: subMarketText,
-                purchase_type: selectedChoice,
-                barrier: barrierVal,
-                last_digit: ['Matches/Differs', 'Over/Under'].includes(tradeType) ? selectedDigit : "",
-                duration_amount: durationAmount,
-                duration_unit: unitText,
-                amount: parseFloat(document.getElementById('modal-amount').value),
-                payout: currentEstimatedPayout
-            };
-
-            defaultStrategyData.push(newItem);
-            renderStrategyTable(defaultStrategyData);
-            closeAddModal();
-        }
-
-        function deleteLastRow() {
-            if (defaultStrategyData.length > 0) {
-                defaultStrategyData.pop();
-                renderStrategyTable(defaultStrategyData);
-            }
-        }
-
-        function clearStrategy() {
-            defaultStrategyData = [];
-            renderStrategyTable(defaultStrategyData);
-        }
-
-        function applyApiValidationRules() {
+        window.applyApiValidationRules = function() {
             const tradeType = document.getElementById('modal-trade-type').value;
             let matchingContracts = [];
 
@@ -729,10 +764,10 @@
                 else if (sample.barrier) document.getElementById('modal-barrier').value = sample.barrier;
             }
 
-            requestProposalUpdate();
-        }
+            window.requestProposalUpdate();
+        };
 
-        function requestProposalUpdate() {
+        window.requestProposalUpdate = function() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
@@ -746,12 +781,12 @@
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
 
             if (isNaN(amount) || amount <= 0) {
-                setApiPendingStatus("Jumlah stake tidak valid.");
+                window.setApiPendingStatus("Jumlah stake tidak valid.");
                 return;
             }
 
-            setApiPendingStatus("Mengirim request proposal baru ke API...");
-            clearActiveApiSubscriptions();
+            window.setApiPendingStatus("Mengirim request proposal baru ke API...");
+            window.clearActiveApiSubscriptions();
 
             let contractTypeApi = "NOTOUCH";
             if (tradeType === 'Touch/No Touch') {
@@ -792,32 +827,210 @@
             }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
-                appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`);
+                window.appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`);
                 ws.send(JSON.stringify(req));
             } else {
-                appendDebugLog('ERR', 'WebSocket belum siap. Menghubungkan ulang...');
-                initWebSocket();
-            }
-        }
-
-        window.onload = function() {
-            startGMTClock();
-            const isLoggedIn = checkAndProcessOAuthCallback();
-            const savedAppId = localStorage.getItem('deriv_app_id') || "34M4TGKofeTRkLOlcJ9zO";
-            document.getElementById('app_id_input').value = savedAppId;
-
-            if (isLoggedIn) {
-                document.getElementById('login-view').classList.add('hidden');
-                document.getElementById('dashboard-view').classList.remove('hidden');
-                renderStrategyTable(defaultStrategyData);
-                initWebSocket();
-            } else {
-                document.getElementById('login-view').classList.remove('hidden');
-                document.getElementById('dashboard-view').classList.add('hidden');
+                window.appendDebugLog('ERR', 'WebSocket belum siap. Menghubungkan ulang...');
+                window.initWebSocket();
             }
         };
 
-        function handleLogout() {
+        window.renderChoiceButtons = function(tradeType) {
+            const container = document.getElementById('choice-buttons-grid');
+            const wrapper = document.getElementById('choice-buttons-container');
+            const label = document.getElementById('choice-label');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let choices = [];
+            if (tradeType === 'Rise/Fall') {
+                choices = ['Rise', 'Fall'];
+                label.innerText = 'Prediction Direction';
+                wrapper.classList.remove('hidden');
+            } else if (tradeType === 'Higher/Lower') {
+                choices = ['Higher', 'Lower'];
+                label.innerText = 'Barrier Type';
+                wrapper.classList.remove('hidden');
+            } else if (tradeType === 'Touch/No Touch') {
+                choices = ['Touch', 'No Touch'];
+                label.innerText = 'Touch Type';
+                wrapper.classList.remove('hidden');
+            } else {
+                wrapper.classList.add('hidden');
+                return;
+            }
+
+            if (!choices.includes(selectedChoice)) selectedChoice = choices[0];
+
+            choices.forEach(choiceName => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = (selectedChoice === choiceName);
+                btn.className = `choice-btn py-2 rounded-xl border font-bold text-xs transition ${isSelected ? 'active bg-slate-900 text-white border-slate-900 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
+                btn.innerText = choiceName;
+                btn.onclick = () => {
+                    selectedChoice = choiceName;
+                    window.renderChoiceButtons(tradeType);
+                    window.requestProposalUpdate();
+                };
+                container.appendChild(btn);
+            });
+        };
+
+        window.renderDigitGrid = function() {
+            const grid = document.getElementById('digit-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            for (let i = 0; i <= 9; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = (selectedDigit === i);
+                btn.className = `digit-btn py-2 rounded-lg border font-bold text-xs transition ${isSelected ? 'active bg-indigo-600 text-white border-indigo-600 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
+                btn.innerText = i;
+                btn.onclick = () => {
+                    selectedDigit = i;
+                    window.renderDigitGrid();
+                    window.requestProposalUpdate();
+                };
+                grid.appendChild(btn);
+            }
+        };
+
+        window.switchDigitSubTab = function(tabName) {
+            selectedSubTab = tabName;
+            document.getElementById('subtab-matches').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs ${tabName === 'Matches' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
+            document.getElementById('subtab-differs').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs ${tabName === 'Differs' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
+            window.requestProposalUpdate();
+        };
+
+        window.renderStrategyTable = function(dataList) {
+            const tbody = document.getElementById('strategy-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            dataList.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200 text-xs";
+                tr.innerHTML = `
+                    <td class="text-center font-bold text-slate-600 bg-slate-50">Level ${index + 1}</td>
+                    <td><input type="text" value="${item.contract_type}"></td>
+                    <td><input type="text" value="${item.market}"></td>
+                    <td><input type="text" value="${item.submarket}"></td>
+                    <td><input type="text" value="${item.purchase_type}"></td>
+                    <td><input type="text" value="${item.barrier || ''}" class="font-mono font-bold text-slate-700"></td>
+                    <td><input type="text" value="${item.last_digit || ''}" class="font-bold text-indigo-600 text-center"></td>
+                    <td><input type="number" value="${item.duration_amount}"></td>
+                    <td><select><option ${item.duration_unit === 'Ticks' ? 'selected' : ''}>Ticks</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option><option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option><option ${item.duration_unit === 'Hours' ? 'selected' : ''}>Hours</option></select></td>
+                    <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
+                    <td class="font-bold text-emerald-600">$${(item.payout || 0).toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        };
+
+        window.openAddModal = function() {
+            document.getElementById('add-strategy-modal').classList.remove('hidden');
+            window.onMarketCategoryChange();
+            window.onTradeTypeChange();
+        };
+
+        window.closeAddModal = function() {
+            document.getElementById('add-strategy-modal').classList.add('hidden');
+        };
+
+        window.onMarketCategoryChange = function() {
+            const cat = document.getElementById('modal-market-cat').value;
+            const subSelect = document.getElementById('modal-submarket');
+            subSelect.innerHTML = '';
+            marketSymbolsData[cat].forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.name + "|" + item.symbol;
+                opt.innerText = item.name;
+                subSelect.appendChild(opt);
+            });
+            window.onSubmarketChange();
+        };
+
+        window.onTradeTypeChange = function() {
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const unitSelect = document.getElementById('modal-duration-unit');
+            const barrierContainer = document.getElementById('barrier-container');
+            const digitContainer = document.getElementById('digit-prediction-container');
+
+            window.renderChoiceButtons(tradeType);
+
+            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
+                unitSelect.value = 't';
+                unitSelect.disabled = false;
+                barrierContainer.classList.remove('hidden');
+                digitContainer.classList.add('hidden');
+            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
+                unitSelect.value = 't';
+                unitSelect.disabled = true;
+                barrierContainer.classList.add('hidden');
+                digitContainer.classList.remove('hidden');
+                window.renderDigitGrid();
+            } else {
+                unitSelect.value = 't';
+                unitSelect.disabled = false;
+                barrierContainer.classList.add('hidden');
+                digitContainer.classList.add('hidden');
+            }
+
+            window.setApiPendingStatus("Menyesuaikan parameter tipe perdagangan dengan API...");
+            window.clearActiveApiSubscriptions();
+            window.fetchContractsForSymbol();
+            window.requestProposalUpdate();
+        };
+
+        window.confirmAddStrategy = function() {
+            const marketCat = document.getElementById('modal-market-cat').value;
+            const subMarketSelect = document.getElementById('modal-submarket');
+            const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex].text;
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const durationAmount = document.getElementById('modal-duration').value;
+            const durationUnitEl = document.getElementById('modal-duration-unit');
+
+            let unitText = "Ticks";
+            const valUnit = durationUnitEl.value;
+            if (valUnit === 's') unitText = "Seconds";
+            else if (valUnit === 'm') unitText = "Minutes";
+            else if (valUnit === 'h') unitText = "Hours";
+
+            const barrierVal = document.getElementById('modal-barrier').value;
+
+            const newItem = {
+                level: defaultStrategyData.length + 1,
+                contract_type: tradeType,
+                market: marketCat === 'derived' ? 'Volatility' : (marketCat === 'forex' ? 'Forex' : 'Crypto'),
+                submarket: subMarketText,
+                purchase_type: selectedChoice,
+                barrier: barrierVal,
+                last_digit: ['Matches/Differs', 'Over/Under'].includes(tradeType) ? selectedDigit : "",
+                duration_amount: durationAmount,
+                duration_unit: unitText,
+                amount: parseFloat(document.getElementById('modal-amount').value),
+                payout: currentEstimatedPayout
+            };
+
+            defaultStrategyData.push(newItem);
+            window.renderStrategyTable(defaultStrategyData);
+            window.closeAddModal();
+        };
+
+        window.deleteLastRow = function() {
+            if (defaultStrategyData.length > 0) {
+                defaultStrategyData.pop();
+                window.renderStrategyTable(defaultStrategyData);
+            }
+        };
+
+        window.clearStrategy = function() {
+            defaultStrategyData = [];
+            window.renderStrategyTable(defaultStrategyData);
+        };
+
+        window.handleLogout = function() {
             localStorage.removeItem('deriv_accounts');
             localStorage.removeItem('deriv_app_id');
             sessionStorage.removeItem('deriv_code_verifier');
@@ -826,19 +1039,47 @@
             if (ws) ws.close();
             document.getElementById('dashboard-view').classList.add('hidden');
             document.getElementById('login-view').classList.remove('hidden');
-        }
+        };
 
-        function botAction(actionType) {
-            appendDebugLog('INFO', `Aksi Bot Dipicu: ${actionType}`);
-        }
+        window.botAction = function(actionType) {
+            window.appendDebugLog('INFO', `Aksi Bot Dipicu: ${actionType}`);
+        };
 
-        function clearContractTable() {
+        window.clearContractTable = function() {
             document.getElementById('contract-table-body').innerHTML = `
                 <tr>
                     <td colspan="8" class="p-4 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
                 </tr>
             `;
-        }
+        };
+
+        window.addEventListener('click', function(e) {
+            const menu = document.getElementById('account-menu');
+            const btn = document.getElementById('account-dropdown-btn');
+            if (menu && btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        // Initialize application flow
+        window.onload = function() {
+            window.startGMTClock();
+            const isLoggedIn = window.handleDerivOAuthCallback();
+            const savedAppId = localStorage.getItem('deriv_app_id') || "34M4TGKofeTRkLOlcJ9zO";
+            
+            const appIdInput = document.getElementById('app_id_input');
+            if (appIdInput) appIdInput.value = savedAppId;
+
+            if (isLoggedIn) {
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+                window.renderStrategyTable(defaultStrategyData);
+                window.initWebSocket();
+            } else {
+                document.getElementById('login-view').classList.remove('hidden');
+                document.getElementById('dashboard-view').classList.add('hidden');
+            }
+        };
     </script>
 </body>
 </html>
