@@ -66,23 +66,23 @@
                 <div class="relative">
                     <button onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
                         <div class="text-right">
-                            <div id="account-type-label" class="text-slate-500 text-[11px]">Belum terhubung</div>
+                            <div id="account-type-label" class="text-slate-500 text-[11px]">Real account</div>
                             <div class="flex items-center space-x-1">
-                                <span id="account-id-label" class="text-slate-400 text-[11px] font-mono">—</span>
-                                <span id="account-balance-label" class="text-slate-900 font-bold text-xs">—</span>
+                                <span id="account-id-label" class="text-slate-400 text-[11px] font-mono">-</span>
+                                <span id="account-balance-label" class="text-slate-900 font-bold text-xs">0.00 USD</span>
                             </div>
                         </div>
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     
                     <div id="account-menu" class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
-                        <div id="account-list" class="space-y-1">
-                            <div class="p-2 text-slate-500">Daftar akun akan dimuat setelah login.</div>
+                        <div id="account-list-container" class="space-y-1">
+                            <!-- Akun dinamis diisi via JavaScript -->
                         </div>
                     </div>
                 </div>
 
-                <button class="bg-slate-700 hover:bg-slate-800 text-white font-semibold px-3 py-1.5 rounded-lg text-xs shadow" onclick="handleLogout()">Keluar</button>
+                <button class="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 py-1.5 rounded-lg text-xs shadow">Deposit</button>
             </div>
         </header>
 
@@ -276,7 +276,7 @@
                     </div>
                 </div>
 
-                <!-- INDIKATOR STATUS VALIDASI API (PENDING -> VERIFIED) -->
+                <!-- INDIKATOR STATUS VALIDASI API -->
                 <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs">
                     <span id="api-status-text">Memproses permintaan data ke Deriv API...</span>
                     <span id="api-status-badge" class="font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase">PENDING</span>
@@ -417,20 +417,19 @@
             { level: 1, contract_type: "Touch / No Touch", market: "Volatility", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.676", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 0.00 }
         ];
 
-        let ws = null; // Public legacy WebSocket retained for existing market/proposal UI.
-        let accountWs = null; // Authenticated account WebSocket (OTP) for selected account balance.
-        let derivAccounts = [];
-        let selectedAccount = null;
-        let latestProposalReqId = 0;
+        let ws = null;
         let contractCache = {};
         let availableContracts = [];
         let selectedDigit = 5;
         let selectedSubTab = 'Matches';
         let selectedChoice = 'No Touch';
-        let currentEstimatedPayout = 0;
+        let currentEstimatedPayout = 0.00;
         let isFetchingContracts = false;
+        
+        let accountList = [];
+        let activeAccount = null;
 
-        function appendDebugLog(type, message) {
+        window.appendDebugLog = function(type, message) {
             const consoleBox = document.getElementById('debug-log-console');
             if (!consoleBox) return;
             const item = document.createElement('div');
@@ -452,18 +451,18 @@
 
             consoleBox.appendChild(item);
             consoleBox.scrollTop = consoleBox.scrollHeight;
-        }
+        };
 
-        function clearDebugConsole() {
+        window.clearDebugConsole = function() {
             const consoleBox = document.getElementById('debug-log-console');
             if (consoleBox) consoleBox.innerHTML = '<div class="text-slate-500">[System] Log dibersihkan.</div>';
-        }
+        };
 
-        function toggleAccountDropdown(event) {
+        window.toggleAccountDropdown = function(event) {
             if (event) event.stopPropagation();
             const menu = document.getElementById('account-menu');
             if (menu) menu.classList.toggle('hidden');
-        }
+        };
 
         window.addEventListener('click', function(e) {
             const menu = document.getElementById('account-menu');
@@ -473,167 +472,119 @@
             }
         });
 
-        function accountIdOf(a) { return String(a.account_id || a.id || a.loginid || ''); }
-        function accountTypeOf(a) {
-            const raw = String(a.account_type || a.type || a.account_category || '').toLowerCase();
-            if (raw.includes('demo') || raw.includes('virtual') || a.is_virtual === true) return 'Demo';
-            if (raw.includes('real') || raw.includes('standard') || raw.includes('financial')) return 'Real';
-            return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : 'Deriv';
-        }
-        function accountCurrencyOf(a) { return String(a.currency || a.currency_code || 'USD'); }
-        function accountBalanceOf(a) {
-            const b = a.balance;
-            if (typeof b === 'number' || typeof b === 'string') return Number(b);
-            if (b && typeof b === 'object') return Number(b.amount ?? b.balance ?? NaN);
-            return NaN;
-        }
-        function formatMoney(value, currency) {
-            const n = Number(value);
-            return Number.isFinite(n) ? `${n.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currency || 'USD'}` : `— ${currency || 'USD'}`;
-        }
-        function updateAccountHeader(account, balanceOverride) {
-            if (!account) return;
-            const type = accountTypeOf(account);
-            const id = accountIdOf(account);
-            const currency = accountCurrencyOf(account);
-            const balance = Number.isFinite(Number(balanceOverride)) ? Number(balanceOverride) : accountBalanceOf(account);
-            const typeLabel = document.getElementById('account-type-label');
-            typeLabel.innerText = `${type} account`;
-            typeLabel.className = type.toLowerCase() === 'demo' ? 'text-amber-600 text-[11px]' : 'text-slate-500 text-[11px]';
-            document.getElementById('account-id-label').innerText = id || '—';
-            const balanceLabel = document.getElementById('account-balance-label');
-            balanceLabel.innerText = formatMoney(balance, currency);
-            balanceLabel.className = type.toLowerCase() === 'demo' ? 'text-amber-600 font-bold text-xs' : 'text-slate-900 font-bold text-xs';
-        }
-        function renderAccountList() {
-            const list = document.getElementById('account-list');
-            list.innerHTML = '';
-            if (!derivAccounts.length) {
-                const empty = document.createElement('div');
-                empty.className = 'p-2 text-slate-500';
-                empty.innerText = 'Tidak ada akun trading yang dikembalikan API.';
-                list.appendChild(empty);
-                return;
-            }
-            derivAccounts.forEach(account => {
-                const id = accountIdOf(account);
-                if (!id) return;
-                const type = accountTypeOf(account);
-                const currency = accountCurrencyOf(account);
-                const row = document.createElement('button');
-                row.type = 'button';
-                row.className = 'w-full text-left p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border-b border-slate-100';
-                const left = document.createElement('div');
-                const typeEl = document.createElement('span');
-                typeEl.className = type.toLowerCase() === 'demo' ? 'text-amber-600 block text-[11px] font-semibold' : 'text-slate-500 block text-[11px] font-semibold';
-                typeEl.innerText = `${type} account`;
-                const idEl = document.createElement('span');
-                idEl.className = 'font-bold text-slate-800 font-mono text-xs';
-                idEl.innerText = id;
-                left.append(typeEl, idEl);
-                const balanceEl = document.createElement('span');
-                balanceEl.className = type.toLowerCase() === 'demo' ? 'font-bold text-amber-600 text-xs' : 'font-bold text-slate-900 text-xs';
-                balanceEl.innerText = formatMoney(accountBalanceOf(account), currency);
-                row.append(left, balanceEl);
-                row.onclick = () => selectDerivAccount(id);
-                list.appendChild(row);
-            });
-        }
-        async function loadDerivAccounts() {
-            try {
-                const response = await fetch('api.php?action=accounts', {credentials: 'same-origin', cache: 'no-store'});
-                const payload = await response.json();
-                if (response.status === 401) { await showLogin(); return; }
-                if (!response.ok || !payload.ok) throw new Error(payload.error || 'Gagal mengambil daftar akun.');
-                const result = payload.result || {};
-                let accounts = result.data ?? result.accounts ?? result;
-                if (accounts && !Array.isArray(accounts) && Array.isArray(accounts.accounts)) accounts = accounts.accounts;
-                if (accounts && !Array.isArray(accounts) && Array.isArray(accounts.items)) accounts = accounts.items;
-                derivAccounts = Array.isArray(accounts) ? accounts : [];
-                renderAccountList();
-                appendDebugLog('INFO', `Daftar akun diterima dari API: ${derivAccounts.length} akun.`);
-                const firstId = accountIdOf(selectedAccount || {});
-                const chosen = derivAccounts.find(a => accountIdOf(a) === firstId) || derivAccounts[0];
-                if (chosen) await selectDerivAccount(accountIdOf(chosen), false);
-            } catch (error) {
-                appendDebugLog('ERR', `Daftar akun: ${error.message}`);
-                const list = document.getElementById('account-list');
-                if (list) list.innerText = error.message;
-            }
-        }
-        async function selectDerivAccount(accountId, closeMenu = true) {
-            const account = derivAccounts.find(a => accountIdOf(a) === String(accountId));
-            if (!account) return;
-            selectedAccount = account;
-            updateAccountHeader(account);
-            if (closeMenu) document.getElementById('account-menu').classList.add('hidden');
-            if (accountWs) { try { accountWs.onclose = null; accountWs.close(); } catch (_) {} accountWs = null; }
-            try {
-                const response = await fetch('api.php?action=otp', {
-                    method: 'POST', credentials: 'same-origin', cache: 'no-store',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({account_id: accountId})
+        function parseOAuthUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const parsedAccounts = [];
+            let index = 1;
+
+            while (urlParams.has(`acct${index}`)) {
+                parsedAccounts.push({
+                    acct: urlParams.get(`acct${index}`),
+                    token: urlParams.get(`token${index}`),
+                    cur: urlParams.get(`cur${index}`) || 'USD'
                 });
-                const payload = await response.json();
-                if (response.status === 401) { await showLogin(); return; }
-                if (!response.ok || !payload.ok || !payload.url) throw new Error(payload.error || 'Tidak dapat membuka koneksi akun.');
-                accountWs = new WebSocket(payload.url);
-                accountWs.onopen = () => {
-                    appendDebugLog('INFO', `Koneksi akun aktif: ${accountId}`);
-                    accountWs.send(JSON.stringify({balance: 1, subscribe: 1}));
-                };
-                accountWs.onmessage = event => {
-                    let message;
-                    try { message = JSON.parse(event.data); } catch (_) { return; }
-                    if (message.error) { appendDebugLog('ERR', `Saldo akun: ${message.error.message}`); return; }
-                    if (message.msg_type === 'balance' && message.balance) {
-                        const value = Number(message.balance.balance ?? message.balance.amount);
-                        const currency = message.balance.currency || accountCurrencyOf(account);
-                        if (Number.isFinite(value)) {
-                            account.balance = value;
-                            account.currency = currency;
-                            updateAccountHeader(account, value);
-                            renderAccountList();
-                        }
-                    }
-                };
-                accountWs.onerror = () => appendDebugLog('ERR', 'Koneksi saldo akun gagal.');
-            } catch (error) {
-                appendDebugLog('ERR', `Pemilihan akun: ${error.message}`);
-                updateAccountHeader(account);
+                index++;
+            }
+
+            if (parsedAccounts.length > 0) {
+                localStorage.setItem('deriv_accounts', JSON.stringify(parsedAccounts));
+                localStorage.setItem('deriv_active_acct', parsedAccounts[0].acct);
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
         }
-        async function showLogin() {
-            document.getElementById('dashboard-view').classList.add('hidden');
-            document.getElementById('login-view').classList.remove('hidden');
-            if (ws) { try { ws.onclose = null; ws.close(); } catch (_) {} ws = null; }
-            if (accountWs) { try { accountWs.onclose = null; accountWs.close(); } catch (_) {} accountWs = null; }
+
+        window.switchAccountType = function(acctId) {
+            const stored = localStorage.getItem('deriv_accounts');
+            if (!stored) return;
+            const accounts = JSON.parse(stored);
+            const found = accounts.find(a => a.acct === acctId);
+            
+            if (found) {
+                localStorage.setItem('deriv_active_acct', found.acct);
+                activeAccount = found;
+                
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    window.appendDebugLog('SEND', `authorize: [Token Akun ${found.acct}]`);
+                    ws.send(JSON.stringify({ authorize: found.token }));
+                } else {
+                    initWebSocket();
+                }
+            }
+
+            const menu = document.getElementById('account-menu');
+            if (menu) menu.classList.add('hidden');
+        };
+
+        function updateAccountUI() {
+            const stored = localStorage.getItem('deriv_accounts');
+            if (!stored) return;
+            accountList = JSON.parse(stored);
+            const activeId = localStorage.getItem('deriv_active_acct') || (accountList[0] ? accountList[0].acct : null);
+            
+            activeAccount = accountList.find(a => a.acct === activeId) || accountList[0];
+
+            if (activeAccount) {
+                const isDemo = activeAccount.acct.startsWith('VRTC');
+                document.getElementById('account-type-label').innerText = isDemo ? "Demo account" : "Real account";
+                document.getElementById('account-type-label').className = isDemo ? "text-amber-600 text-[11px]" : "text-slate-500 text-[11px]";
+                document.getElementById('account-id-label').innerText = activeAccount.acct;
+                document.getElementById('account-balance-label').innerText = activeAccount.balance ? `${activeAccount.balance} ${activeAccount.cur}` : `0.00 ${activeAccount.cur}`;
+                document.getElementById('account-balance-label').className = isDemo ? "text-amber-600 font-bold text-xs" : "text-slate-900 font-bold text-xs";
+            }
+
+            const container = document.getElementById('account-list-container');
+            if (container) {
+                container.innerHTML = '';
+                accountList.forEach(acc => {
+                    const isDemo = acc.acct.startsWith('VRTC');
+                    const item = document.createElement('div');
+                    item.className = "p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border-b border-slate-100 last:border-0";
+                    item.onclick = () => window.switchAccountType(acc.acct);
+                    item.innerHTML = `
+                        <div>
+                            <span class="${isDemo ? 'text-amber-600' : 'text-slate-500'} block text-[11px] font-semibold">${isDemo ? 'Demo account' : 'Real account'}</span>
+                            <span class="font-bold text-slate-800 font-mono text-xs">${acc.acct}</span>
+                        </div>
+                        <span class="font-bold ${isDemo ? 'text-amber-600' : 'text-slate-900'} text-xs">${acc.balance || '0.00'} ${acc.cur || 'USD'}</span>
+                    `;
+                    container.appendChild(item);
+                });
+            }
         }
 
         function initWebSocket() {
             if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
             
-            const appId = '1089'; // Public legacy app ID for market/proposal quote requests only.
+            const clientId = document.getElementById('client_id') ? document.getElementById('client_id').value.trim() : "34M4TGKofeTRkLOlcJ9zO";
+            const appId = clientId || "34M4TGKofeTRkLOlcJ9zO";
 
-            appendDebugLog('INFO', 'Membuka koneksi harga/proposal publik Deriv.');
+            window.appendDebugLog('INFO', `Membuka koneksi WebSocket ke App ID: ${appId}`);
             ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${appId}`);
             
             ws.onopen = () => {
-                console.log('Deriv WebSocket Connected with App ID:', appId);
-                appendDebugLog('INFO', 'Terhubung ke Server Deriv WebSocket.');
+                window.appendDebugLog('INFO', 'Terhubung ke Server Deriv WebSocket.');
                 document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected`;
-                requestProposalUpdate();
+                
+                const stored = localStorage.getItem('deriv_accounts');
+                if (stored) {
+                    accountList = JSON.parse(stored);
+                    const activeId = localStorage.getItem('deriv_active_acct');
+                    activeAccount = accountList.find(a => a.acct === activeId) || accountList[0];
+                    if (activeAccount && activeAccount.token) {
+                        window.appendDebugLog('SEND', `authorize: [Token Akun ${activeAccount.acct}]`);
+                        ws.send(JSON.stringify({ authorize: activeAccount.token }));
+                    }
+                }
             };
 
             ws.onerror = (err) => {
                 console.error("WebSocket Error:", err);
-                appendDebugLog('ERR', 'Terjadi kesalahan koneksi WebSocket.');
+                window.appendDebugLog('ERR', 'Terjadi kesalahan koneksi WebSocket.');
                 document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Error Connection`;
             };
 
             ws.onclose = () => {
-                console.warn("WebSocket Disconnected. Reconnecting...");
-                appendDebugLog('ERR', 'Koneksi terputus! Mencoba Reconnecting...');
+                window.appendDebugLog('ERR', 'Koneksi terputus! Mencoba Reconnecting...');
                 document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Reconnecting...`;
                 setTimeout(initWebSocket, 3000);
             };
@@ -642,36 +593,43 @@
                 const data = JSON.parse(msg.data);
                 
                 if (data.error) {
-                    console.warn("Deriv API Error:", data.error.message);
-                    appendDebugLog('ERR', `${data.msg_type || 'API'}: ${data.error.message}`);
-                    setApiPendingStatus("Error: " + data.error.message);
+                    window.appendDebugLog('ERR', `${data.msg_type || 'API'}: ${data.error.message}`);
+                    window.setApiPendingStatus("Error: " + data.error.message);
                     return;
+                }
+
+                if (data.msg_type === 'authorize') {
+                    window.appendDebugLog('RECV', `Otorisasi Berhasil! User: ${data.authorize.email} | Akun: ${data.authorize.loginid}`);
+                    if (activeAccount) {
+                        activeAccount.balance = data.authorize.balance;
+                        activeAccount.cur = data.authorize.currency;
+                        localStorage.setItem('deriv_accounts', JSON.stringify(accountList));
+                    }
+                    updateAccountUI();
+                    window.requestProposalUpdate();
                 }
                 
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
                     isFetchingContracts = false;
-                    appendDebugLog('RECV', `contracts_for (${data.echo_req.contracts_for}) -> Total: ${data.contracts_for.available.length} kontrak.`);
+                    window.appendDebugLog('RECV', `contracts_for (${data.echo_req.contracts_for}) -> Total: ${data.contracts_for.available.length} kontrak.`);
                     const symbol = data.echo_req.contracts_for;
                     contractCache[symbol] = data.contracts_for.available;
                     handleContractsForResponse(data.contracts_for.available);
                 }
 
                 if (data.msg_type === 'proposal' && data.proposal) {
-                    if (data.req_id && Number(data.req_id) !== Number(latestProposalReqId)) return;
-                    const payout = Number(data.proposal.payout);
-                    if (!Number.isFinite(payout)) return;
-                    currentEstimatedPayout = payout;
-                    appendDebugLog('RECV', `Proposal Diterima! Payout: $${currentEstimatedPayout.toFixed(2)} | ID: ${data.proposal.id}`);
+                    currentEstimatedPayout = parseFloat(data.proposal.payout);
+                    window.appendDebugLog('RECV', `Proposal Diterima! Payout: $${currentEstimatedPayout.toFixed(2)} | ID: ${data.proposal.id}`);
                     document.getElementById('payout-value').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
-                    const potentialPayout = document.getElementById('pf-payout');
-                    if (potentialPayout) potentialPayout.innerText = `$${currentEstimatedPayout.toFixed(2)}`;
                     
                     const banner = document.getElementById('api-status-banner');
-                    banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
-                    document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
-                    const badge = document.getElementById('api-status-badge');
-                    badge.innerText = "VERIFIED";
-                    badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
+                    if (banner) {
+                        banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
+                        document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
+                        const badge = document.getElementById('api-status-badge');
+                        badge.innerText = "VERIFIED";
+                        badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
+                    }
                 }
             };
         }
@@ -685,23 +643,23 @@
             }, 1000);
         }
 
-        function setApiPendingStatus(message) {
+        window.setApiPendingStatus = function(message) {
             const banner = document.getElementById('api-status-banner');
-            if(!banner) return;
+            if (!banner) return;
             banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
             document.getElementById('api-status-text').innerText = message;
             const badge = document.getElementById('api-status-badge');
             badge.innerText = "PENDING";
             badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
-        }
+        };
 
-        function clearActiveApiSubscriptions() {
+        window.clearActiveApiSubscriptions = function() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ forget_all: ["proposal"] }));
             }
-        }
+        };
 
-        function onSubmarketChange() {
+        window.onSubmarketChange = function() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
@@ -710,10 +668,10 @@
                 document.getElementById('modal-barrier').value = defaultAssetBarriers[symbol];
             }
 
-            setApiPendingStatus("Mengambil data proposal baru...");
-            clearActiveApiSubscriptions();
+            window.setApiPendingStatus("Mengambil data proposal baru...");
+            window.clearActiveApiSubscriptions();
             fetchContractsForSymbol();
-        }
+        };
 
         function fetchContractsForSymbol() {
             const subMarketSelect = document.getElementById('modal-submarket');
@@ -729,7 +687,7 @@
             if (ws && ws.readyState === WebSocket.OPEN) {
                 if (!isFetchingContracts) {
                     isFetchingContracts = true;
-                    appendDebugLog('SEND', `contracts_for: "${symbol}"`);
+                    window.appendDebugLog('SEND', `contracts_for: "${symbol}"`);
                     ws.send(JSON.stringify({ contracts_for: symbol }));
                 }
             } else {
@@ -762,81 +720,84 @@
                 else if (sample.barrier) document.getElementById('modal-barrier').value = sample.barrier;
             }
 
-            requestProposalUpdate();
+            window.requestProposalUpdate();
         }
 
-        function requestProposalUpdate() {
+        window.requestProposalUpdate = function() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
+
             const tradeType = document.getElementById('modal-trade-type').value;
-            const duration = parseInt(document.getElementById('modal-duration').value, 10) || 10;
+            const duration = parseInt(document.getElementById('modal-duration').value) || 10;
             const durationUnit = document.getElementById('modal-duration-unit').value;
-            const amount = parseFloat(document.getElementById('modal-amount').value);
-            let barrier = document.getElementById('modal-barrier').value.trim();
+            const amount = parseFloat(document.getElementById('modal-amount').value) || 2.0;
+            let barrier = document.getElementById('modal-barrier').value;
+
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
-            if (!Number.isFinite(amount) || amount <= 0 || duration <= 0) {
-                setApiPendingStatus('Periksa nilai stake dan durasi.');
-                return;
+
+            window.setApiPendingStatus("Mengirim request proposal baru ke API...");
+            window.clearActiveApiSubscriptions();
+
+            let contractTypeApi = "NOTOUCH";
+            if (tradeType === 'Touch/No Touch') {
+                contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
+            } else if (tradeType === 'Rise/Fall') {
+                contractTypeApi = (selectedChoice === 'Rise') ? "CALL" : "PUT";
+            } else if (tradeType === 'Higher/Lower') {
+                contractTypeApi = (selectedChoice === 'Higher') ? "HIGHER" : "LOWER";
+            } else if (tradeType === 'Matches/Differs') {
+                contractTypeApi = (selectedSubTab === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
+            } else if (tradeType === 'Over/Under') {
+                contractTypeApi = (selectedSubTab === 'Over') ? "DIGITOVER" : "DIGITUNDER";
+            } else if (tradeType === 'Even/Odd') {
+                contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
             }
-            setApiPendingStatus('Mengirim request proposal baru ke API...');
-            clearActiveApiSubscriptions();
-            let contractTypeApi = 'NOTOUCH';
-            if (tradeType === 'Touch/No Touch') contractTypeApi = selectedChoice === 'Touch' ? 'ONETOUCH' : 'NOTOUCH';
-            else if (tradeType === 'Rise/Fall') contractTypeApi = selectedChoice === 'Rise' ? 'CALL' : 'PUT';
-            else if (tradeType === 'Higher/Lower') contractTypeApi = selectedChoice === 'Higher' ? 'HIGHER' : 'LOWER';
-            else if (tradeType === 'Matches/Differs') contractTypeApi = selectedSubTab === 'Matches' ? 'DIGITMATCH' : 'DIGITDIFF';
-            else if (tradeType === 'Over/Under') contractTypeApi = selectedSubTab === 'Over' ? 'DIGITOVER' : 'DIGITUNDER';
-            else if (tradeType === 'Even/Odd') contractTypeApi = selectedSubTab === 'Even' ? 'DIGITEVEN' : 'DIGITODD';
-            const unitMap = {Ticks: 't', Tick: 't', Seconds: 's', Second: 's', Minutes: 'm', Minute: 'm', Hours: 'h', Hour: 'h', Days: 'd', Day: 'd'};
-            const reqId = Date.now() * 1000 + Math.floor(Math.random() * 1000);
-            latestProposalReqId = reqId;
-            const req = {
-                proposal: 1, amount, basis: 'stake',
-                currency: selectedAccount ? accountCurrencyOf(selectedAccount) : 'USD',
-                symbol, contract_type: contractTypeApi, duration,
-                duration_unit: unitMap[durationUnit] || durationUnit,
-                req_id: reqId
-            };
-            if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
-                if (barrier && !barrier.startsWith('+') && !barrier.startsWith('-')) barrier = '+' + barrier;
-                if (barrier) req.barrier = barrier;
-            } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) req.barrier = String(selectedDigit);
-            appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi} | duration: ${duration}${req.duration_unit} | req_id: ${reqId}`);
+
             if (ws && ws.readyState === WebSocket.OPEN) {
+                const req = {
+                    proposal: 1,
+                    amount: amount,
+                    basis: "stake",
+                    currency: activeAccount ? activeAccount.cur : "USD",
+                    symbol: symbol,
+                    contract_type: contractTypeApi,
+                    duration: duration,
+                    duration_unit: durationUnit
+                };
+                if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
+                    if (barrier && !barrier.startsWith('+') && !barrier.startsWith('-')) {
+                        barrier = '+' + barrier;
+                    }
+                    req.barrier = barrier;
+                } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
+                    req.barrier = selectedDigit.toString();
+                }
+
+                window.appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`);
                 ws.send(JSON.stringify(req));
             } else {
-                appendDebugLog('ERR', 'WebSocket belum siap. Menghubungkan ulang...');
+                window.appendDebugLog('ERR', 'WebSocket belum siap. Menghubungkan ulang...');
                 initWebSocket();
-                setTimeout(() => { if (ws && ws.readyState === WebSocket.OPEN && latestProposalReqId === reqId) ws.send(JSON.stringify(req)); }, 1000);
             }
-        }
+        };
 
-        window.onload = async function() {
+        window.onload = function() {
             startGMTClock();
-            const savedClientId = localStorage.getItem('deriv_client_id');
+            parseOAuthUrlParams();
+            
+            const stored = localStorage.getItem('deriv_accounts');
+            const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
             if (savedClientId) document.getElementById('client_id').value = savedClientId;
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('oauth') || params.has('oauth_error')) {
-                const message = params.get('oauth_error');
-                if (message) alert(message);
-                history.replaceState({}, document.title, window.location.pathname);
-            }
-            try {
-                const response = await fetch('api.php?action=session', {credentials: 'same-origin', cache: 'no-store'});
-                const status = await response.json();
-                if (status.authenticated) {
-                    document.getElementById('login-view').classList.add('hidden');
-                    document.getElementById('dashboard-view').classList.remove('hidden');
-                    renderStrategyTable(defaultStrategyData);
-                    await loadDerivAccounts();
-                    initWebSocket();
-                } else {
-                    await showLogin();
-                }
-            } catch (error) {
-                await showLogin();
-                appendDebugLog('ERR', 'Tidak dapat memeriksa sesi login. Pastikan file PHP diunggah ke hosting yang mendukung PHP.');
+
+            if (stored) {
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+                initWebSocket();
+                renderStrategyTable(defaultStrategyData);
+            } else {
+                document.getElementById('login-view').classList.remove('hidden');
+                document.getElementById('dashboard-view').classList.add('hidden');
             }
         };
 
@@ -876,7 +837,7 @@
                 btn.onclick = () => {
                     selectedChoice = choiceName;
                     renderChoiceButtons(tradeType);
-                    requestProposalUpdate();
+                    window.requestProposalUpdate();
                 };
                 container.appendChild(btn);
             });
@@ -896,18 +857,18 @@
                 btn.onclick = () => {
                     selectedDigit = i;
                     renderDigitGrid();
-                    requestProposalUpdate();
+                    window.requestProposalUpdate();
                 };
                 grid.appendChild(btn);
             }
         }
 
-        function switchDigitSubTab(tabName) {
+        window.switchDigitSubTab = function(tabName) {
             selectedSubTab = tabName;
             document.getElementById('subtab-matches').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs ${tabName === 'Matches' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
             document.getElementById('subtab-differs').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs ${tabName === 'Differs' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
-            requestProposalUpdate();
-        }
+            window.requestProposalUpdate();
+        };
 
         function renderStrategyTable(dataList) {
             const tbody = document.getElementById('strategy-table-body');
@@ -927,23 +888,23 @@
                     <td><input type="number" value="${item.duration_amount}"></td>
                     <td><select><option ${item.duration_unit === 'Ticks' ? 'selected' : ''}>Ticks</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option><option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option><option ${item.duration_unit === 'Hours' ? 'selected' : ''}>Hours</option></select></td>
                     <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
-                    <td class="font-bold text-emerald-600">$${(Number.isFinite(Number(item.payout)) ? Number(item.payout) : 0).toFixed(2)}</td>
+                    <td class="font-bold text-emerald-600">$${(item.payout || 0.00).toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function openAddModal() {
+        window.openAddModal = function() {
             document.getElementById('add-strategy-modal').classList.remove('hidden');
-            onMarketCategoryChange();
-            onTradeTypeChange();
-        }
+            window.onMarketCategoryChange();
+            window.onTradeTypeChange();
+        };
 
-        function closeAddModal() {
+        window.closeAddModal = function() {
             document.getElementById('add-strategy-modal').classList.add('hidden');
-        }
+        };
 
-        function onMarketCategoryChange() {
+        window.onMarketCategoryChange = function() {
             const cat = document.getElementById('modal-market-cat').value;
             const subSelect = document.getElementById('modal-submarket');
             subSelect.innerHTML = '';
@@ -953,10 +914,10 @@
                 opt.innerText = item.name;
                 subSelect.appendChild(opt);
             });
-            onSubmarketChange();
-        }
+            window.onSubmarketChange();
+        };
 
-        function onTradeTypeChange() {
+        window.onTradeTypeChange = function() {
             const tradeType = document.getElementById('modal-trade-type').value;
             const unitSelect = document.getElementById('modal-duration-unit');
             const barrierContainer = document.getElementById('barrier-container');
@@ -982,13 +943,13 @@
                 digitContainer.classList.add('hidden');
             }
 
-            setApiPendingStatus("Menyesuaikan parameter tipe perdagangan dengan API...");
-            clearActiveApiSubscriptions();
+            window.setApiPendingStatus("Menyesuaikan parameter tipe perdagangan dengan API...");
+            window.clearActiveApiSubscriptions();
             fetchContractsForSymbol();
-            requestProposalUpdate();
-        }
+            window.requestProposalUpdate();
+        };
 
-        function confirmAddStrategy() {
+        window.confirmAddStrategy = function() {
             const marketCat = document.getElementById('modal-market-cat').value;
             const subMarketSelect = document.getElementById('modal-submarket');
             const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex].text;
@@ -1020,49 +981,62 @@
 
             defaultStrategyData.push(newItem);
             renderStrategyTable(defaultStrategyData);
-            closeAddModal();
-        }
+            window.closeAddModal();
+        };
 
-        function deleteLastRow() {
+        window.deleteLastRow = function() {
             if (defaultStrategyData.length > 0) {
                 defaultStrategyData.pop();
                 renderStrategyTable(defaultStrategyData);
             }
-        }
+        };
 
-        function clearStrategy() {
+        window.clearStrategy = function() {
             defaultStrategyData = [];
             renderStrategyTable(defaultStrategyData);
+        };
+
+        function generateRandomString(length) {
+            const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let text = '';
+            for (let i = 0; i < length; i++) {
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
+            }
+            return text;
         }
 
-        async function loginWithDerivOAuthPKCE() {
+        async function generateCodeChallenge(codeVerifier) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(codeVerifier);
+            const digest = await window.crypto.subtle.digest('SHA-256', data);
+            return btoa(String.fromCharCode(...new Uint8Array(digest)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+        }
+
+        window.loginWithDerivOAuthPKCE = async function() {
             const clientId = document.getElementById('client_id').value.trim();
             if (!clientId) return alert('OAuth Client ID wajib diisi!');
-            localStorage.setItem('deriv_client_id', clientId); // Public identifier only; no access token is stored in browser storage.
-            try {
-                const response = await fetch('oauth-start.php', {
-                    method: 'POST', credentials: 'same-origin', cache: 'no-store',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({client_id: clientId})
-                });
-                const payload = await response.json();
-                if (!response.ok || !payload.ok || !payload.url) throw new Error(payload.error || 'Gagal memulai OAuth PKCE.');
-                window.location.assign(payload.url);
-            } catch (error) {
-                alert(`Login Deriv gagal dimulai: ${error.message}`);
-            }
-        }
+            
+            localStorage.setItem('deriv_client_id', clientId);
+            
+            const verifier = generateRandomString(128);
+            sessionStorage.setItem('pkce_code_verifier', verifier);
+            const challenge = await generateCodeChallenge(verifier);
+            
+            const redirectUri = window.location.origin + window.location.pathname;
+            const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge=${challenge}&code_challenge_method=S256`;
+            
+            window.location.href = oauthUrl;
+        };
 
-        async function handleLogout() {
-            try { await fetch('api.php?action=logout', {method: 'POST', credentials: 'same-origin', cache: 'no-store'}); }
-            catch (_) {}
-            derivAccounts = [];
-            selectedAccount = null;
-            if (ws) { try { ws.onclose = null; ws.close(); } catch (_) {} ws = null; }
-            if (accountWs) { try { accountWs.onclose = null; accountWs.close(); } catch (_) {} accountWs = null; }
-            await showLogin();
-        }
-
+        window.handleLogout = function() {
+            localStorage.removeItem('deriv_accounts');
+            localStorage.removeItem('deriv_active_acct');
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('login-view').classList.remove('hidden');
+        };
     </script>
 </body>
 </html>
