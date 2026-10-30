@@ -40,7 +40,7 @@
             <div class="text-center space-y-2">
                 <div class="inline-block bg-blue-600/20 text-blue-400 font-semibold px-3 py-1 rounded-full text-xs border border-blue-500/30">OAuth 2.0 PKCE Gateway</div>
                 <h2 class="text-lg font-bold text-white">Masuk ke Dashboard Bot</h2>
-                <p class="text-xs text-slate-400">Masukkan OAuth Client ID (Alfanumerik) Anda.</p>
+                <p class="text-xs text-slate-400">Masukkan OAuth Client ID / App ID Anda.</p>
             </div>
             <div class="space-y-4 text-xs">
                 <div>
@@ -63,7 +63,6 @@
             </div>
 
             <div class="flex items-center space-x-4">
-                <!-- DROPDOWN AKUN REAL/DEMO YANG DIPERBAIKI -->
                 <div class="relative">
                     <button onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
                         <div class="text-right">
@@ -160,10 +159,6 @@
                             <button onclick="openAddModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm">Add Level (+)</button>
                             <button onclick="deleteLastRow()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Delete Last</button>
                             <button onclick="clearStrategy()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Clear</button>
-                            <label class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer">
-                                Save/Load
-                                <input type="file" id="load-file-input" accept=".txt,.csv" onchange="loadStrategyFromFile(event)" class="hidden">
-                            </label>
                         </div>
 
                         <div class="flex items-center space-x-6 font-semibold">
@@ -281,7 +276,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="font-medium text-slate-600">Market Category</label>
-                        <select id="modal-market-cat" onchange="onMarketCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold">
+                        <select id="modal-market-cat" onchange="onMarketCategoryChange(); requestProposalUpdate();" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold">
                             <option value="derived">Derived (Synthetics)</option>
                             <option value="forex">Forex</option>
                             <option value="cryptocurrency">Cryptocurrency</option>
@@ -293,21 +288,15 @@
                     </div>
                 </div>
 
-                <!-- INDIKATOR STATUS & ESTIMASI PAYOUT -->
-                <div class="grid grid-cols-2 gap-3">
-                    <div id="api-status-banner" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
-                        <span id="api-status-text">Siap & Terhubung dengan Standar Deriv API.</span>
-                        <span id="api-status-badge" class="font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase">Ready</span>
-                    </div>
-                    <div class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg flex justify-between items-center shadow-sm">
-                        <span class="font-bold text-[10px] uppercase">Est. Payout:</span>
-                        <span id="payout-value" class="text-sm font-black">$0.00</span>
-                    </div>
+                <!-- INDIKATOR STATUS VALIDASI API -->
+                <div id="api-status-banner" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
+                    <span id="api-status-text">Siap & Terhubung dengan Standar Deriv API.</span>
+                    <span id="api-status-badge" class="font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase">Ready</span>
                 </div>
 
                 <div>
                     <label class="font-medium text-slate-600">Trade Type</label>
-                    <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
+                    <select id="modal-trade-type" onchange="onTradeTypeChange(); requestProposalUpdate();" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
                         <option value="Rise/Fall">Rise / Fall</option>
                         <option value="Higher/Lower">Higher / Lower</option>
                         <option value="Matches/Differs">Matches / Differs</option>
@@ -366,6 +355,17 @@
                     <div>
                         <label class="font-medium text-slate-600">Barrier / Offset (Low)</label>
                         <input type="text" id="modal-low" value="-1.0" placeholder="-1.0" oninput="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
+                    </div>
+                </div>
+
+                <!-- ESTIMASI PAYOUT DI KOTAK BAWAH MODAL -->
+                <div class="bg-emerald-600 text-white p-3 rounded-xl flex justify-between items-center shadow-md">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
+                        <span id="payout-type-label" class="text-xs font-semibold">Buy (Proposal API)</span>
+                    </div>
+                    <div class="text-right">
+                        <span id="payout-value" class="text-lg font-black tracking-tight text-white">$0.00</span>
                     </div>
                 </div>
 
@@ -453,7 +453,6 @@
             if (consoleBox) consoleBox.innerHTML = '<div class="text-slate-500">[System] Log dibersihkan.</div>';
         }
 
-        // FUNGSI DROPDOWN AKUN REAL/DEMO YANG DI-FIX AGAR BISA DIKLIK
         function toggleAccountDropdown(event) {
             if (event) event.stopPropagation();
             const menu = document.getElementById('account-menu');
@@ -490,8 +489,9 @@
 
         function initWebSocket() {
             if (ws && ws.readyState === WebSocket.OPEN) return;
-            appendDebugLog('INFO', 'Membuka koneksi WebSocket ke App ID: 1089');
-            ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
+            const clientId = document.getElementById('client_id') ? document.getElementById('client_id').value.trim() : "34M4TGKofeTRkLOlcJ9zO";
+            appendDebugLog('INFO', `Membuka koneksi WebSocket ke App ID: ${clientId}`);
+            ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${clientId}`);
             
             ws.onopen = () => {
                 appendDebugLog('INFO', 'Deriv WebSocket Connected');
@@ -503,6 +503,7 @@
                 
                 if (data.error) {
                     appendDebugLog('ERR', `${data.msg_type || 'API'}: ${data.error.message}`);
+                    document.getElementById('payout-value').innerText = `$0.00`;
                     return;
                 }
 
@@ -514,13 +515,12 @@
 
                 if (data.msg_type === 'proposal' && data.proposal) {
                     const payout = parseFloat(data.proposal.payout);
-                    appendDebugLog('RECV', `Proposal Diterima! Payout: $${payout.toFixed(2)}`);
+                    appendDebugLog('RECV', `Proposal Diterima! Payout: $${payout.toFixed(2)} | ID: ${data.proposal.id}`);
                     document.getElementById('payout-value').innerText = `$${payout.toFixed(2)}`;
                 }
             };
         }
 
-        // FUNGSI MENGIRIM REQUEST PROPOSAL KE WEBSOCKET DERIV
         function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
@@ -549,7 +549,6 @@
             }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
-                // Bersihkan antrean proposal lama agar tidak numpuk
                 ws.send(JSON.stringify({ forget_all: ["proposal"] }));
 
                 const req = {
@@ -569,7 +568,7 @@
                     req.barrier = selectedDigit.toString();
                 }
 
-                appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi}`);
+                appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi} | amount: ${amount}`);
                 ws.send(JSON.stringify(req));
             } else {
                 initWebSocket();
