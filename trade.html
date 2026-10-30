@@ -9,8 +9,8 @@
         .strategy-table input, .strategy-table select {
             background-color: transparent;
             width: 100%;
-            font-size: 11px;
-            padding: 2px 4px;
+            font-size: 12px;
+            padding: 4px 6px;
             border-radius: 4px;
         }
         .strategy-table input:focus, .strategy-table select:focus {
@@ -18,7 +18,7 @@
             outline: 2px solid #0d9488;
         }
         .strategy-table td {
-            padding: 2px 4px;
+            padding: 4px 6px;
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
         }
@@ -32,22 +32,22 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans text-sm">
 
     <!-- VIEW 1: LOGIN PAGE -->
     <div id="login-view" class="flex-1 flex items-center justify-center p-4 bg-slate-950 text-slate-100">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
                 <div class="inline-block bg-blue-600/20 text-blue-400 font-semibold px-3 py-1 rounded-full text-xs border border-blue-500/30">OAuth 2.0 PKCE Gateway</div>
-                <h2 class="text-lg font-bold text-white">Masuk ke Dashboard Bot</h2>
+                <h2 class="text-base font-bold text-white">Masuk ke Dashboard Bot</h2>
                 <p class="text-xs text-slate-400">Masukkan OAuth Client ID / App ID Anda.</p>
             </div>
             <div class="space-y-4 text-xs">
                 <div>
                     <label class="block font-medium text-slate-400 mb-1">OAuth Client ID / App ID</label>
-                    <input type="text" id="client_id" value="34M4TGKofeTRkLOlcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+                    <input type="text" id="client_id" value="34M4TGKofeTRkLOlcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500 text-xs">
                 </div>
-                <button onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider">LOGIN VIA DERIV (OAUTH PKCE)</button>
+                <button onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs">LOGIN VIA DERIV (OAUTH PKCE)</button>
             </div>
         </div>
     </div>
@@ -56,39 +56,40 @@
     <div id="dashboard-view" class="flex-1 flex flex-col hidden relative">
         
         <!-- HEADER ATAS -->
-        <header class="bg-white border-b border-slate-200 px-4 py-2.5 flex justify-between items-center shadow-sm">
+        <header class="bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center shadow-sm">
             <div class="flex items-center space-x-3">
                 <div class="bg-teal-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">ALS</div>
-                <span class="text-sm font-bold text-slate-800 tracking-wide">ALS Pro Automated Strategy Engine</span>
+                <span class="text-xs md:text-sm font-bold text-slate-800 tracking-wide">ALS Pro Automated Strategy Engine</span>
             </div>
 
             <div class="flex items-center space-x-4">
                 <div class="relative">
-                    <button onclick="toggleAccountDropdown()" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold">
+                    <button onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
                         <div class="text-right">
-                            <div id="account-type-label" class="text-slate-500 text-[10px]">Real account</div>
+                            <div id="account-type-label" class="text-slate-500 text-[11px]">Real account</div>
                             <div class="flex items-center space-x-1">
-                                <span id="account-id-label" class="text-slate-400 text-[10px] font-mono">CR...</span>
-                                <span id="account-balance-label" class="text-slate-900 font-bold">0.00 USD</span>
+                                <span id="account-id-label" class="text-slate-400 text-[11px] font-mono">CR1084920</span>
+                                <span id="account-balance-label" class="text-slate-900 font-bold text-xs">0.00 USD</span>
                             </div>
                         </div>
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     
+                    <!-- MENU DROPDOWN AKUN YANG DIPERBAIKI -->
                     <div id="account-menu" class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
                         <div onclick="switchAccountType('real')" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition">
                             <div>
-                                <span class="text-slate-500 block text-[10px] font-semibold">Real account</span>
-                                <span id="real-acc-id" class="font-bold text-slate-800 font-mono">CR1084920</span>
+                                <span class="text-slate-500 block text-[11px] font-semibold">Real account</span>
+                                <span id="real-acc-id" class="font-bold text-slate-800 font-mono text-xs">CR1084920</span>
                             </div>
-                            <span id="real-acc-bal" class="font-bold text-slate-900">0.00 USD</span>
+                            <span id="real-acc-bal" class="font-bold text-slate-900 text-xs">0.00 USD</span>
                         </div>
                         <div onclick="switchAccountType('demo')" class="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border-t border-slate-100">
                             <div>
-                                <span class="text-amber-600 block text-[10px] font-semibold">Demo account</span>
-                                <span id="demo-acc-id" class="font-bold text-slate-800 font-mono">VRTC948201</span>
+                                <span class="text-amber-600 block text-[11px] font-semibold">Demo account</span>
+                                <span id="demo-acc-id" class="font-bold text-slate-800 font-mono text-xs">VRTC948201</span>
                             </div>
-                            <span id="demo-acc-bal" class="font-bold text-amber-600">9,999.00 USD</span>
+                            <span id="demo-acc-bal" class="font-bold text-amber-600 text-xs">9,999.00 USD</span>
                         </div>
                     </div>
                 </div>
@@ -101,7 +102,7 @@
         <div class="flex-1 flex overflow-hidden">
             
             <!-- SIDEBAR KIRI -->
-            <aside class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 space-y-6 text-[10px] text-slate-500">
+            <aside class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 space-y-6 text-[11px] text-slate-500">
                 <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     Home
@@ -122,11 +123,11 @@
             </aside>
 
             <!-- AREA TENGAH: TABEL STRATEGI & CONTRACT TABLE -->
-            <main class="flex-1 bg-slate-50 p-4 flex flex-col space-y-4 overflow-y-auto">
+            <main class="flex-1 bg-slate-50 p-4 flex flex-col space-y-4 overflow-y-auto text-xs">
                 
                 <!-- Panel Manajemen Strategi (Tabel Atas) -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col">
-                    <div class="bg-teal-600 text-white font-bold px-4 py-2 text-center text-sm tracking-wider uppercase">
+                    <div class="bg-teal-600 text-white font-bold px-4 py-2.5 text-center text-xs tracking-wider uppercase">
                         STRATEGY MANAGEMENT PANEL
                     </div>
 
@@ -164,11 +165,11 @@
                         <div class="flex items-center space-x-6 font-semibold">
                             <div class="flex items-center space-x-2">
                                 <span class="text-slate-600">Target Profit:</span>
-                                <input type="number" id="target-profit" value="10" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold">
+                                <input type="number" id="target-profit" value="10" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold text-xs">
                             </div>
                             <div class="flex items-center space-x-2">
                                 <span class="text-slate-600">Stop Loss:</span>
-                                <input type="number" id="stop-loss" value="-33" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold">
+                                <input type="number" id="stop-loss" value="-33" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold text-xs">
                             </div>
                         </div>
                     </div>
@@ -211,7 +212,7 @@
                             <div>Profit Count : <span id="stat-profit-count" class="font-bold text-emerald-600">0</span></div>
                             <div class="bg-slate-100 border border-slate-300 px-3 py-1 rounded text-right">
                                 <span class="block text-[10px] text-slate-500 uppercase">Total Profit</span>
-                                <span id="stat-total-profit" class="text-sm font-black text-slate-800">0</span>
+                                <span id="stat-total-profit" class="text-xs font-black text-slate-800">0</span>
                             </div>
                         </div>
                     </div>
@@ -222,7 +223,7 @@
             <!-- PANEL KANAN: TRADING RUNNING PERMANEN -->
             <aside id="right-panel" class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
                 <div id="panel-portfolio" class="space-y-3 flex flex-col h-full">
-                    <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-xs tracking-wider uppercase rounded">
+                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-xs tracking-wider uppercase rounded">
                         TRADING RUNNING
                     </div>
 
@@ -248,15 +249,15 @@
 
                     <!-- Tombol Kontrol -->
                     <div class="grid grid-cols-2 gap-1.5 pt-1">
-                        <button onclick="botAction('run_bot')" class="py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-[11px]">RUN BOT</button>
-                        <button onclick="botAction('sell_continue')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[10px]">SELL & CONTINUE</button>
-                        <button onclick="botAction('sell_stop')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[10px]">SELL & STOP</button>
-                        <button onclick="botAction('stop_level')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[11px]">STOP LEVEL</button>
+                        <button onclick="botAction('run_bot')" class="py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs">RUN BOT</button>
+                        <button onclick="botAction('sell_continue')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs">SELL & CONTINUE</button>
+                        <button onclick="botAction('sell_stop')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs">SELL & STOP</button>
+                        <button onclick="botAction('stop_level')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs">STOP LEVEL</button>
                     </div>
                     <button onclick="botAction('stop_trade')" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow text-xs">STOP TRADE</button>
                 </div>
 
-                <div class="text-center text-[10px] text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
+                <div class="text-center text-xs text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
                     <span id="conn-status-indicator" class="flex items-center"><span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected</span>
                     <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
                 </div>
@@ -266,16 +267,16 @@
 
     <!-- MODAL POPUP: ADD LEVEL -->
     <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col text-xs">
             <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
-                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru</h3>
-                <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-lg">&times;</button>
+                <h3 class="font-bold text-xs tracking-wide">Konfigurasi Level Strategi Baru</h3>
+                <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-base">&times;</button>
             </div>
-            <div class="p-6 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
+            <div class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="font-medium text-slate-600">Market Category</label>
-                        <select id="modal-market-cat" onchange="onMarketCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold">
+                        <select id="modal-market-cat" onchange="onMarketCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-xs">
                             <option value="derived">Derived (Synthetics)</option>
                             <option value="forex">Forex</option>
                             <option value="cryptocurrency">Cryptocurrency</option>
@@ -283,19 +284,19 @@
                     </div>
                     <div>
                         <label class="font-medium text-slate-600">Submarket / Asset</label>
-                        <select id="modal-submarket" onchange="onSubmarketChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold"></select>
+                        <select id="modal-submarket" onchange="onSubmarketChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-xs"></select>
                     </div>
                 </div>
 
                 <!-- INDIKATOR STATUS VALIDASI API (PENDING -> VERIFIED) -->
-                <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
+                <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs">
                     <span id="api-status-text">Memproses permintaan data ke Deriv API...</span>
                     <span id="api-status-badge" class="font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase">PENDING</span>
                 </div>
 
                 <div>
                     <label class="font-medium text-slate-600">Trade Type</label>
-                    <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
+                    <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700 text-xs">
                         <option value="Rise/Fall">Rise / Fall</option>
                         <option value="Higher/Lower">Higher / Lower</option>
                         <option value="Matches/Differs">Matches / Differs</option>
@@ -314,8 +315,8 @@
                 <!-- CONTAINER DINAMIS DIGIT PREDICTION -->
                 <div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
                     <div id="digit-subtabs" class="flex justify-start space-x-2 border-b border-slate-200 pb-2">
-                        <button type="button" onclick="switchDigitSubTab('Matches')" id="subtab-matches" class="subtab-btn active px-3 py-1 rounded font-bold text-xs bg-slate-900 text-white">Matches</button>
-                        <button type="button" onclick="switchDigitSubTab('Differs')" id="subtab-differs" class="subtab-btn px-3 py-1 rounded font-bold text-xs bg-white text-slate-700 border border-slate-200">Differs</button>
+                        <button type="button" onclick="switchDigitSubTab('Matches')" id="subtab-matches" class="subtab-btn active px-3 py-1.5 rounded font-bold text-xs bg-slate-900 text-white">Matches</button>
+                        <button type="button" onclick="switchDigitSubTab('Differs')" id="subtab-differs" class="subtab-btn px-3 py-1.5 rounded font-bold text-xs bg-white text-slate-700 border border-slate-200">Differs</button>
                     </div>
 
                     <div id="digit-grid-wrapper" class="space-y-2">
@@ -328,11 +329,11 @@
                     <div>
                         <div class="flex justify-between items-center">
                             <label id="duration-label" class="font-medium text-slate-600">Duration</label>
-                            <span id="min-duration-info" class="text-[10px] text-teal-600 font-semibold">Min: 5t</span>
+                            <span id="min-duration-info" class="text-[11px] text-teal-600 font-semibold">Min: 5t</span>
                         </div>
                         <div class="flex space-x-1 mt-1">
-                            <input type="number" id="modal-duration" value="10" min="1" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2">
-                            <select id="modal-duration-unit" onchange="requestProposalUpdate()" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
+                            <input type="number" id="modal-duration" value="10" min="1" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 text-xs">
+                            <select id="modal-duration-unit" onchange="requestProposalUpdate()" class="bg-slate-50 border border-slate-300 rounded p-1 text-xs font-semibold">
                                 <option value="t" selected>Ticks</option>
                                 <option value="s">Seconds</option>
                                 <option value="m">Minutes</option>
@@ -343,26 +344,26 @@
                     <div>
                         <div class="flex justify-between items-center">
                             <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
-                            <span id="min-stake-info" class="text-[10px] text-amber-600 font-semibold">Min Stake: $0.35</span>
+                            <span id="min-stake-info" class="text-[11px] text-amber-600 font-semibold">Min Stake: $0.35</span>
                         </div>
-                        <input type="number" step="0.01" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
+                        <input type="number" step="0.01" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1 text-xs">
                     </div>
                 </div>
 
-                <!-- BARRIER TUNGGAL SESUAI TAMPILAN TRADING -->
+                <!-- BARRIER TUNGGAL -->
                 <div id="barrier-container" class="pt-2 border-t border-slate-200">
                     <label class="font-medium text-slate-600">Barrier Offset</label>
-                    <input type="text" id="modal-barrier" value="+0.676" placeholder="+0.676" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1 font-mono font-bold text-slate-800">
+                    <input type="text" id="modal-barrier" value="+0.676" placeholder="+0.676" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1 font-mono font-bold text-slate-800 text-xs">
                 </div>
 
                 <!-- WIDGET SIMULASI PAYOUT -->
                 <div id="payout-summary-box" class="bg-emerald-600 text-white p-3.5 rounded-xl flex justify-between items-center shadow-md">
                     <div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
+                        <span class="text-[11px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
                         <span id="payout-type-label" class="text-xs font-semibold">Buy (No Touch)</span>
                     </div>
                     <div class="text-right">
-                        <span id="payout-value" class="text-lg font-black tracking-tight text-white">$3.35</span>
+                        <span id="payout-value" class="text-base font-black tracking-tight text-white">$3.35</span>
                     </div>
                 </div>
             </div>
@@ -424,6 +425,47 @@
         let selectedChoice = 'No Touch';
         let currentEstimatedPayout = 3.35;
 
+        // FUNGSI DROPDOWN AKUN YANG DIPERBAIKI (AGAR BISA DIKLIK)
+        function toggleAccountDropdown(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('account-menu');
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        }
+
+        // Tutup dropdown jika klik di luar area
+        window.addEventListener('click', function(e) {
+            const menu = document.getElementById('account-menu');
+            const btn = document.getElementById('account-dropdown-btn');
+            if (menu && btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        function switchAccountType(type) {
+            const typeLabel = document.getElementById('account-type-label');
+            const idLabel = document.getElementById('account-id-label');
+            const balLabel = document.getElementById('account-balance-label');
+
+            if (type === 'real') {
+                typeLabel.innerText = "Real account";
+                typeLabel.className = "text-slate-500 text-[11px]";
+                idLabel.innerText = "CR1084920";
+                balLabel.innerText = "0.00 USD";
+                balLabel.className = "text-slate-900 font-bold text-xs";
+            } else {
+                typeLabel.innerText = "Demo account";
+                typeLabel.className = "text-amber-600 text-[11px]";
+                idLabel.innerText = "VRTC948201";
+                balLabel.innerText = "9,999.00 USD";
+                balLabel.className = "text-amber-600 font-bold text-xs";
+            }
+
+            const menu = document.getElementById('account-menu');
+            if (menu) menu.classList.add('hidden');
+        }
+
         function initWebSocket() {
             if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
             
@@ -469,7 +511,7 @@
                     document.getElementById('payout-value').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
                     
                     const banner = document.getElementById('api-status-banner');
-                    banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]";
+                    banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
                     document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
                     const badge = document.getElementById('api-status-badge');
                     badge.innerText = "VERIFIED";
@@ -490,14 +532,13 @@
         function setApiPendingStatus(message) {
             const banner = document.getElementById('api-status-banner');
             if(!banner) return;
-            banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]";
+            banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
             document.getElementById('api-status-text').innerText = message;
             const badge = document.getElementById('api-status-badge');
             badge.innerText = "PENDING";
             badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
         }
 
-        // HANYA MENGHAPUS PROPOSAL LAMA, BUKAN SEMUA STREAM KONEKSI
         function clearActiveApiSubscriptions() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ forget_all: ["proposal"] }));
@@ -699,8 +740,8 @@
 
         function switchDigitSubTab(tabName) {
             selectedSubTab = tabName;
-            document.getElementById('subtab-matches').className = `subtab-btn px-3 py-1 rounded font-bold text-xs ${tabName === 'Matches' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
-            document.getElementById('subtab-differs').className = `subtab-btn px-3 py-1 rounded font-bold text-xs ${tabName === 'Differs' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
+            document.getElementById('subtab-matches').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs ${tabName === 'Matches' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
+            document.getElementById('subtab-differs').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs ${tabName === 'Differs' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
             requestProposalUpdate();
         }
 
@@ -710,7 +751,7 @@
             tbody.innerHTML = '';
             dataList.forEach((item, index) => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200";
+                tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200 text-xs";
                 tr.innerHTML = `
                     <td class="text-center font-bold text-slate-600 bg-slate-50">Level ${index + 1}</td>
                     <td><input type="text" value="${item.contract_type}"></td>
