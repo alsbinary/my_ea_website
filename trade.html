@@ -68,21 +68,21 @@
                         <div class="text-right">
                             <div id="account-type-label" class="text-slate-500 text-[11px]">Real account</div>
                             <div class="flex items-center space-x-1">
-                                <span id="account-id-label" class="text-slate-400 text-[11px] font-mono">Belum terhubung</span>
+                                <span id="account-id-label" class="text-slate-400 text-[11px] font-mono">-</span>
                                 <span id="account-balance-label" class="text-slate-900 font-bold text-xs">0.00 USD</span>
                             </div>
                         </div>
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     
-                    <div id="account-menu" class="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
-                        <div id="account-list" class="max-h-64 overflow-y-auto">
-                            <div class="p-3 text-slate-500">Hubungkan akun Deriv untuk memuat daftar akun.</div>
+                    <div id="account-menu" class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
+                        <div id="account-list-container" class="space-y-1">
+                            <!-- Akun dinamis diisi via JavaScript -->
                         </div>
                     </div>
                 </div>
 
-                <button onclick="connectDerivApi()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-1.5 rounded-lg text-xs shadow">Hubungkan Deriv API</button>
+                <button class="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 py-1.5 rounded-lg text-xs shadow">Deposit</button>
             </div>
         </header>
 
@@ -228,7 +228,7 @@
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">10.00</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">+0.676</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-emerald-600 font-bold">$3.35</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-emerald-600 font-bold">$0.00</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">$2.00</td></tr>
                                 <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">0.00</td></tr>
                             </tbody>
@@ -276,7 +276,7 @@
                     </div>
                 </div>
 
-                <!-- INDIKATOR STATUS VALIDASI API (PENDING -> VERIFIED) -->
+                <!-- INDIKATOR STATUS VALIDASI API -->
                 <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs">
                     <span id="api-status-text">Memproses permintaan data ke Deriv API...</span>
                     <span id="api-status-badge" class="font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase">PENDING</span>
@@ -351,7 +351,7 @@
                         <span id="payout-type-label" class="text-xs font-semibold">Buy (No Touch)</span>
                     </div>
                     <div class="text-right">
-                        <span id="payout-value" class="text-base font-black tracking-tight text-white">$3.35</span>
+                        <span id="payout-value" class="text-base font-black tracking-tight text-white">$0.00</span>
                     </div>
                 </div>
 
@@ -414,7 +414,7 @@
         };
 
         let defaultStrategyData = [
-            { level: 1, contract_type: "Touch / No Touch", market: "Volatility", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.676", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
+            { level: 1, contract_type: "Touch / No Touch", market: "Volatility", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.676", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 0.00 }
         ];
 
         let ws = null;
@@ -423,15 +423,13 @@
         let selectedDigit = 5;
         let selectedSubTab = 'Matches';
         let selectedChoice = 'No Touch';
-        let currentEstimatedPayout = 0;
+        let currentEstimatedPayout = 0.00;
         let isFetchingContracts = false;
-        let derivAccounts = [];
+        
+        let accountList = [];
         let activeAccount = null;
-        let derivToken = '';
-        let proposalRequestId = 0;
-        let latestProposalRequestId = null;
 
-        function appendDebugLog(type, message) {
+        window.appendDebugLog = function(type, message) {
             const consoleBox = document.getElementById('debug-log-console');
             if (!consoleBox) return;
             const item = document.createElement('div');
@@ -453,18 +451,18 @@
 
             consoleBox.appendChild(item);
             consoleBox.scrollTop = consoleBox.scrollHeight;
-        }
+        };
 
-        function clearDebugConsole() {
+        window.clearDebugConsole = function() {
             const consoleBox = document.getElementById('debug-log-console');
             if (consoleBox) consoleBox.innerHTML = '<div class="text-slate-500">[System] Log dibersihkan.</div>';
-        }
+        };
 
-        function toggleAccountDropdown(event) {
+        window.toggleAccountDropdown = function(event) {
             if (event) event.stopPropagation();
             const menu = document.getElementById('account-menu');
             if (menu) menu.classList.toggle('hidden');
-        }
+        };
 
         window.addEventListener('click', function(e) {
             const menu = document.getElementById('account-menu');
@@ -474,77 +472,83 @@
             }
         });
 
-        function updateAccountHeader(account, balanceValue) {
-            if (!account) return;
-            const currency = account.currency || 'USD';
-            document.getElementById('account-type-label').innerText = account.is_virtual ? 'Demo account' : 'Real account';
-            document.getElementById('account-id-label').innerText = account.loginid || '-';
-            if (balanceValue !== undefined && balanceValue !== null) {
-                document.getElementById('account-balance-label').innerText = `${Number(balanceValue).toFixed(2)} ${currency}`;
+        function parseOAuthUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const parsedAccounts = [];
+            let index = 1;
+
+            while (urlParams.has(`acct${index}`)) {
+                parsedAccounts.push({
+                    acct: urlParams.get(`acct${index}`),
+                    token: urlParams.get(`token${index}`),
+                    cur: urlParams.get(`cur${index}`) || 'USD'
+                });
+                index++;
+            }
+
+            if (parsedAccounts.length > 0) {
+                localStorage.setItem('deriv_accounts', JSON.stringify(parsedAccounts));
+                localStorage.setItem('deriv_active_acct', parsedAccounts[0].acct);
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
         }
 
-        function renderAccountList() {
-            const list = document.getElementById('account-list');
-            list.innerHTML = '';
-            if (!derivAccounts.length) {
-                list.innerHTML = '<div class="p-3 text-slate-500">Tidak ada akun yang dikembalikan API.</div>';
-                return;
+        window.switchAccountType = function(acctId) {
+            const stored = localStorage.getItem('deriv_accounts');
+            if (!stored) return;
+            const accounts = JSON.parse(stored);
+            const found = accounts.find(a => a.acct === acctId);
+            
+            if (found) {
+                localStorage.setItem('deriv_active_acct', found.acct);
+                activeAccount = found;
+                
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    window.appendDebugLog('SEND', `authorize: [Token Akun ${found.acct}]`);
+                    ws.send(JSON.stringify({ authorize: found.token }));
+                } else {
+                    initWebSocket();
+                }
             }
-            derivAccounts.forEach(account => {
-                const row = document.createElement('button');
-                row.type = 'button';
-                row.className = 'w-full p-2.5 hover:bg-slate-50 rounded-lg text-left flex justify-between items-center border-b border-slate-100';
-                const left = document.createElement('span');
-                const title = document.createElement('span');
-                title.className = account.is_virtual ? 'block text-[11px] font-semibold text-amber-600' : 'block text-[11px] font-semibold text-slate-500';
-                title.textContent = account.is_virtual ? 'Demo account' : 'Real account';
-                const id = document.createElement('span');
-                id.className = 'block font-bold text-slate-800 font-mono text-xs';
-                id.textContent = account.loginid || 'Account';
-                left.append(title,id);
-                const bal = document.createElement('span');
-                bal.className = 'font-bold text-slate-700 text-xs';
-                bal.textContent = account.balance !== undefined ? `${Number(account.balance).toFixed(2)} ${account.currency || ''}` : (account.currency || '');
-                row.append(left,bal);
-                row.addEventListener('click', () => selectDerivAccount(account));
-                list.appendChild(row);
-            });
-        }
 
-        function selectDerivAccount(account) {
-            if (!account || !account.loginid) return;
-            activeAccount = account;
-            updateAccountHeader(account, account.balance);
-            document.getElementById('account-menu').classList.add('hidden');
-            const token = account.token || derivToken;
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ forget_all: 'balance' }));
-                ws.send(JSON.stringify({ authorize: token, req_id: ++proposalRequestId }));
+            const menu = document.getElementById('account-menu');
+            if (menu) menu.classList.add('hidden');
+        };
+
+        function updateAccountUI() {
+            const stored = localStorage.getItem('deriv_accounts');
+            if (!stored) return;
+            accountList = JSON.parse(stored);
+            const activeId = localStorage.getItem('deriv_active_acct') || (accountList[0] ? accountList[0].acct : null);
+            
+            activeAccount = accountList.find(a => a.acct === activeId) || accountList[0];
+
+            if (activeAccount) {
+                const isDemo = activeAccount.acct.startsWith('VRTC');
+                document.getElementById('account-type-label').innerText = isDemo ? "Demo account" : "Real account";
+                document.getElementById('account-type-label').className = isDemo ? "text-amber-600 text-[11px]" : "text-slate-500 text-[11px]";
+                document.getElementById('account-id-label').innerText = activeAccount.acct;
+                document.getElementById('account-balance-label').innerText = activeAccount.balance ? `${activeAccount.balance} ${activeAccount.cur}` : `0.00 ${activeAccount.cur}`;
+                document.getElementById('account-balance-label').className = isDemo ? "text-amber-600 font-bold text-xs" : "text-slate-900 font-bold text-xs";
             }
-            appendDebugLog('INFO', `Memilih akun ${account.loginid}`);
-        }
 
-        function switchAccountType(type) {
-            const account = derivAccounts.find(a => type === 'demo' ? !!a.is_virtual : !a.is_virtual);
-            if (account) selectDerivAccount(account);
-            else appendDebugLog('ERR', `Akun ${type} tidak tersedia pada daftar akun API.`);
-        }
-
-        function connectDerivApi() {
-            const token = window.prompt('Masukkan Deriv Personal Access Token (PAT). Token hanya disimpan sementara di memori halaman ini:');
-            if (!token || !token.trim()) return;
-            derivToken = token.trim();
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ authorize: derivToken, req_id: ++proposalRequestId }));
-            } else {
-                initWebSocket();
-                const waitForSocket = () => {
-                    if (ws && ws.readyState === WebSocket.OPEN) {
-                        ws.send(JSON.stringify({ authorize: derivToken, req_id: ++proposalRequestId }));
-                    } else if (ws && ws.readyState === WebSocket.CONNECTING) setTimeout(waitForSocket, 250);
-                };
-                waitForSocket();
+            const container = document.getElementById('account-list-container');
+            if (container) {
+                container.innerHTML = '';
+                accountList.forEach(acc => {
+                    const isDemo = acc.acct.startsWith('VRTC');
+                    const item = document.createElement('div');
+                    item.className = "p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition border-b border-slate-100 last:border-0";
+                    item.onclick = () => window.switchAccountType(acc.acct);
+                    item.innerHTML = `
+                        <div>
+                            <span class="${isDemo ? 'text-amber-600' : 'text-slate-500'} block text-[11px] font-semibold">${isDemo ? 'Demo account' : 'Real account'}</span>
+                            <span class="font-bold text-slate-800 font-mono text-xs">${acc.acct}</span>
+                        </div>
+                        <span class="font-bold ${isDemo ? 'text-amber-600' : 'text-slate-900'} text-xs">${acc.balance || '0.00'} ${acc.cur || 'USD'}</span>
+                    `;
+                    container.appendChild(item);
+                });
             }
         }
 
@@ -554,89 +558,78 @@
             const clientId = document.getElementById('client_id') ? document.getElementById('client_id').value.trim() : "34M4TGKofeTRkLOlcJ9zO";
             const appId = clientId || "34M4TGKofeTRkLOlcJ9zO";
 
-            appendDebugLog('INFO', `Membuka koneksi WebSocket ke App ID: ${appId}`);
+            window.appendDebugLog('INFO', `Membuka koneksi WebSocket ke App ID: ${appId}`);
             ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${appId}`);
             
             ws.onopen = () => {
-                console.log('Deriv WebSocket Connected with App ID:', appId);
-                appendDebugLog('INFO', 'Terhubung ke Server Deriv WebSocket.');
+                window.appendDebugLog('INFO', 'Terhubung ke Server Deriv WebSocket.');
                 document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected`;
-                if (derivToken) ws.send(JSON.stringify({ authorize: derivToken, req_id: ++proposalRequestId }));
-                else requestProposalUpdate();
+                
+                const stored = localStorage.getItem('deriv_accounts');
+                if (stored) {
+                    accountList = JSON.parse(stored);
+                    const activeId = localStorage.getItem('deriv_active_acct');
+                    activeAccount = accountList.find(a => a.acct === activeId) || accountList[0];
+                    if (activeAccount && activeAccount.token) {
+                        window.appendDebugLog('SEND', `authorize: [Token Akun ${activeAccount.acct}]`);
+                        ws.send(JSON.stringify({ authorize: activeAccount.token }));
+                    }
+                }
             };
 
             ws.onerror = (err) => {
                 console.error("WebSocket Error:", err);
-                appendDebugLog('ERR', 'Terjadi kesalahan koneksi WebSocket.');
+                window.appendDebugLog('ERR', 'Terjadi kesalahan koneksi WebSocket.');
                 document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Error Connection`;
             };
 
             ws.onclose = () => {
-                console.warn("WebSocket Disconnected. Reconnecting...");
-                appendDebugLog('ERR', 'Koneksi terputus! Mencoba Reconnecting...');
+                window.appendDebugLog('ERR', 'Koneksi terputus! Mencoba Reconnecting...');
                 document.getElementById('conn-status-indicator').innerHTML = `<span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Reconnecting...`;
                 setTimeout(initWebSocket, 3000);
             };
 
             ws.onmessage = (msg) => {
-                let data;
-                try { data = JSON.parse(msg.data); }
-                catch (e) { appendDebugLog('ERR', 'Respons WebSocket bukan JSON valid.'); return; }
-
+                const data = JSON.parse(msg.data);
+                
                 if (data.error) {
-                    appendDebugLog('ERR', `${data.msg_type || 'API'}: ${data.error.message}`);
-                    setApiPendingStatus('Error: ' + data.error.message);
+                    window.appendDebugLog('ERR', `${data.msg_type || 'API'}: ${data.error.message}`);
+                    window.setApiPendingStatus("Error: " + data.error.message);
                     return;
                 }
 
-                if (data.msg_type === 'authorize' && data.authorize) {
-                    const auth = data.authorize;
-                    derivAccounts = Array.isArray(auth.account_list) ? auth.account_list : [];
-                    if (!derivAccounts.length && auth.loginid) {
-                        derivAccounts = [{
-                            loginid: auth.loginid, currency: auth.currency || 'USD',
-                            is_virtual: String(auth.loginid).startsWith('VRTC'), balance: auth.balance
-                        }];
-                    }
-                    activeAccount = derivAccounts.find(a => activeAccount && a.loginid === activeAccount.loginid)
-                        || derivAccounts.find(a => a.loginid === auth.loginid) || derivAccounts[0] || null;
-                    renderAccountList();
+                if (data.msg_type === 'authorize') {
+                    window.appendDebugLog('RECV', `Otorisasi Berhasil! User: ${data.authorize.email} | Akun: ${data.authorize.loginid}`);
                     if (activeAccount) {
-                        updateAccountHeader(activeAccount, activeAccount.balance);
-                        ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+                        activeAccount.balance = data.authorize.balance;
+                        activeAccount.cur = data.authorize.currency;
+                        localStorage.setItem('deriv_accounts', JSON.stringify(accountList));
                     }
-                    appendDebugLog('RECV', `Authorize berhasil. Akun ditemukan: ${derivAccounts.length}`);
-                    setApiPendingStatus(`Terhubung. ${derivAccounts.length} akun ditemukan.`);
-                    requestProposalUpdate();
+                    updateAccountUI();
+                    window.requestProposalUpdate();
                 }
-
-                if (data.msg_type === 'balance' && data.balance && activeAccount) {
-                    activeAccount.balance = data.balance.balance;
-                    activeAccount.currency = data.balance.currency || activeAccount.currency;
-                    updateAccountHeader(activeAccount, data.balance.balance);
-                    renderAccountList();
-                }
-
+                
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
                     isFetchingContracts = false;
-                    const symbol = data.echo_req && data.echo_req.contracts_for;
-                    if (symbol) {
-                        contractCache[symbol] = data.contracts_for.available || [];
-                        handleContractsForResponse(data.contracts_for.available || []);
-                    }
+                    window.appendDebugLog('RECV', `contracts_for (${data.echo_req.contracts_for}) -> Total: ${data.contracts_for.available.length} kontrak.`);
+                    const symbol = data.echo_req.contracts_for;
+                    contractCache[symbol] = data.contracts_for.available;
+                    handleContractsForResponse(data.contracts_for.available);
                 }
 
                 if (data.msg_type === 'proposal' && data.proposal) {
-                    if (data.req_id !== undefined && latestProposalRequestId !== null &&
-                        Number(data.req_id) !== Number(latestProposalRequestId)) return;
-                    const payout = Number(data.proposal.payout);
-                    if (!Number.isFinite(payout)) return;
-                    currentEstimatedPayout = payout;
-                    document.getElementById('payout-value').innerText = `$${payout.toFixed(2)}`;
-                    appendDebugLog('RECV', `Proposal diterima. Payout: $${payout.toFixed(2)} | ID: ${data.proposal.id}`);
-                    document.getElementById('api-status-banner').className = 'bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs';
-                    document.getElementById('api-status-text').innerText = 'Payout diperbarui berdasarkan respons proposal API.';
-                    document.getElementById('api-status-badge').innerText = 'VERIFIED';
+                    currentEstimatedPayout = parseFloat(data.proposal.payout);
+                    window.appendDebugLog('RECV', `Proposal Diterima! Payout: $${currentEstimatedPayout.toFixed(2)} | ID: ${data.proposal.id}`);
+                    document.getElementById('payout-value').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
+                    
+                    const banner = document.getElementById('api-status-banner');
+                    if (banner) {
+                        banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
+                        document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
+                        const badge = document.getElementById('api-status-badge');
+                        badge.innerText = "VERIFIED";
+                        badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
+                    }
                 }
             };
         }
@@ -650,23 +643,23 @@
             }, 1000);
         }
 
-        function setApiPendingStatus(message) {
+        window.setApiPendingStatus = function(message) {
             const banner = document.getElementById('api-status-banner');
-            if(!banner) return;
+            if (!banner) return;
             banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
             document.getElementById('api-status-text').innerText = message;
             const badge = document.getElementById('api-status-badge');
             badge.innerText = "PENDING";
             badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
-        }
+        };
 
-        function clearActiveApiSubscriptions() {
+        window.clearActiveApiSubscriptions = function() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ forget_all: ["proposal"] }));
             }
-        }
+        };
 
-        function onSubmarketChange() {
+        window.onSubmarketChange = function() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
@@ -675,10 +668,10 @@
                 document.getElementById('modal-barrier').value = defaultAssetBarriers[symbol];
             }
 
-            setApiPendingStatus("Mengambil data proposal baru...");
-            clearActiveApiSubscriptions();
+            window.setApiPendingStatus("Mengambil data proposal baru...");
+            window.clearActiveApiSubscriptions();
             fetchContractsForSymbol();
-        }
+        };
 
         function fetchContractsForSymbol() {
             const subMarketSelect = document.getElementById('modal-submarket');
@@ -694,7 +687,7 @@
             if (ws && ws.readyState === WebSocket.OPEN) {
                 if (!isFetchingContracts) {
                     isFetchingContracts = true;
-                    appendDebugLog('SEND', `contracts_for: "${symbol}"`);
+                    window.appendDebugLog('SEND', `contracts_for: "${symbol}"`);
                     ws.send(JSON.stringify({ contracts_for: symbol }));
                 }
             } else {
@@ -727,65 +720,85 @@
                 else if (sample.barrier) document.getElementById('modal-barrier').value = sample.barrier;
             }
 
-            requestProposalUpdate();
+            window.requestProposalUpdate();
         }
 
-        function requestProposalUpdate() {
+        window.requestProposalUpdate = function() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             const symbol = subMarketSelect.value.split('|')[1];
+
             const tradeType = document.getElementById('modal-trade-type').value;
-            const duration = Number(document.getElementById('modal-duration').value);
+            const duration = parseInt(document.getElementById('modal-duration').value) || 10;
             const durationUnit = document.getElementById('modal-duration-unit').value;
-            const amount = Number(document.getElementById('modal-amount').value);
-            let barrier = String(document.getElementById('modal-barrier').value || '').trim();
+            const amount = parseFloat(document.getElementById('modal-amount').value) || 2.0;
+            let barrier = document.getElementById('modal-barrier').value;
 
-            if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(duration) || duration <= 0) {
-                setApiPendingStatus('Periksa nilai amount dan duration.');
-                return;
-            }
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
-            setApiPendingStatus('Mengirim proposal dengan parameter terbaru...');
 
-            let contractTypeApi = 'NOTOUCH';
-            if (tradeType === 'Touch/No Touch') contractTypeApi = selectedChoice === 'Touch' ? 'ONETOUCH' : 'NOTOUCH';
-            else if (tradeType === 'Rise/Fall') contractTypeApi = selectedChoice === 'Rise' ? 'CALL' : 'PUT';
-            else if (tradeType === 'Higher/Lower') contractTypeApi = selectedChoice === 'Higher' ? 'HIGHER' : 'LOWER';
-            else if (tradeType === 'Matches/Differs') contractTypeApi = selectedSubTab === 'Matches' ? 'DIGITMATCH' : 'DIGITDIFF';
-            else if (tradeType === 'Over/Under') contractTypeApi = selectedSubTab === 'Over' ? 'DIGITOVER' : 'DIGITUNDER';
-            else if (tradeType === 'Even/Odd') contractTypeApi = selectedSubTab === 'Even' ? 'DIGITEVEN' : 'DIGITODD';
+            window.setApiPendingStatus("Mengirim request proposal baru ke API...");
+            window.clearActiveApiSubscriptions();
 
-            const reqId = ++proposalRequestId;
-            latestProposalRequestId = reqId;
-            const req = {
-                proposal: 1, req_id: reqId, amount, basis: 'stake',
-                currency: activeAccount?.currency || 'USD', symbol,
-                contract_type: contractTypeApi, duration: Math.floor(duration),
-                duration_unit: durationUnit
-            };
-            if (['Touch/No Touch', 'Higher/Lower'].includes(tradeType)) {
-                if (barrier && !/^[+-]/.test(barrier)) barrier = '+' + barrier;
-                if (barrier) req.barrier = barrier;
-            } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
-                req.barrier = String(selectedDigit);
+            let contractTypeApi = "NOTOUCH";
+            if (tradeType === 'Touch/No Touch') {
+                contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
+            } else if (tradeType === 'Rise/Fall') {
+                contractTypeApi = (selectedChoice === 'Rise') ? "CALL" : "PUT";
+            } else if (tradeType === 'Higher/Lower') {
+                contractTypeApi = (selectedChoice === 'Higher') ? "HIGHER" : "LOWER";
+            } else if (tradeType === 'Matches/Differs') {
+                contractTypeApi = (selectedSubTab === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
+            } else if (tradeType === 'Over/Under') {
+                contractTypeApi = (selectedSubTab === 'Over') ? "DIGITOVER" : "DIGITUNDER";
+            } else if (tradeType === 'Even/Odd') {
+                contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
             }
-            if (activeAccount?.loginid) req.loginid = activeAccount.loginid;
 
             if (ws && ws.readyState === WebSocket.OPEN) {
-                appendDebugLog('SEND', `proposal req_id=${reqId} symbol=${symbol} type=${contractTypeApi} duration=${duration}${durationUnit} amount=${amount}`);
+                const req = {
+                    proposal: 1,
+                    amount: amount,
+                    basis: "stake",
+                    currency: activeAccount ? activeAccount.cur : "USD",
+                    symbol: symbol,
+                    contract_type: contractTypeApi,
+                    duration: duration,
+                    duration_unit: durationUnit
+                };
+                if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
+                    if (barrier && !barrier.startsWith('+') && !barrier.startsWith('-')) {
+                        barrier = '+' + barrier;
+                    }
+                    req.barrier = barrier;
+                } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
+                    req.barrier = selectedDigit.toString();
+                }
+
+                window.appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`);
                 ws.send(JSON.stringify(req));
             } else {
-                appendDebugLog('INFO', 'WebSocket belum siap; proposal akan diminta setelah koneksi terbuka.');
+                window.appendDebugLog('ERR', 'WebSocket belum siap. Menghubungkan ulang...');
                 initWebSocket();
             }
-        }
+        };
 
         window.onload = function() {
             startGMTClock();
-            const savedClientId = localStorage.getItem('deriv_client_id') || '34M4TGKofeTRkLOlcJ9zO';
-            document.getElementById('client_id').value = savedClientId;
-            document.getElementById('login-view').classList.remove('hidden');
-            document.getElementById('dashboard-view').classList.add('hidden');
+            parseOAuthUrlParams();
+            
+            const stored = localStorage.getItem('deriv_accounts');
+            const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
+            if (savedClientId) document.getElementById('client_id').value = savedClientId;
+
+            if (stored) {
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+                initWebSocket();
+                renderStrategyTable(defaultStrategyData);
+            } else {
+                document.getElementById('login-view').classList.remove('hidden');
+                document.getElementById('dashboard-view').classList.add('hidden');
+            }
         };
 
         function renderChoiceButtons(tradeType) {
@@ -824,7 +837,7 @@
                 btn.onclick = () => {
                     selectedChoice = choiceName;
                     renderChoiceButtons(tradeType);
-                    requestProposalUpdate();
+                    window.requestProposalUpdate();
                 };
                 container.appendChild(btn);
             });
@@ -844,18 +857,18 @@
                 btn.onclick = () => {
                     selectedDigit = i;
                     renderDigitGrid();
-                    requestProposalUpdate();
+                    window.requestProposalUpdate();
                 };
                 grid.appendChild(btn);
             }
         }
 
-        function switchDigitSubTab(tabName) {
+        window.switchDigitSubTab = function(tabName) {
             selectedSubTab = tabName;
             document.getElementById('subtab-matches').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs ${tabName === 'Matches' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
             document.getElementById('subtab-differs').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs ${tabName === 'Differs' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
-            requestProposalUpdate();
-        }
+            window.requestProposalUpdate();
+        };
 
         function renderStrategyTable(dataList) {
             const tbody = document.getElementById('strategy-table-body');
@@ -875,23 +888,23 @@
                     <td><input type="number" value="${item.duration_amount}"></td>
                     <td><select><option ${item.duration_unit === 'Ticks' ? 'selected' : ''}>Ticks</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option><option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option><option ${item.duration_unit === 'Hours' ? 'selected' : ''}>Hours</option></select></td>
                     <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
-                    <td class="font-bold text-emerald-600">$${(Number(item.payout) || 0).toFixed(2)}</td>
+                    <td class="font-bold text-emerald-600">$${(item.payout || 0.00).toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function openAddModal() {
+        window.openAddModal = function() {
             document.getElementById('add-strategy-modal').classList.remove('hidden');
-            onMarketCategoryChange();
-            onTradeTypeChange();
-        }
+            window.onMarketCategoryChange();
+            window.onTradeTypeChange();
+        };
 
-        function closeAddModal() {
+        window.closeAddModal = function() {
             document.getElementById('add-strategy-modal').classList.add('hidden');
-        }
+        };
 
-        function onMarketCategoryChange() {
+        window.onMarketCategoryChange = function() {
             const cat = document.getElementById('modal-market-cat').value;
             const subSelect = document.getElementById('modal-submarket');
             subSelect.innerHTML = '';
@@ -901,10 +914,10 @@
                 opt.innerText = item.name;
                 subSelect.appendChild(opt);
             });
-            onSubmarketChange();
-        }
+            window.onSubmarketChange();
+        };
 
-        function onTradeTypeChange() {
+        window.onTradeTypeChange = function() {
             const tradeType = document.getElementById('modal-trade-type').value;
             const unitSelect = document.getElementById('modal-duration-unit');
             const barrierContainer = document.getElementById('barrier-container');
@@ -930,13 +943,13 @@
                 digitContainer.classList.add('hidden');
             }
 
-            setApiPendingStatus("Menyesuaikan parameter tipe perdagangan dengan API...");
-            clearActiveApiSubscriptions();
+            window.setApiPendingStatus("Menyesuaikan parameter tipe perdagangan dengan API...");
+            window.clearActiveApiSubscriptions();
             fetchContractsForSymbol();
-            requestProposalUpdate();
-        }
+            window.requestProposalUpdate();
+        };
 
-        function confirmAddStrategy() {
+        window.confirmAddStrategy = function() {
             const marketCat = document.getElementById('modal-market-cat').value;
             const subMarketSelect = document.getElementById('modal-submarket');
             const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex].text;
@@ -968,42 +981,62 @@
 
             defaultStrategyData.push(newItem);
             renderStrategyTable(defaultStrategyData);
-            closeAddModal();
-        }
+            window.closeAddModal();
+        };
 
-        function deleteLastRow() {
+        window.deleteLastRow = function() {
             if (defaultStrategyData.length > 0) {
                 defaultStrategyData.pop();
                 renderStrategyTable(defaultStrategyData);
             }
-        }
+        };
 
-        function clearStrategy() {
+        window.clearStrategy = function() {
             defaultStrategyData = [];
             renderStrategyTable(defaultStrategyData);
+        };
+
+        function generateRandomString(length) {
+            const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let text = '';
+            for (let i = 0; i < length; i++) {
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
+            }
+            return text;
         }
 
-        function loginWithDerivOAuthPKCE() {
+        async function generateCodeChallenge(codeVerifier) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(codeVerifier);
+            const digest = await window.crypto.subtle.digest('SHA-256', data);
+            return btoa(String.fromCharCode(...new Uint8Array(digest)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+        }
+
+        window.loginWithDerivOAuthPKCE = async function() {
             const clientId = document.getElementById('client_id').value.trim();
-            if (!clientId) return alert('App ID wajib diisi!');
+            if (!clientId) return alert('OAuth Client ID wajib diisi!');
+            
             localStorage.setItem('deriv_client_id', clientId);
-            // Pertahankan perilaku login dashboard awal. Ini bukan autentikasi akun Deriv.
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('dashboard-view').classList.remove('hidden');
-            renderStrategyTable(defaultStrategyData);
-            initWebSocket();
-        }
+            
+            const verifier = generateRandomString(128);
+            sessionStorage.setItem('pkce_code_verifier', verifier);
+            const challenge = await generateCodeChallenge(verifier);
+            
+            const redirectUri = window.location.origin + window.location.pathname;
+            const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge=${challenge}&code_challenge_method=S256`;
+            
+            window.location.href = oauthUrl;
+        };
 
-        function handleLogout() {
-            derivToken = '';
-            derivAccounts = [];
-            activeAccount = null;
-            if (ws) { ws.onclose = null; ws.close(); ws = null; }
-            const list = document.getElementById('account-list');
-            if (list) list.innerHTML = '<div class="p-3 text-slate-500">Hubungkan akun Deriv untuk memuat daftar akun.</div>';
+        window.handleLogout = function() {
+            localStorage.removeItem('deriv_accounts');
+            localStorage.removeItem('deriv_active_acct');
             document.getElementById('dashboard-view').classList.add('hidden');
             document.getElementById('login-view').classList.remove('hidden');
-        }
+        };
     </script>
 </body>
 </html>
