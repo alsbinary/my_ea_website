@@ -444,7 +444,39 @@
             }
         });
 
-        // --- TAHAP 1: KONEKSI WEBSOCKET & TAHAP 2: AMBIL DAFTAR MARKET (active_symbols) ---
+        // --- RENDER DROPDOWN AKUN DINAMIS ---
+        function renderAccountDropdownList(accountList, currentLoginId) {
+            const container = document.getElementById('account-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            accountList.forEach(acc => {
+                const isSelected = (acc.loginid === currentLoginId);
+                const isVirtual = acc.is_virtual === 1;
+                
+                const item = document.createElement('div');
+                item.className = `p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition ${isSelected ? 'bg-teal-50 border border-teal-200' : 'border-b border-slate-100'}`;
+                item.onclick = () => {
+                    document.getElementById('account-id-label').innerText = acc.loginid;
+                    document.getElementById('account-type-label').innerText = isVirtual ? "Demo account" : "Real account";
+                    document.getElementById('account-balance-label').innerText = `${parseFloat(acc.balance || 0).toFixed(2)} ${acc.currency || 'USD'}`;
+                    const menu = document.getElementById('account-menu');
+                    if (menu) menu.classList.add('hidden');
+                    appendDebugLog('INFO', `Akun dipilih: ${acc.loginid}`);
+                };
+
+                item.innerHTML = `
+                    <div>
+                        <span class="${isVirtual ? 'text-amber-600' : 'text-slate-500'} block text-[10px] font-semibold">${isVirtual ? 'Demo account' : 'Real account'}</span>
+                        <span class="font-bold text-slate-800 font-mono">${acc.loginid}</span>
+                    </div>
+                    <span class="font-bold ${isVirtual ? 'text-amber-600' : 'text-slate-900'}">${acc.currency || 'USD'}</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // --- KONEKSI WEBSOCKET & OTORISASI ---
         function initWebSocket() {
             if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
 
@@ -456,12 +488,12 @@
             ws.onopen = () => {
                 appendDebugLog('INFO', 'Public WebSocket Terhubung.');
                 
-                // Ambil Active Symbols (Tahap 1)
+                // Ambil Active Symbols
                 ws.send(JSON.stringify({ active_symbols: "brief", req_id: 1 }));
 
-                // Tahap 3: Cek Token OAuth yang tersimpan untuk Autentikasi Akun
+                // Kirim Authorize Token jika ada
                 const token = localStorage.getItem('deriv_access_token');
-                if (token && !token.startsWith('mock_token_')) {
+                if (token) {
                     ws.send(JSON.stringify({ authorize: token, req_id: 2 }));
                 } else {
                     ws.send(JSON.stringify({ balance: 1, req_id: 3 }));
@@ -476,14 +508,14 @@
                     return;
                 }
 
-                // Response Tahap 1: Active Symbols
+                // Response Active Symbols
                 if (data.msg_type === 'active_symbols' && data.active_symbols) {
                     activeSymbolsList = data.active_symbols;
                     appendDebugLog('RECV', `Active Symbols diterima (${activeSymbolsList.length} aset).`);
                     populateMarketDropdowns();
                 }
 
-                // Response Tahap 3 & 4: Authorize & Account List
+                // Response Authorize & Account List
                 if (data.msg_type === 'authorize' && data.authorize) {
                     const user = data.authorize;
                     document.getElementById('account-id-label').innerText = user.loginid;
@@ -496,25 +528,24 @@
                     }
                     appendDebugLog('RECV', `Authorize Berhasil: ${user.loginid} (${user.is_virtual ? 'Demo' : 'Real'})`);
                     
-                    // Tahap 6: Meminta Subscription Saldo
                     ws.send(JSON.stringify({ balance: 1, subscribe: 1, req_id: 10 }));
                 }
 
-                // Response Tahap 6: Pembaruan Saldo via Subscription
+                // Response Balance Subscription
                 if (data.msg_type === 'balance' && data.balance) {
                     const balanceVal = parseFloat(data.balance.balance).toFixed(2);
                     const currency = data.balance.currency || 'USD';
                     document.getElementById('account-balance-label').innerText = `${balanceVal} ${currency}`;
                 }
 
-                // Response Tahap 2: Contracts For Symbol
+                // Response Contracts For Symbol
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
                     const symbol = data.echo_req.contracts_for;
                     contractCache[symbol] = data.contracts_for.available;
                     handleContractsForResponse(data.contracts_for.available);
                 }
 
-                // Response Tahap 7: Proposal
+                // Response Proposal (Payout)
                 if (data.msg_type === 'proposal' && data.proposal) {
                     latestProposalId = data.proposal.id;
                     const payout = parseFloat(data.proposal.payout);
@@ -522,13 +553,12 @@
                     document.getElementById('payout-value').innerText = `$${payout.toFixed(2)}`;
                 }
 
-                // Response Tahap 8: BUY Kontrak Sukses
+                // Response BUY Kontrak Sukses
                 if (data.msg_type === 'buy' && data.buy) {
                     const contract = data.buy;
                     appendDebugLog('RECV', `BUY Sukses! Contract ID: ${contract.contract_id}`);
                     addContractToTable(contract, "Open");
                     
-                    // Tahap 9: Memulai Pemantauan Kontrak Berjalan (proposal_open_contract)
                     ws.send(JSON.stringify({
                         proposal_open_contract: 1,
                         contract_id: contract.contract_id,
@@ -537,7 +567,7 @@
                     }));
                 }
 
-                // Response Tahap 9 & 10: Pemantauan Status Kontrak & Evaluasi Hasil (WIN/LOSS)
+                // Response Pemantauan Status Kontrak (WIN/LOSS)
                 if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract) {
                     const poc = data.proposal_open_contract;
                     updateRunningPortfolio(poc);
@@ -555,7 +585,7 @@
             };
         }
 
-        // --- TAHAP 3 & 4: OAUTH 2.0 PKCE LOGIN & AKUN (DISESUAIKAN DENGAN trade-callback) ---
+        // --- OAUTH LOGIN ---
         function loginWithDerivOAuthPKCE() {
             const clientId = document.getElementById('client_id').value.trim();
             if (!clientId) {
@@ -582,7 +612,6 @@
                 localStorage.setItem('pkce_code_verifier', codeVerifier);
                 localStorage.setItem('oauth_state', state);
 
-                // REDIRECT URI DISESUAIKAN PERSIS DENGAN DASHBOARD DERIV ANDA
                 const redirectUri = "https://tradelib.net/trade-callback"; 
 
                 const params = new URLSearchParams({
@@ -613,7 +642,6 @@
             const clientIdField = document.getElementById('client_id');
             if (clientIdField && savedClientId) clientIdField.value = savedClientId;
 
-            // Tangkap callback kode OAuth dari parameter URL
             const urlParams = new URLSearchParams(window.location.search);
             const authCode = urlParams.get('code');
             if (authCode) {
@@ -632,42 +660,12 @@
                 document.getElementById('dashboard-view').classList.add('hidden');
             }
 
-            // Jam GMT
             setInterval(() => {
                 const gmtElement = document.getElementById('gmt-time');
                 if (gmtElement) gmtElement.innerText = new Date().toUTCString().slice(17, 25);
             }, 1000);
         };
 
-        function renderAccountDropdownList(accountList, currentLoginId) {
-            const container = document.getElementById('account-list-container');
-            if (!container) return;
-            container.innerHTML = '';
-
-            accountList.forEach(acc => {
-                const isSelected = (acc.loginid === currentLoginId);
-                const isVirtual = acc.is_virtual === 1;
-                
-                const item = document.createElement('div');
-                item.className = `p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition ${isSelected ? 'bg-teal-50 border border-teal-200' : 'border-b border-slate-100'}`;
-                item.onclick = () => {
-                    const menu = document.getElementById('account-menu');
-                    if (menu) menu.classList.add('hidden');
-                    appendDebugLog('INFO', `Akun dipilih: ${acc.loginid}`);
-                };
-
-                item.innerHTML = `
-                    <div>
-                        <span class="${isVirtual ? 'text-amber-600' : 'text-slate-500'} block text-[10px] font-semibold">${isVirtual ? 'Demo account' : 'Real account'}</span>
-                        <span class="font-bold text-slate-800 font-mono">${acc.loginid}</span>
-                    </div>
-                    <span class="font-bold ${isVirtual ? 'text-amber-600' : 'text-slate-900'}">${acc.currency || 'USD'}</span>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        // --- PENGISIAN MARKET DARI ACTIVE_SYMBOLS ---
         function populateMarketDropdowns() {
             const cat = document.getElementById('modal-market-cat').value;
             const subSelect = document.getElementById('modal-submarket');
@@ -688,7 +686,6 @@
             populateMarketDropdowns();
         }
 
-        // --- TAHAP 2: CEK KONTRAK YANG TERSEDIA (contracts_for) ---
         function fetchContractsForSymbol() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
@@ -714,7 +711,6 @@
             requestProposalUpdate();
         }
 
-        // --- TAHAP 7: MEMINTA PROPOSAL ---
         function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
@@ -761,7 +757,6 @@
             }
         }
 
-        // --- TAHAP 8: MELAKUKAN PEMBELIAN (BUY) ---
         function executeBuyContract(strategyItem) {
             if (!latestProposalId) {
                 appendDebugLog('ERR', 'Proposal ID belum tersedia untuk melakukan BUY.');
@@ -779,7 +774,6 @@
             }
         }
 
-        // --- TAHAP 9 & 10: PEMANTAUAN & EVALUASI STRATEGI (WIN/LOSS ENGINE) ---
         function startBotEngine() {
             if (isBotRunning) return;
             isBotRunning = true;
@@ -859,7 +853,6 @@
                 return;
             }
 
-            // Tahap 10: Penentuan Level Strategi (WIN/LOSS Engine)
             if (isWin) {
                 appendDebugLog('INFO', 'Kontrak WIN! Mengatur ulang kembali ke Level 1.');
                 currentStrategyLevelIndex = 0;
@@ -912,7 +905,6 @@
             profitCell.className = `p-2 text-right font-bold ${parseFloat(poc.profit) >= 0 ? 'text-emerald-600' : 'text-rose-600'} profit-cell`;
         }
 
-        // --- MODAL & UI UTILITIES ---
         function openAddModal() {
             document.getElementById('add-strategy-modal').classList.remove('hidden');
             populateMarketDropdowns();
