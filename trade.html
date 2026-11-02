@@ -619,13 +619,12 @@
                     document.getElementById('account-type-label').className = isDemo ? "text-amber-600 text-[11px]" : "text-slate-500 text-[11px]";
                 }
 
-                // Menangani respons error dari API (seperti "This contract offers no return.") atau sukses proposal
+                // Menangani respons proposal & menampilkan error di elemen payout jika terjadi
                 if (data.msg_type === 'proposal') {
                     if (data.req_id === proposalReqId) {
                         const banner = document.getElementById('api-status-banner');
                         
                         if (data.error) {
-                            // Tampilkan pesan error pada kotak payout sesuai permintaan
                             currentEstimatedPayout = 0;
                             document.getElementById('payout').innerText = data.error.message || "No Return";
                             logMsg(`Proposal Error: ${data.error.message}`, 'ERR');
@@ -653,10 +652,9 @@
                     }
                 }
 
-                // Menangani respons contracts_for untuk mengisi barrier secara otomatis/validasi
+                // Menangani data kontrak dari contracts_for untuk validasi barrier
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
-                    logMsg(`Data contracts_for diterima untuk aset: ${data.contracts_for.feed_license || 'OK'}`, 'RECV');
-                    // Jika data kontrak menyertakan informasi barrier default, kita bisa update input barrier di sini
+                    logMsg(`Data contracts_for diterima.`, 'RECV');
                     if (data.contracts_for.available) {
                         const activeTradeType = document.getElementById('modal-trade-type').value;
                         const matchedContract = data.contracts_for.available.find(c => {
@@ -720,7 +718,7 @@
             onSubmarketChange();
         }
 
-        // Eksekusi forget_all proposal lalu panggil contracts_for terlebih dahulu saat submarket berubah
+        // Saat submarket berubah, kirim forget_all, lalu request contracts_for, kemudian request proposal
         function onSubmarketChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
@@ -730,12 +728,10 @@
             
             const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
             if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                // 1. Lakukan forget_all proposal lama terlebih dahulu
                 const forgetMsg = { forget_all: ["proposal"], req_id: 99 };
                 targetWs.send(JSON.stringify(forgetMsg));
                 logMsg(`SEND -> ${JSON.stringify(forgetMsg)}`, 'SEND');
 
-                // 2. Eksekusi contracts_for untuk mengecek ketersediaan kontrak & barrier
                 if (symbol && symbol !== "undefined") {
                     const contractsReq = { contracts_for: symbol, req_id: 2 };
                     logMsg(`SEND -> ${JSON.stringify(contractsReq)}`, 'SEND');
@@ -747,13 +743,26 @@
             requestProposalUpdate();
         }
 
-        // Eksekusi forget_all proposal saat trade type berubah, lalu perbarui proposal
+        // Saat trade type berubah, kirim forget_all, lalu request contracts_for, kemudian request proposal
         function onTradeTypeChange() {
+            const subMarketSelect = document.getElementById('modal-submarket');
+            let symbol = "";
+            if (subMarketSelect && subMarketSelect.value) {
+                const parts = subMarketSelect.value.split('|');
+                symbol = parts[1];
+            }
+
             const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
             if (targetWs && targetWs.readyState === WebSocket.OPEN) {
                 const forgetMsg = { forget_all: ["proposal"], req_id: 98 };
                 targetWs.send(JSON.stringify(forgetMsg));
                 logMsg(`SEND -> ${JSON.stringify(forgetMsg)}`, 'SEND');
+
+                if (symbol && symbol !== "undefined") {
+                    const contractsReq = { contracts_for: symbol, req_id: 2 };
+                    logMsg(`SEND -> ${JSON.stringify(contractsReq)}`, 'SEND');
+                    targetWs.send(JSON.stringify(contractsReq));
+                }
             }
 
             const tradeType = document.getElementById('modal-trade-type').value;
@@ -852,10 +861,11 @@
 
                 const req = {
                     proposal: 1,
+                    subscribe: 1,
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
-                    symbol: underlying_symbol,
+                    symbol: symbol,
                     contract_type: contractTypeApi,
                     duration: duration,
                     duration_unit: durationUnit,
@@ -868,7 +878,7 @@
                     req.barrier = selectedDigit.toString();
                 }
 
-                logMsg(`SEND proposal (req_id: ${currentReqId}) -> symbol: ${symbol} | type: ${contractTypeApi}`, 'SEND');
+                logMsg(`SEND proposal (req_id: ${currentReqId}) -> symbol: ${symbol} | type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`, 'SEND');
                 targetWs.send(JSON.stringify(req));
             }
         }
