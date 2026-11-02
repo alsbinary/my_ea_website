@@ -334,11 +334,39 @@
         let accessToken = null;
         let accountsList = [];
         let isAccountConnected = false;
-        let lastContractsForResponse = null;
+        let currentActiveAccountId = "";
 
         let defaultStrategyData = [
             { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.68", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
         ];
+
+        // 1. DETEKSI AKUN DEMO AKURAT DARI AWALAN LOGIN ID (D... atau VR...)
+        function checkIsDemoAccount(accountId) {
+            if (!accountId) return true;
+            const upperId = accountId.toString().trim().toUpperCase();
+            return upperId.startsWith('D') || upperId.startsWith('VR');
+        }
+
+        // 2. LOGIKA UTAMA PEMBARUAN LABEL AKUN UI
+        function updateAccountUiLabel(accountId, balanceStr = "") {
+            const isDemo = checkIsDemoAccount(accountId);
+            const typeLabel = document.getElementById('account-type-label');
+            const idLabel = document.getElementById('account-id-label');
+            const balLabel = document.getElementById('account-balance-label');
+
+            if (idLabel) idLabel.innerText = accountId;
+            if (balLabel && balanceStr) balLabel.innerText = balanceStr;
+
+            if (typeLabel) {
+                if (isDemo) {
+                    typeLabel.innerText = "Demo account";
+                    typeLabel.className = "text-amber-600 text-[11px] font-semibold";
+                } else {
+                    typeLabel.innerText = "Real account";
+                    typeLabel.className = "text-slate-500 text-[11px] font-semibold";
+                }
+            }
+        }
 
         function logMsg(msg, type='INFO') {
             const consoleBox = document.getElementById('debug-log-console');
@@ -502,11 +530,11 @@
                     accountsList = result.data;
                     renderAccountsDropdown(accountsList);
 
-                    // PRIORITAS AKUN DEMO SAAT BARU LOGIN
-                    let targetAccount = accountsList.find(acc => acc.account_type === 'demo' || acc.account_id.startsWith('VR'));
+                    // PRIORITAS UTAMA AKUN DEMO SAAT LOGIN PERTAMA
+                    let targetAccount = accountsList.find(acc => checkIsDemoAccount(acc.account_id));
                     if (!targetAccount) targetAccount = accountsList[0]; 
 
-                    logMsg(`Akun terpilih (Prioritas Demo): ${targetAccount.account_id}`);
+                    logMsg(`Akun terpilih saat login (Prioritas Demo): ${targetAccount.account_id}`);
                     await selectAndConnectAccount(targetAccount.account_id, token);
                 } else {
                     logMsg("Gagal memuat akun atau token invalid.", 'ERR');
@@ -522,10 +550,10 @@
             container.innerHTML = "";
             
             accounts.forEach(acc => {
-                const isDemo = acc.account_type === 'demo' || acc.account_id.startsWith('VR');
+                const isDemo = checkIsDemoAccount(acc.account_id);
                 const div = document.createElement('div');
                 div.className = "p-2.5 hover:bg-slate-50 cursor-pointer rounded flex justify-between items-center border-b border-slate-100";
-                div.innerHTML = `<div><span class="${isDemo ? 'text-amber-600' : 'text-slate-500'} block text-[11px] font-semibold">${isDemo ? 'Demo account' : 'Real account'}</span><span class="font-bold text-slate-800 font-mono text-xs">${acc.account_id}</span></div><span class="font-bold text-xs">${acc.currency}</span>`;
+                div.innerHTML = `<div><span class="${isDemo ? 'text-amber-600' : 'text-slate-500'} block text-[11px] font-semibold">${isDemo ? 'Demo account' : 'Real account'}</span><span class="font-bold text-slate-800 font-mono text-xs">${acc.account_id}</span></div><span class="font-bold text-xs">${acc.currency || 'USD'}</span>`;
                 div.onclick = async () => {
                     document.getElementById('account-menu').classList.add('hidden');
                     await selectAndConnectAccount(acc.account_id, accessToken);
@@ -537,7 +565,10 @@
         async function selectAndConnectAccount(accountId, token) {
             try {
                 isAccountConnected = false;
+                currentActiveAccountId = accountId;
                 updateModalButtonState();
+                updateAccountUiLabel(accountId);
+
                 logMsg(`Meminta OTP WebSocket untuk akun ${accountId}...`);
                 const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${accountId}/otp`, {
                     method: "POST",
@@ -562,7 +593,6 @@
 
             ws.onopen = () => {
                 logMsg(`WebSocket Akun ${accountId} Terhubung! Meminta langganan saldo...`);
-                document.getElementById('account-id-label').innerText = accountId;
                 
                 const balanceReq = { balance: 1, subscribe: 1, req_id: 3 };
                 logMsg(`SEND -> ${JSON.stringify(balanceReq)}`, 'SEND');
@@ -570,6 +600,7 @@
 
                 isAccountConnected = true;
                 updateModalButtonState();
+                updateAccountUiLabel(accountId);
                 document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Terhubung';
             };
 
@@ -580,39 +611,47 @@
                 if (data.msg_type === 'balance') {
                     const bal = parseFloat(data.balance.balance).toFixed(2);
                     const cur = data.balance.currency || 'USD';
-                    const isDemo = accountId.startsWith('VR') || data.balance.account_type === 'demo';
-                    
-                    document.getElementById('account-balance-label').innerText = `${bal} ${cur}`;
-                    document.getElementById('account-id-label').innerText = accountId;
-                    document.getElementById('account-type-label').innerText = isDemo ? "Demo account" : "Real account";
-                    document.getElementById('account-type-label').className = isDemo ? "text-amber-600 text-[11px] font-semibold" : "text-slate-500 text-[11px] font-semibold";
+                    updateAccountUiLabel(currentActiveAccountId, `${bal} ${cur}`);
                 }
 
-                // 1. RESPON contracts_for DITERIMA DULU (BARRIER DIAMBIL DARI SINI)
+                // 1. PENGAMBILAN BARRIER DARI contracts_for SESUAI TRADE TYPE & CHOICE
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
-                    logMsg(`Respon contracts_for diterima. Menyesuaikan barrier & mengirim proposal...`, 'RECV');
-                    lastContractsForResponse = data.contracts_for;
+                    logMsg(`Respon contracts_for diterima. Menyesuaikan barrier berdasarkan Trade Type...`, 'RECV');
                     
                     let contractsArray = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
                     if (contractsArray.length > 0) {
                         const activeTradeType = document.getElementById('modal-trade-type').value;
+                        
+                        // Cari tipe kontrak spesifik sesuai Trade Type dan Choice
                         const matchedContract = contractsArray.find(c => {
-                            if (activeTradeType === 'Touch/No Touch') return c.contract_type === 'NOTOUCH' || c.contract_type === 'ONETOUCH';
-                            if (activeTradeType === 'Higher/Lower') return c.contract_type === 'HIGHER' || c.contract_type === 'LOWER';
+                            const cType = c.contract_type || "";
+                            if (activeTradeType === 'Touch/No Touch') {
+                                return (selectedChoice === 'Touch') ? cType.includes('TOUCH') && !cType.includes('NOTOUCH') : cType.includes('NOTOUCH');
+                            }
+                            if (activeTradeType === 'Higher/Lower') {
+                                return (selectedChoice === 'Higher') ? cType.includes('HIGHER') || cType.includes('LONG') : cType.includes('LOWER') || cType.includes('SHORT');
+                            }
+                            if (activeTradeType === 'Rise/Fall') {
+                                return (selectedChoice === 'Rise') ? cType === 'CALL' : cType === 'PUT';
+                            }
                             return true;
                         });
 
+                        const barrierInput = document.getElementById('modal-barrier');
                         if (matchedContract && matchedContract.barrier) {
-                            document.getElementById('modal-barrier').value = matchedContract.barrier;
-                            logMsg(`Barrier otomatis diset dari contracts_for: ${matchedContract.barrier}`);
+                            barrierInput.value = matchedContract.barrier;
+                            logMsg(`Barrier disesuaikan dari contracts_for (${matchedContract.contract_type}): ${matchedContract.barrier}`);
+                        } else if (contractsArray[0] && contractsArray[0].barrier) {
+                            barrierInput.value = contractsArray[0].barrier;
+                            logMsg(`Barrier fallback diset dari contracts_for: ${contractsArray[0].barrier}`);
                         }
                     }
 
-                    // 2. KINI BARU KIRIM PROPOSAL SETELAH contracts_for DITERIMA
+                    // KINI BARU KIRIM PROPOSAL SETELAH BARRIER SESUAI DITERIMA
                     requestProposalUpdate();
                 }
 
-                // 3. RESPON PROPOSAL
+                // 2. RESPON PROPOSAL
                 if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
                     const banner = document.getElementById('api-status-banner');
                     currentEstimatedPayout = parseFloat(data.proposal.payout);
@@ -754,7 +793,7 @@
                     contractTypeApi = (selectedChoice === 'Even') ? "DIGITEVEN" : "DIGITODD";
                 }
 
-                // PROPERTI SUBSCRIBE DIHILANGKAN Sepenuhnya
+                // TANPA PARAMETER SUBSCRIBE
                 const req = {
                     proposal: 1,
                     amount: amount,
@@ -810,7 +849,7 @@
             }
 
             setApiPendingStatus("Menyesuaikan parameter tipe perdagangan...");
-            requestProposalUpdate();
+            onSubmarketChange(); // Minta barrier baru sesuai trade type
         }
 
         function renderChoiceButtons(tradeType) {
@@ -876,21 +915,6 @@
             document.getElementById('add-strategy-modal').classList.remove('hidden');
             onMarketCategoryChange();
             onTradeTypeChange();
-
-            const subMarketSelect = document.getElementById('modal-submarket');
-            if (subMarketSelect && subMarketSelect.value) {
-                const parts = subMarketSelect.value.split('|');
-                const symbol = parts[1];
-                if (symbol && symbol !== "undefined") {
-                    const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
-                    if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                        setApiPendingStatus("Membuka modal: Mengirim contracts_for...");
-                        const contractsReq = { contracts_for: symbol, req_id: 2 };
-                        logMsg(`SEND (Popup Open) -> ${JSON.stringify(contractsReq)}`, 'SEND');
-                        targetWs.send(JSON.stringify(contractsReq));
-                    }
-                }
-            }
         }
 
         function closeAddModal() {
