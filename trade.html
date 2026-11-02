@@ -245,7 +245,7 @@
 
         function loginWithDerivOAuthPKCE() {
             const clientId = document.getElementById('client_id').value.trim();
-            const redirectUri = "https://tradelib.net/trade-callback";[cite: 5]
+            const redirectUri = "https://tradelib.net/trade-callback";
             window.location.href = `https://auth.deriv.com/oauth2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=trade`;
         }
 
@@ -254,7 +254,6 @@
             location.reload();
         }
 
-        // --- REST API: AMBIL AKUN DAN OTP UNTUK WEBSOCKET OPTIONS ---
         async function fetchAccountsAndConnectWebSocket(token) {
             try {
                 logMsg("Mengambil daftar akun via REST API...");
@@ -265,7 +264,6 @@
                 
                 if (result.data && result.data.length > 0) {
                     renderAccountsDropdown(result.data);
-                    // Hubungkan ke akun pertama secara default (Demo / Real)
                     connectAccountWebSocket(result.data[0].account_id, result.data[0].account_type, token);
                 } else {
                     logMsg("Gagal memuat akun atau token invalid.");
@@ -293,12 +291,10 @@
                 container.appendChild(div);
             });
 
-            // Set default aktif ke akun pertama
             document.getElementById('account-id-label').innerText = accounts[0].account_id;
             document.getElementById('account-type-label').innerText = accounts[0].account_type === 'demo' ? "Demo Account" : "Real Account";
         }
 
-        // --- MENGAMBIL OTP & KONEKSI WEBSOCKET BERDASARKAN DOKUMENTASI OPTIONS API ---
         async function connectAccountWebSocket(accountId, accountType, token) {
             try {
                 logMsg(`Meminta OTP WebSocket untuk akun ${accountId} (${accountType})...`);
@@ -309,7 +305,7 @@
                 const otpData = await otpRes.json();
                 
                 if (otpData.data && otpData.data.url) {
-                    const wsUrl = otpData.data.url; // Contoh: wss://api.derivws.com/trading/v1/options/ws/demo?otp=...
+                    const wsUrl = otpData.data.url;
                     initWebSocketConnection(wsUrl);
                 } else {
                     logMsg("Gagal mendapatkan OTP WebSocket URL.");
@@ -350,7 +346,6 @@
             ws.onclose = () => logMsg("WebSocket terputus.");
         }
 
-        // --- SUBMARKET & PROPOSAL Payout ---
         function populateSubmarkets() {
             const cat = document.getElementById('modal-market-cat').value;
             const subSelect = document.getElementById('modal-submarket');
