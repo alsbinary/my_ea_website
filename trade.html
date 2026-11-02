@@ -652,27 +652,33 @@
                     }
                 }
 
-                // Menangani data kontrak dari contracts_for untuk validasi barrier & memicu request proposal
+                // Menangani data kontrak dari contracts_for (Hanya membaca opsi barrier default)
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
                     logMsg(`Data contracts_for diterima.`, 'RECV');
-                    if (data.contracts_for.available) {
+                    
+                    let contractsArray = [];
+                    if (Array.isArray(data.contracts_for)) {
+                        contractsArray = data.contracts_for;
+                    } else if (data.contracts_for.available) {
+                        contractsArray = data.contracts_for.available;
+                    }
+
+                    if (contractsArray.length > 0) {
                         const activeTradeType = document.getElementById('modal-trade-type').value;
-                        const matchedContract = data.contracts_for.available.find(c => {
+                        const matchedContract = contractsArray.find(c => {
                             if (activeTradeType === 'Touch/No Touch') return c.contract_type === 'NOTOUCH' || c.contract_type === 'ONETOUCH';
                             if (activeTradeType === 'Higher/Lower') return c.contract_type === 'HIGHER' || c.contract_type === 'LOWER';
+                            if (activeTradeType === 'Rise/Fall') return c.contract_type === 'CALL' || c.contract_type === 'PUT';
                             return true;
                         });
 
-                        if (matchedContract && matchedContract.barrier) {
+                        if (matchedContract) {
                             const barrierInput = document.getElementById('modal-barrier');
-                            if (barrierInput && !barrierInput.value) {
+                            if (barrierInput && matchedContract.barrier) {
                                 barrierInput.value = matchedContract.barrier;
                             }
                         }
                     }
-                    
-                    // Lanjutkan langsung dengan mengirim request proposal setelah contracts_for diterima
-                    requestProposalUpdate();
                 }
             };
 
@@ -721,7 +727,7 @@
             onSubmarketChange();
         }
 
-        // Saat submarket berubah, kirim forget_all lalu request contracts_for (yang kemudian men-trigger proposal)
+        // Saat submarket berubah: Ambil contracts_for SEKALI saja, lalu minta proposal
         function onSubmarketChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
@@ -743,30 +749,11 @@
             }
 
             setApiPendingStatus("Memeriksa kontrak & memperbarui proposal...");
+            requestProposalUpdate();
         }
 
-        // Saat trade type berubah, kirim forget_all lalu request contracts_for (yang kemudian men-trigger proposal)
+        // Saat trade type berubah: Langsung perbarui proposal TANPA request contracts_for ulang
         function onTradeTypeChange() {
-            const subMarketSelect = document.getElementById('modal-submarket');
-            let symbol = "";
-            if (subMarketSelect && subMarketSelect.value) {
-                const parts = subMarketSelect.value.split('|');
-                symbol = parts[1];
-            }
-
-            const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
-            if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                const forgetMsg = { forget_all: ["proposal"], req_id: 98 };
-                targetWs.send(JSON.stringify(forgetMsg));
-                logMsg(`SEND -> ${JSON.stringify(forgetMsg)}`, 'SEND');
-
-                if (symbol && symbol !== "undefined") {
-                    const contractsReq = { contracts_for: symbol, req_id: 2 };
-                    logMsg(`SEND -> ${JSON.stringify(contractsReq)}`, 'SEND');
-                    targetWs.send(JSON.stringify(contractsReq));
-                }
-            }
-
             const tradeType = document.getElementById('modal-trade-type').value;
             const unitSelect = document.getElementById('modal-duration-unit');
             const barrierContainer = document.getElementById('barrier-container');
@@ -799,6 +786,7 @@
             }
 
             setApiPendingStatus("Menyesuaikan parameter tipe perdagangan...");
+            requestProposalUpdate();
         }
 
         function requestProposalUpdate() {
@@ -866,7 +854,7 @@
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
-                    symbol: underlying_symbol,
+                    symbol: symbol,
                     contract_type: contractTypeApi,
                     duration: duration,
                     duration_unit: durationUnit,
