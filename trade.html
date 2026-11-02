@@ -349,7 +349,7 @@
                         <span id="payout-type-label" class="text-xs font-semibold">Buy (No Touch)</span>
                     </div>
                     <div class="text-right">
-                        <span id="payout-value" class="text-base font-black tracking-tight text-white">$3.35</span>
+                        <span id="payout" class="text-base font-black tracking-tight text-white">$3.35</span>
                     </div>
                 </div>
 
@@ -651,7 +651,7 @@
                 if (data.msg_type === 'proposal' && data.proposal) {
                     currentEstimatedPayout = parseFloat(data.proposal.payout);
                     logMsg(`Proposal diterima! Payout: $${currentEstimatedPayout.toFixed(2)}`, 'RECV');
-                    document.getElementById('payout-value').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
+                    document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
                     
                     const banner = document.getElementById('api-status-banner');
                     if(banner) {
@@ -796,6 +796,24 @@
             requestProposalUpdate();
         }
 
+        // Variabel pelacak req_id unik untuk membedakan jenis request
+        let currentReqId = 100;
+
+        function getUniqueReqId(type = 'proposal') {
+            currentReqId += 1;
+            return currentReqId;
+        }
+
+        function clearActiveApiSubscriptions() {
+            const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
+            if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+                // Sesuai instruksi: lakukan forget_all proposal terlebih dahulu
+                const forgetReqId = getUniqueReqId('forget');
+                targetWs.send(JSON.stringify({ forget_all: ["proposal"], req_id: forgetReqId }));
+                logMsg(`SEND -> ${JSON.stringify({ forget_all: ["proposal"], req_id: forgetReqId })}`, 'SEND');
+            }
+        }
+
         function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) {
@@ -804,10 +822,10 @@
             }
 
             const parts = subMarketSelect.value.split('|');
-            const symbol = parts[1]; // Mengambil underlying_symbol / symbol asli dari API
+            const symbol = parts[1]; // Mengambil underlying_symbol murni dari API
 
             if (!symbol || symbol === "undefined") {
-                logMsg("Error: Simbol aset bernilai undefined. Mohon tunggu daftar market dimuat dari WebSocket.", "ERR");
+                logMsg("Error: Simbol aset bernilai undefined.", "ERR");
                 return;
             }
 
@@ -819,6 +837,8 @@
 
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
             setApiPendingStatus("Mengirim request proposal baru ke API...");
+
+            // 1. Bersihkan proposal lama menggunakan forget_all terlebih dahulu
             clearActiveApiSubscriptions();
 
             let contractTypeApi = "NOTOUCH";
@@ -838,16 +858,22 @@
 
             const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
             if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+                // 2. Berikan req_id khusus untuk pengecekan proposal di modal popup (berbeda dengan eksekusi buy/sell)
+                const proposalReqId = getUniqueReqId('modal_proposal');
+
                 const req = {
                     proposal: 1,
+                    subscribe: 1, // Berlangganan agar update real-time jika harga/payout berubah
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
-                    symbol: symbol, // Mengirim underlying_symbol murni dari API
+                    symbol: symbol,
                     contract_type: contractTypeApi,
                     duration: duration,
-                    duration_unit: durationUnit
+                    duration_unit: durationUnit,
+                    req_id: proposalReqId
                 };
+
                 if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
                     if (barrier && !barrier.startsWith('+') && !barrier.startsWith('-')) {
                         barrier = '+' + barrier;
@@ -857,7 +883,7 @@
                     req.barrier = selectedDigit.toString();
                 }
 
-                logMsg(`SEND -> ${JSON.stringify(req)}`, 'SEND');
+                logMsg(`SEND proposal (req_id: ${proposalReqId}) -> symbol: ${symbol} | type: ${contractTypeApi}`, 'SEND');
                 targetWs.send(JSON.stringify(req));
             }
         }
