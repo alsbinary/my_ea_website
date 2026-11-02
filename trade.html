@@ -358,17 +358,25 @@
         let lastWsUrl = "";
 
         let defaultStrategyData = [
-            { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 1, duration_unit: "tick", amount: 2.00, payout: 3.35 }
+            { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 1, duration_unit: "ticks", amount: 2.00, payout: 3.35 }
         ];
 
+        // Konversi kode unit duration (t, s, m, h) ke kata utuh (tick, second, minute, hour)
         function formatDurationUnit(unitCode, amount) {
             const num = parseInt(amount) || 1;
-            const code = (unitCode || 'tick').toLowerCase();
-            if (code.startsWith('t')) return num > 1 ? 'ticks' : 'tick';
-            if (code.startsWith('s')) return num > 1 ? 'seconds' : 'second';
-            if (code.startsWith('m')) return num > 1 ? 'minutes' : 'minute';
-            if (code.startsWith('h')) return num > 1 ? 'hours' : 'hour';
-            return code;
+            switch(unitCode) {
+                case 't': return num > 1 ? 'ticks' : 'tick';
+                case 's': return num > 1 ? 'seconds' : 'second';
+                case 'm': return num > 1 ? 'minutes' : 'minute';
+                case 'h': return num > 1 ? 'hours' : 'hour';
+                default:
+                    const lower = (unitCode || 'tick').toLowerCase();
+                    if (lower.startsWith('tick')) return num > 1 ? 'ticks' : 'tick';
+                    if (lower.startsWith('sec')) return num > 1 ? 'seconds' : 'second';
+                    if (lower.startsWith('min')) return num > 1 ? 'minutes' : 'minute';
+                    if (lower.startsWith('hour')) return num > 1 ? 'hours' : 'hour';
+                    return lower;
+            }
         }
 
         function checkIsDemoAccount(accountId) {
@@ -488,23 +496,6 @@
             location.reload();
         }
 
-        function loadSavedStrategy() {
-            const saved = localStorage.getItem('saved_trading_strategy');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        defaultStrategyData = parsed;
-                    }
-                } catch(e) {}
-            }
-        }
-
-        function saveStrategyToLocal() {
-            localStorage.setItem('saved_trading_strategy', JSON.stringify(defaultStrategyData));
-            alert("Strategi berhasil disimpan ke penyimpanan lokal (LocalStorage)!");
-        }
-
         window.onload = async function() {
             startGMTClock();
             startAutoReconnectWatcher();
@@ -543,11 +534,14 @@
             }, 1000);
         }
 
+        // PENANGANAN RECONNECT OTOMATIS DAN PEMBARUAN STATUS DI DASHBOARD
         function startAutoReconnectWatcher() {
             setInterval(() => {
                 if (isAccountConnected && currentActiveAccountId && accessToken) {
                     if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
                         logMsg("Koneksi WebSocket terputus. Menyambungkan ulang...", 'ERR');
+                        
+                        // Perbaharui status di dashboard menjadi menyambungkan ulang
                         const statusEl = document.getElementById('conn-status-indicator');
                         if (statusEl) {
                             statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Menyambungkan ulang...';
@@ -570,13 +564,17 @@
             publicWs.onopen = () => {
                 logMsg("Public WebSocket Terhubung. Meminta active symbols...");
                 const req = { active_symbols: "brief", req_id: 1 };
+                logMsg(`SEND -> ${JSON.stringify(req)}`, 'SEND');
                 publicWs.send(JSON.stringify(req));
             };
 
             publicWs.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
+                logMsg(`RECV <- ${JSON.stringify(data)}`, 'RECV');
+
                 if (data.msg_type === 'active_symbols' && data.active_symbols) {
                     activeSymbolsList = data.active_symbols;
+                    logMsg(`Active Symbols diterima: ${activeSymbolsList.length} aset.`);
                     onMarketCategoryChange();
                 }
             };
@@ -590,6 +588,7 @@
 
         async function fetchAccountsAndSetup(token) {
             try {
+                logMsg("Mengambil daftar akun via REST API...");
                 const response = await fetch("https://api.derivws.com/trading/v1/options/accounts", {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
@@ -602,7 +601,10 @@
                     let targetAccount = accountsList.find(acc => checkIsDemoAccount(acc.account_id));
                     if (!targetAccount) targetAccount = accountsList[0]; 
 
+                    logMsg(`Akun terpilih saat login (Prioritas Demo): ${targetAccount.account_id}`);
                     await selectAndConnectAccount(targetAccount.account_id, token);
+                } else {
+                    logMsg("Gagal memuat akun atau token invalid.", 'ERR');
                 }
             } catch (err) {
                 logMsg("Error REST API Accounts: " + err.message, 'ERR');
@@ -639,6 +641,7 @@
                     statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Menyambungkan...';
                 }
 
+                logMsg(`Meminta OTP WebSocket untuk akun ${accountId}...`);
                 const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${accountId}/otp`, {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${token}` }
@@ -648,6 +651,8 @@
                 if (otpData.data && otpData.data.url) {
                     lastWsUrl = otpData.data.url;
                     connectAuthenticatedWebSocket(lastWsUrl, accountId);
+                } else {
+                    logMsg("Gagal mendapatkan OTP URL.", 'ERR');
                 }
             } catch(e) {
                 logMsg("Error OTP Request: " + e.message, 'ERR');
@@ -656,20 +661,27 @@
 
         function connectAuthenticatedWebSocket(url, accountId) {
             if (ws) ws.close();
+            logMsg(`Menghubungkan ke WebSocket Akun Terautentikasi...`);
             ws = new WebSocket(url);
 
             ws.onopen = () => {
+                logMsg(`WebSocket Akun ${accountId} Terhubung! Meminta langganan saldo...`);
+                
                 const balanceReq = { balance: 1, subscribe: 1, req_id: 3 };
+                logMsg(`SEND -> ${JSON.stringify(balanceReq)}`, 'SEND');
                 ws.send(JSON.stringify(balanceReq));
 
                 isAccountConnected = true;
                 updateModalButtonState();
                 updateAccountUiLabel(accountId);
+                
+                // Berhasil terhubung: perbaharui status di dashboard
                 document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Terhubung';
             };
 
             ws.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
+                logMsg(`RECV <- ${JSON.stringify(data)}`, 'RECV');
                 
                 if (data.msg_type === 'balance') {
                     const bal = parseFloat(data.balance.balance).toFixed(2);
@@ -730,20 +742,56 @@
                             } else {
                                 barrierInput.value = '';
                             }
+                        } else {
+                            if (['Higher/Lower', 'Touch/No Touch'].includes(activeTradeType)) {
+                                const tickFallback = contractsArray.find(c => c.expiry_type === 'tick' && c.barrier);
+                                if (tickFallback) {
+                                    barrierInput.value = tickFallback.barrier;
+                                    if (tickFallback.min_contract_duration) {
+                                        document.getElementById('modal-duration').value = parseInt(tickFallback.min_contract_duration) || 1;
+                                    }
+                                    if (tickFallback.default_stake !== undefined) {
+                                        document.getElementById('modal-amount').value = parseFloat(tickFallback.default_stake).toFixed(2);
+                                    }
+                                }
+                            } else {
+                                barrierInput.value = '';
+                            }
                         }
                     }
+
                     requestProposalUpdate();
                 }
 
                 if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
+                    const banner = document.getElementById('api-status-banner');
                     currentEstimatedPayout = parseFloat(data.proposal.payout);
                     document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
+                    
+                    if(banner) {
+                        banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
+                        document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
+                        document.getElementById('api-status-badge').innerText = "VERIFIED";
+                        document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
+                    }
+                } else if (data.msg_type === 'proposal' && data.error && data.req_id === 4) {
+                    const banner = document.getElementById('api-status-banner');
+                    document.getElementById('payout').innerText = "Error";
+                    
+                    if(banner) {
+                        banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
+                        document.getElementById('api-status-text').innerText = data.error.message;
+                        document.getElementById('api-status-badge').innerText = "ERROR";
+                        document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded uppercase";
+                    }
                 }
             };
 
             ws.onclose = () => {
                 isAccountConnected = false;
                 updateModalButtonState();
+                logMsg("WebSocket akun terputus.", 'ERR');
+                // Perbaharui status indikator ketika terputus
                 document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Menyambungkan ulang...';
             };
         }
@@ -767,6 +815,9 @@
             if(!banner) return;
             banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
             document.getElementById('api-status-text').innerText = message;
+            const badge = document.getElementById('api-status-badge');
+            badge.innerText = "PENDING";
+            badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
         }
 
         function onMarketCategoryChange() {
@@ -792,6 +843,11 @@
                         subSelect.appendChild(opt);
                     }
                 });
+            } else {
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.innerText = "Memuat data dari API...";
+                subSelect.appendChild(opt);
             }
             onSubmarketChange();
         }
@@ -807,6 +863,7 @@
                 if (targetWs && targetWs.readyState === WebSocket.OPEN) {
                     setApiPendingStatus("Mengirim request contracts_for...");
                     const contractsReq = { contracts_for: symbol, req_id: 2 };
+                    logMsg(`SEND -> ${JSON.stringify(contractsReq)}`, 'SEND');
                     targetWs.send(JSON.stringify(contractsReq));
                 }
             }
@@ -829,6 +886,9 @@
             const durationUnit = document.getElementById('modal-duration-unit').value;
             const amount = parseFloat(document.getElementById('modal-amount').value) || 2.0;
             const barrier = document.getElementById('modal-barrier').value.trim();
+
+            document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
+            setApiPendingStatus("Mengirim request proposal baru ke API...");
 
             const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
             if (targetWs && targetWs.readyState === WebSocket.OPEN) {
@@ -859,12 +919,13 @@
                     req_id: 4
                 };
 
-                if (['Touch/No Touch', 'Higher/Lower'].includes(tradeType) && barrier) {
-                    req.barrier = barrier;
-                } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
+                if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
+                    if (barrier) req.barrier = barrier;
+                } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
                     req.barrier = selectedDigit.toString();
                 }
 
+                logMsg(`SEND proposal (req_id: 4) -> underlying_symbol: ${underlyingSymbol} | contract_type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`, 'SEND');
                 targetWs.send(JSON.stringify(req));
             }
         }
@@ -878,22 +939,30 @@
 
             renderChoiceButtons(tradeType);
 
-            if (['Higher/Lower', 'Touch/No Touch'].includes(tradeType)) {
+            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
                 unitSelect.value = 't';
                 unitSelect.disabled = false;
                 barrierContainer.classList.remove('hidden');
                 digitContainer.classList.add('hidden');
-            } else {
+            } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
+                unitSelect.value = 't';
+                unitSelect.disabled = true;
+                barrierContainer.classList.add('hidden');
+                barrierInput.value = ''; // Kosongkan barrier saat jenis perdagangan tidak memerlukan barrier
+                digitContainer.classList.remove('hidden');
+                renderDigitGrid();
+            } else if (tradeType === 'Even/Odd') {
                 unitSelect.value = 't';
                 unitSelect.disabled = true;
                 barrierContainer.classList.add('hidden');
                 barrierInput.value = '';
-                if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
-                    digitContainer.classList.remove('hidden');
-                    renderDigitGrid();
-                } else {
-                    digitContainer.classList.add('hidden');
-                }
+                digitContainer.classList.add('hidden');
+            } else { // Rise / Fall
+                unitSelect.value = 't';
+                unitSelect.disabled = false;
+                barrierContainer.classList.add('hidden');
+                barrierInput.value = '';
+                digitContainer.classList.add('hidden');
             }
 
             onDurationUnitChange();
@@ -977,6 +1046,7 @@
                 alert("Akun belum terhubung! Harap tunggu hingga koneksi akun selesai.");
                 return;
             }
+
             document.getElementById('add-strategy-modal').classList.remove('hidden');
             onMarketCategoryChange();
             onTradeTypeChange();
@@ -994,6 +1064,7 @@
             const rawDurationUnit = document.getElementById('modal-duration-unit').value;
             const durationAmt = document.getElementById('modal-duration').value;
 
+            // Jika perdagangan tidak memerlukan barrier, jangan simpan barrier dari data lama
             let barrierVal = "";
             if (['Higher/Lower', 'Touch/No Touch'].includes(tradeType)) {
                 barrierVal = document.getElementById('modal-barrier').value.trim();
@@ -1008,7 +1079,7 @@
                 barrier: barrierVal,
                 last_digit: ['Matches/Differs', 'Over/Under'].includes(tradeType) ? selectedDigit : "",
                 duration_amount: durationAmt,
-                duration_unit: formatDurationUnit(rawDurationUnit, durationAmt),
+                duration_unit: formatDurationUnit(rawDurationUnit, durationAmt), // Disimpan sebagai tick/ticks, second/seconds, dll.
                 amount: parseFloat(document.getElementById('modal-amount').value),
                 payout: currentEstimatedPayout
             };
@@ -1026,6 +1097,7 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200 text-xs";
                 
+                // Pastikan format unit tersimpan & tampil rapi (tick/ticks, second/seconds, minute/minutes, hour/hours)
                 const formattedUnit = formatDurationUnit(item.duration_unit, item.duration_amount);
 
                 tr.innerHTML = `
@@ -1043,6 +1115,20 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function saveStrategyToLocal() {
+            localStorage.setItem('saved_trading_strategy', JSON.stringify(defaultStrategyData));
+            alert("Strategi berhasil disimpan ke penyimpanan lokal (LocalStorage)!");
+        }
+
+        function loadSavedStrategy() {
+            const saved = localStorage.getItem('saved_trading_strategy');
+            if (saved) {
+                try {
+                    defaultStrategyData = JSON.parse(saved);
+                } catch(e) {}
+            }
         }
 
         function botAction(actionType) {
