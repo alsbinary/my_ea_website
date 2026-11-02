@@ -12,10 +12,7 @@
             font-size: 11px;
             padding: 3px 5px;
             border-radius: 4px;
-        }
-        .strategy-table input:focus, .strategy-table select:focus {
-            background-color: #ffffff;
-            outline: 2px solid #0d9488;
+            pointer-events: none; /* Mencegah interaksi langsung pada tabel */
         }
         .strategy-table td {
             padding: 3px 5px;
@@ -123,17 +120,17 @@
                         <table class="w-full text-left border-collapse strategy-table text-xs">
                             <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b border-slate-300 shadow-sm text-[11px]">
                                 <tr>
-                                    <th class="p-1.5 border-r border-slate-300 text-center w-12">Level</th>
-                                    <th class="p-1.5 border-r border-slate-300">Contract Type</th>
-                                    <th class="p-1.5 border-r border-slate-300">Market</th>
-                                    <th class="p-1.5 border-r border-slate-300">Sub Market</th>
-                                    <th class="p-1.5 border-r border-slate-300">Purchase Type</th>
-                                    <th class="p-1.5 border-r border-slate-300">Barrier</th>
-                                    <th class="p-1.5 border-r border-slate-300">Last Digit</th>
-                                    <th class="p-1.5 border-r border-slate-300">Duration</th>
-                                    <th class="p-1.5 border-r border-slate-300">Unit</th>
-                                    <th class="p-1.5 border-r border-slate-300">Amount</th>
-                                    <th class="p-1.5 border-r border-slate-300 text-emerald-600">Est. Payout</th>
+                                    <th class="p-1.5 border-r border-slate-300 text-center w-10">Level</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-28">Contract Type</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-20">Market</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-44">Sub Market</th> <!-- Kolom Sub Market diperlebar -->
+                                    <th class="p-1.5 border-r border-slate-300 w-24">Purchase Type</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-16">Barrier</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-12 text-center">Last Digit</th> <!-- Kolom Digit diperkecil -->
+                                    <th class="p-1.5 border-r border-slate-300 w-14">Duration</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-16">Unit</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-16">Amount</th>
+                                    <th class="p-1.5 border-r border-slate-300 text-emerald-600 w-20">Est. Payout</th>
                                 </tr>
                             </thead>
                             <tbody id="strategy-table-body" class="bg-white divide-y divide-slate-200"></tbody>
@@ -181,7 +178,7 @@
 
             </main>
 
-            <!-- PANEL KANAN: TRADING RUNNING PERMANEN & DENGAN STRUKTUR TOMBOL LENGKAP -->
+            <!-- PANEL KANAN: TRADING RUNNING -->
             <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs">
                 <div id="panel-portfolio" class="space-y-2.5 flex flex-col h-full">
                     <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase rounded">
@@ -249,7 +246,6 @@
                     </div>
                 </div>
 
-                <!-- INDIKATOR STATUS VALIDASI API -->
                 <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs">
                     <span id="api-status-text">Memproses permintaan data ke Deriv API...</span>
                     <span id="api-status-badge" class="font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase">PENDING</span>
@@ -267,13 +263,11 @@
                     </select>
                 </div>
 
-                <!-- TOMBOL PILIHAN ARAH INTERAKTIF -->
                 <div id="choice-buttons-container" class="space-y-1">
                     <label class="font-medium text-slate-600 block" id="choice-label">Touch Type</label>
                     <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
                 </div>
 
-                <!-- CONTAINER DIGIT PREDICTION -->
                 <div id="digit-prediction-container" class="hidden space-y-2 pt-2 border-t border-slate-200 bg-slate-50 p-2.5 rounded-lg border">
                     <div id="digit-grid-wrapper" class="space-y-1.5">
                         <span class="font-bold text-slate-700 block text-[11px]">Last digit prediction</span>
@@ -306,13 +300,11 @@
                     </div>
                 </div>
 
-                <!-- BARRIER CONTAINER -->
                 <div id="barrier-container" class="pt-2 border-t border-slate-200">
                     <label class="font-medium text-slate-600 block mb-1">Barrier Offset</label>
                     <input type="text" id="modal-barrier" value="+0.46" placeholder="+0.46" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-1.5 font-mono font-bold text-slate-800 text-xs">
                 </div>
 
-                <!-- WIDGET SIMULASI PAYOUT -->
                 <div id="payout-summary-box" class="bg-emerald-600 text-white p-2.5 rounded-lg flex justify-between items-center shadow">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
@@ -323,7 +315,6 @@
                     </div>
                 </div>
 
-                <!-- PANEL LOG TRANSMISI DATA -->
                 <div class="pt-2 border-t border-slate-200 space-y-1">
                     <div class="flex justify-between items-center text-[10px]">
                         <span class="font-bold text-slate-600">Monitor Transmisi Data API (Live Log)</span>
@@ -520,7 +511,7 @@
             setInterval(() => {
                 if (isAccountConnected && currentActiveAccountId && accessToken) {
                     if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
-                        logMsg("Koneksi WebSocket terputus. Menghubungkan ulang otomatis...", 'ERR');
+                        logMsg("Koneksi WebSocket terputus. Menyambungkan ulang otomatis...", 'ERR');
                         if (lastWsUrl) {
                             connectAuthenticatedWebSocket(lastWsUrl, currentActiveAccountId);
                         } else {
@@ -680,9 +671,8 @@
                         });
 
                         if (matchedContract) {
-                            // 1. SET DURASI & MIN DURATION DARI API
                             if (matchedContract.min_contract_duration) {
-                                const minDurStr = matchedContract.min_contract_duration; // Contoh: "5t"
+                                const minDurStr = matchedContract.min_contract_duration;
                                 const minDurVal = parseInt(minDurStr) || 1;
                                 
                                 const durationInput = document.getElementById('modal-duration');
@@ -693,7 +683,6 @@
                                 if (minLabel) minLabel.innerText = `Min: ${minDurStr}`;
                             }
 
-                            // 2. SET STAKE DEFAULT DARI API UNTUK AMOUNT
                             if (matchedContract.default_stake !== undefined) {
                                 const stakeVal = parseFloat(matchedContract.default_stake) || 2.00;
                                 const amountInput = document.getElementById('modal-amount');
@@ -704,7 +693,6 @@
                                 if (stakeLabel) stakeLabel.innerText = `Min: $${stakeVal.toFixed(2)}`;
                             }
 
-                            // 3. SET BARRIER
                             const barrierInput = document.getElementById('modal-barrier');
                             if (matchedContract.barrier) {
                                 barrierInput.value = matchedContract.barrier;
@@ -754,7 +742,7 @@
                 isAccountConnected = false;
                 updateModalButtonState();
                 logMsg("WebSocket akun terputus.", 'ERR');
-                document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Terputus (Menghubungkan ulang...)';
+                document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Terputus (Menyambungkan ulang...)';
             };
         }
 
@@ -1047,16 +1035,16 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200 text-xs";
                 tr.innerHTML = `
-                    <td class="text-center font-bold text-slate-600 bg-slate-50">Level ${index + 1}</td>
-                    <td><input type="text" value="${item.contract_type}"></td>
-                    <td><input type="text" value="${item.market}"></td>
-                    <td><input type="text" value="${item.submarket}"></td>
-                    <td><input type="text" value="${item.purchase_type}"></td>
-                    <td><input type="text" value="${item.barrier || ''}" class="font-mono font-bold text-slate-700"></td>
-                    <td><input type="text" value="${item.last_digit || ''}" class="font-bold text-indigo-600 text-center"></td>
-                    <td><input type="number" value="${item.duration_amount}"></td>
-                    <td><select><option>Ticks</option><option>Seconds</option></select></td>
-                    <td><input type="number" step="1.00" value="${item.amount}" class="font-bold text-teal-700"></td>
+                    <td class="text-center font-bold text-slate-600 bg-slate-50">${index + 1}</td>
+                    <td><input type="text" value="${item.contract_type}" readonly></td>
+                    <td><input type="text" value="${item.market}" readonly></td>
+                    <td><input type="text" value="${item.submarket}" readonly></td>
+                    <td><input type="text" value="${item.purchase_type}" readonly></td>
+                    <td><input type="text" value="${item.barrier || ''}" class="font-mono font-bold text-slate-700" readonly></td>
+                    <td><input type="text" value="${item.last_digit || ''}" class="font-bold text-indigo-600 text-center" readonly></td>
+                    <td><input type="number" value="${item.duration_amount}" readonly></td>
+                    <td><input type="text" value="${item.duration_unit || 'Ticks'}" readonly></td>
+                    <td><input type="number" step="1.00" value="${item.amount}" class="font-bold text-teal-700" readonly></td>
                     <td class="font-bold text-emerald-600">$${(item.payout || 3.35).toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
