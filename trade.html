@@ -434,7 +434,6 @@
             }
         });
 
-        // 1. Generate PKCE code_verifier dan code_challenge sesuai standar resmi Deriv OAuth
         async function generatePKCE() {
             const array = crypto.getRandomValues(new Uint8Array(64));
             const codeVerifier = Array.from(array)
@@ -459,9 +458,7 @@
             return { codeChallenge, state };
         }
 
-
-
-function loginWithDerivOAuthPKCE() {
+        function loginWithDerivOAuthPKCE() {
             const clientId = document.getElementById('client_id').value.trim();
             if (!clientId) {
                 alert('OAuth Client ID wajib diisi!');
@@ -502,9 +499,6 @@ function loginWithDerivOAuthPKCE() {
                 window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
             });
         }
-
-
-        
 
         function handleLogout() {
             localStorage.clear();
@@ -555,6 +549,7 @@ function loginWithDerivOAuthPKCE() {
 
             publicWs.onopen = () => {
                 logMsg("Public WebSocket Terhubung. Meminta active symbols...");
+                // Permintaan active_symbols sesuai referensi resmi
                 publicWs.send(JSON.stringify({ active_symbols: "brief", req_id: 1 }));
             };
 
@@ -688,6 +683,7 @@ function loginWithDerivOAuthPKCE() {
             }
         }
 
+        // --- PERBAIKAN PEMUATAN SUBMARKET BERDASARKAN ACTIVE SYMBOLS API ---
         function onMarketCategoryChange() {
             const cat = document.getElementById('modal-market-cat').value;
             const subSelect = document.getElementById('modal-submarket');
@@ -696,12 +692,14 @@ function loginWithDerivOAuthPKCE() {
 
             let filtered = [];
             if (activeSymbolsList && activeSymbolsList.length > 0) {
+                // Sesuai dokumentasi Deriv API, filter berdasarkan field 'market' dari active_symbols
                 filtered = activeSymbolsList.filter(s => s.market === cat);
             }
 
             if (filtered.length > 0) {
                 filtered.forEach(item => {
                     const opt = document.createElement('option');
+                    // Menggunakan display_name untuk teks dan symbol untuk value
                     opt.value = item.display_name + "|" + item.symbol;
                     opt.innerText = item.display_name;
                     subSelect.appendChild(opt);
