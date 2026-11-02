@@ -9,8 +9,8 @@
         .strategy-table input, .strategy-table select {
             background-color: transparent;
             width: 100%;
-            font-size: 12px;
-            padding: 4px 6px;
+            font-size: 11px;
+            padding: 3px 5px;
             border-radius: 4px;
         }
         .strategy-table input:focus, .strategy-table select:focus {
@@ -18,7 +18,7 @@
             outline: 2px solid #0d9488;
         }
         .strategy-table td {
-            padding: 4px 6px;
+            padding: 3px 5px;
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
         }
@@ -32,7 +32,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans text-sm">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans text-xs">
 
     <!-- VIEW 1: LOGIN PAGE -->
     <div id="login-view" class="flex-1 flex items-center justify-center p-4 bg-slate-950 text-slate-100">
@@ -111,66 +111,68 @@
             </aside>
 
             <!-- AREA TENGAH -->
-            <main class="flex-1 bg-slate-50 p-4 flex flex-col space-y-4 overflow-y-auto text-xs">
+            <main class="flex-1 bg-slate-50 p-3 flex flex-col space-y-3 overflow-y-auto text-xs">
                 
+                <!-- STRATEGY MANAGEMENT PANEL (Disesuaikan agar tidak terlalu besar) -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col">
-                    <div class="bg-teal-600 text-white font-bold px-4 py-2.5 text-center text-xs tracking-wider uppercase">
-                        STRATEGY MANAGEMENT PANEL
+                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase flex justify-between items-center">
+                        <span>STRATEGY MANAGEMENT PANEL</span>
+                        <button type="button" onclick="saveStrategyToLocal()" class="bg-teal-700 hover:bg-teal-800 text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer shadow-sm">Save Strategy</button>
                     </div>
 
-                    <div class="overflow-x-auto max-h-48">
+                    <div class="overflow-x-auto max-h-36">
                         <table class="w-full text-left border-collapse strategy-table text-xs">
-                            <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b border-slate-300 shadow-sm">
+                            <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b border-slate-300 shadow-sm text-[11px]">
                                 <tr>
-                                    <th class="p-2 border-r border-slate-300 text-center w-12">Level</th>
-                                    <th class="p-2 border-r border-slate-300">Contract Type</th>
-                                    <th class="p-2 border-r border-slate-300">Market</th>
-                                    <th class="p-2 border-r border-slate-300">Sub Market</th>
-                                    <th class="p-2 border-r border-slate-300">Purchase Type</th>
-                                    <th class="p-2 border-r border-slate-300">Barrier</th>
-                                    <th class="p-2 border-r border-slate-300">Last Digit</th>
-                                    <th class="p-2 border-r border-slate-300">Duration</th>
-                                    <th class="p-2 border-r border-slate-300">Unit</th>
-                                    <th class="p-2 border-r border-slate-300">Amount</th>
-                                    <th class="p-2 border-r border-slate-300 text-emerald-600">Est. Payout</th>
+                                    <th class="p-1.5 border-r border-slate-300 text-center w-12">Level</th>
+                                    <th class="p-1.5 border-r border-slate-300">Contract Type</th>
+                                    <th class="p-1.5 border-r border-slate-300">Market</th>
+                                    <th class="p-1.5 border-r border-slate-300">Sub Market</th>
+                                    <th class="p-1.5 border-r border-slate-300">Purchase Type</th>
+                                    <th class="p-1.5 border-r border-slate-300">Barrier</th>
+                                    <th class="p-1.5 border-r border-slate-300">Last Digit</th>
+                                    <th class="p-1.5 border-r border-slate-300">Duration</th>
+                                    <th class="p-1.5 border-r border-slate-300">Unit</th>
+                                    <th class="p-1.5 border-r border-slate-300">Amount</th>
+                                    <th class="p-1.5 border-r border-slate-300 text-emerald-600">Est. Payout</th>
                                 </tr>
                             </thead>
                             <tbody id="strategy-table-body" class="bg-white divide-y divide-slate-200"></tbody>
                         </table>
                     </div>
 
-                    <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div class="p-2 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
                         <div class="flex items-center space-x-2">
-                            <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-3 py-1.5 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition">Add Level (+) [Menunggu Akun Terhubung]</button>
-                            <button type="button" onclick="deleteLastRow()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer">Delete Last</button>
-                            <button type="button" onclick="clearStrategy()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer">Clear</button>
+                            <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+) [Menunggu Akun]</button>
+                            <button type="button" onclick="deleteLastRow()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Delete Last</button>
+                            <button type="button" onclick="clearStrategy()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Clear</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- CONTRACT TABLE -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col flex-1">
-                    <div class="bg-slate-200 text-slate-800 font-bold px-4 py-2 text-center text-xs tracking-wider uppercase border-b border-slate-300">
+                    <div class="bg-slate-200 text-slate-800 font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase border-b border-slate-300">
                         CONTRACT TABLE
                     </div>
 
-                    <div class="flex-1 overflow-x-auto min-h-[160px] bg-slate-300">
+                    <div class="flex-1 overflow-x-auto min-h-[140px] bg-slate-300">
                         <table class="w-full text-left border-collapse text-xs bg-white">
-                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
+                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300 text-[11px]">
                                 <tr>
-                                    <th class="p-2 border-r border-slate-300 text-center w-10">#</th>
-                                    <th class="p-2 border-r border-slate-300">Status</th>
-                                    <th class="p-2 border-r border-slate-300">Level</th>
-                                    <th class="p-2 border-r border-slate-300">Purchase Type</th>
-                                    <th class="p-2 border-r border-slate-300">Payout</th>
-                                    <th class="p-2 border-r border-slate-300">Buy Price</th>
-                                    <th class="p-2 border-r border-slate-300">Sell Price</th>
-                                    <th class="p-2 text-right">Profit</th>
+                                    <th class="p-1.5 border-r border-slate-300 text-center w-10">#</th>
+                                    <th class="p-1.5 border-r border-slate-300">Status</th>
+                                    <th class="p-1.5 border-r border-slate-300">Level</th>
+                                    <th class="p-1.5 border-r border-slate-300">Purchase Type</th>
+                                    <th class="p-1.5 border-r border-slate-300">Payout</th>
+                                    <th class="p-1.5 border-r border-slate-300">Buy Price</th>
+                                    <th class="p-1.5 border-r border-slate-300">Sell Price</th>
+                                    <th class="p-1.5 text-right">Profit</th>
                                 </tr>
                             </thead>
                             <tbody id="contract-table-body" class="divide-y divide-slate-200 text-slate-600">
                                 <tr>
-                                    <td colspan="8" class="p-4 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
+                                    <td colspan="8" class="p-3 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -179,10 +181,10 @@
 
             </main>
 
-            <!-- PANEL KANAN -->
-            <aside id="right-panel" class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
-                <div id="panel-portfolio" class="space-y-3 flex flex-col h-full">
-                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-xs tracking-wider uppercase rounded">
+            <!-- PANEL KANAN (TRADING RUNNING DIWASPADAI & TIDAK DIHILANGKAN) -->
+            <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs">
+                <div id="panel-portfolio" class="space-y-2.5 flex flex-col h-full">
+                    <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase rounded">
                         TRADING RUNNING
                     </div>
 
@@ -200,7 +202,7 @@
                     </div>
                 </div>
 
-                <div class="text-center text-xs text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
+                <div class="text-center text-[11px] text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
                     <span id="conn-status-indicator" class="flex items-center"><span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Menunggu Akun</span>
                     <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
                 </div>
@@ -208,38 +210,38 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: ADD LEVEL -->
-    <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col text-xs">
-            <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
+    <!-- MODAL POPUP: ADD LEVEL (Disesuaikan agar tidak terlalu besar dan kolom proporsional) -->
+    <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3">
+        <div class="bg-white border border-slate-200 rounded-xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col text-xs">
+            <div class="bg-teal-600 text-white px-4 py-2.5 flex justify-between items-center">
                 <h3 class="font-bold text-xs tracking-wide">Konfigurasi Level Strategi Baru</h3>
                 <button type="button" onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-base cursor-pointer">&times;</button>
             </div>
-            <div class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
-                <div class="grid grid-cols-2 gap-3">
+            <div class="p-4 space-y-3 overflow-y-auto max-h-[70vh]">
+                <div class="grid grid-cols-2 gap-2.5">
                     <div>
-                        <label class="font-medium text-slate-600">Market Category</label>
-                        <select id="modal-market-cat" onchange="onMarketCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-xs cursor-pointer">
+                        <label class="font-medium text-slate-600 block mb-1">Market Category</label>
+                        <select id="modal-market-cat" onchange="onMarketCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-semibold text-xs cursor-pointer">
                             <option value="synthetic_index">Derived (Synthetics)</option>
                             <option value="forex">Forex</option>
                             <option value="cryptocurrency">Cryptocurrency</option>
                         </select>
                     </div>
                     <div>
-                        <label class="font-medium text-slate-600">Submarket / Asset</label>
-                        <select id="modal-submarket" onchange="onSubmarketChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-xs cursor-pointer"></select>
+                        <label class="font-medium text-slate-600 block mb-1">Submarket / Asset</label>
+                        <select id="modal-submarket" onchange="onSubmarketChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-semibold text-xs cursor-pointer"></select>
                     </div>
                 </div>
 
                 <!-- INDIKATOR STATUS VALIDASI API -->
-                <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs">
+                <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs">
                     <span id="api-status-text">Memproses permintaan data ke Deriv API...</span>
                     <span id="api-status-badge" class="font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase">PENDING</span>
                 </div>
 
                 <div>
-                    <label class="font-medium text-slate-600">Trade Type</label>
-                    <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700 text-xs cursor-pointer">
+                    <label class="font-medium text-slate-600 block mb-1">Trade Type</label>
+                    <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-semibold text-teal-700 text-xs cursor-pointer">
                         <option value="Rise/Fall">Rise / Fall</option>
                         <option value="Higher/Lower">Higher / Lower</option>
                         <option value="Touch/No Touch" selected>Touch / No Touch</option>
@@ -250,27 +252,27 @@
                 </div>
 
                 <!-- TOMBOL PILIHAN ARAH INTERAKTIF -->
-                <div id="choice-buttons-container" class="space-y-1 pt-1">
+                <div id="choice-buttons-container" class="space-y-1">
                     <label class="font-medium text-slate-600 block" id="choice-label">Touch Type</label>
                     <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
                 </div>
 
                 <!-- CONTAINER DIGIT PREDICTION -->
-                <div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
-                    <div id="digit-grid-wrapper" class="space-y-2">
-                        <span class="font-bold text-slate-700 block">Last digit prediction</span>
-                        <div class="grid grid-cols-5 gap-2" id="digit-grid"></div>
+                <div id="digit-prediction-container" class="hidden space-y-2 pt-2 border-t border-slate-200 bg-slate-50 p-2.5 rounded-lg border">
+                    <div id="digit-grid-wrapper" class="space-y-1.5">
+                        <span class="font-bold text-slate-700 block text-[11px]">Last digit prediction</span>
+                        <div class="grid grid-cols-5 gap-1.5" id="digit-grid"></div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
+                <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-200">
                     <div>
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center mb-1">
                             <label class="font-medium text-slate-600">Duration</label>
                             <span id="duration-min-label" class="text-[10px] text-slate-400 font-semibold">Min: 1t</span>
                         </div>
-                        <div class="flex space-x-1 mt-1">
-                            <input type="number" id="modal-duration" value="1" min="1" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 text-xs">
+                        <div class="flex space-x-1">
+                            <input type="number" id="modal-duration" value="1" min="1" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
                             <select id="modal-duration-unit" onchange="onDurationUnitChange()" class="bg-slate-50 border border-slate-300 rounded p-1 text-xs font-semibold cursor-pointer">
                                 <option value="t" selected>Ticks</option>
                                 <option value="s">Seconds</option>
@@ -280,47 +282,47 @@
                         </div>
                     </div>
                     <div>
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center mb-1">
                             <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
                             <span class="text-[10px] text-slate-400 font-semibold">Min: $0.35</span>
                         </div>
-                        <input type="number" step="1.00" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1 text-xs">
+                        <input type="number" step="1.00" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-1.5 font-bold text-teal-700 text-xs">
                     </div>
                 </div>
 
                 <!-- BARRIER CONTAINER -->
                 <div id="barrier-container" class="pt-2 border-t border-slate-200">
-                    <label class="font-medium text-slate-600 block mb-1">Barrier Offset (Sesuai Durasi & Trade Type)</label>
-                    <input type="text" id="modal-barrier" value="+0.46" placeholder="+0.46" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 font-mono font-bold text-slate-800 text-xs">
+                    <label class="font-medium text-slate-600 block mb-1">Barrier Offset</label>
+                    <input type="text" id="modal-barrier" value="+0.46" placeholder="+0.46" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-1.5 font-mono font-bold text-slate-800 text-xs">
                 </div>
 
                 <!-- WIDGET SIMULASI PAYOUT -->
-                <div id="payout-summary-box" class="bg-emerald-600 text-white p-3.5 rounded-xl flex justify-between items-center shadow-md">
+                <div id="payout-summary-box" class="bg-emerald-600 text-white p-2.5 rounded-lg flex justify-between items-center shadow">
                     <div>
-                        <span class="text-[11px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
                         <span id="payout-type-label" class="text-xs font-semibold">Buy (No Touch)</span>
                     </div>
                     <div class="text-right">
-                        <span id="payout" class="text-base font-black tracking-tight text-white">$3.35</span>
+                        <span id="payout" class="text-sm font-black tracking-tight text-white">$3.35</span>
                     </div>
                 </div>
 
                 <!-- PANEL LOG TRANSMISI DATA -->
                 <div class="pt-2 border-t border-slate-200 space-y-1">
-                    <div class="flex justify-between items-center text-[11px]">
+                    <div class="flex justify-between items-center text-[10px]">
                         <span class="font-bold text-slate-600">Monitor Transmisi Data API (Live Log)</span>
-                        <button type="button" onclick="clearDebugConsole()" class="text-slate-400 hover:text-slate-600 underline text-[10px] cursor-pointer">Clear Log</button>
+                        <button type="button" onclick="clearDebugConsole()" class="text-slate-400 hover:text-slate-600 underline text-[10px] cursor-pointer">Clear</button>
                     </div>
-                    <div id="debug-log-console" class="bg-slate-900 text-slate-200 p-2.5 rounded-lg h-28 overflow-y-auto font-mono text-[10px] space-y-1 border border-slate-800 leading-tight">
+                    <div id="debug-log-console" class="bg-slate-900 text-slate-200 p-2 rounded h-20 overflow-y-auto font-mono text-[10px] space-y-1 border border-slate-800 leading-tight">
                         <div class="text-slate-500">[System] Menunggu aktivitas transmisi data...</div>
                     </div>
                 </div>
 
             </div>
 
-            <div class="p-4 bg-slate-100 border-t border-slate-200 flex justify-end space-x-3">
-                <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-white border border-slate-300 rounded text-xs cursor-pointer">Batal</button>
-                <button type="button" onclick="confirmAddStrategy()" class="px-5 py-2 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Tambahkan ke Tabel</button>
+            <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-end space-x-2">
+                <button type="button" onclick="closeAddModal()" class="px-3 py-1.5 bg-white border border-slate-300 rounded text-xs cursor-pointer">Batal</button>
+                <button type="button" onclick="confirmAddStrategy()" class="px-4 py-1.5 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Tambahkan</button>
             </div>
         </div>
     </div>
@@ -343,7 +345,6 @@
             { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 1, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
         ];
 
-        // Deteksi Akun Demo (Awalan D atau VR)
         function checkIsDemoAccount(accountId) {
             if (!accountId) return true;
             const upperId = accountId.toString().trim().toUpperCase();
@@ -463,7 +464,8 @@
 
         window.onload = async function() {
             startGMTClock();
-            startAutoReconnectWatcher(); // Monitor otomatis koneksi WebSocket terputus
+            startAutoReconnectWatcher();
+            loadSavedStrategy();
             
             const urlParams = new URLSearchParams(window.location.search);
             let code = urlParams.get('code');
@@ -498,7 +500,6 @@
             }, 1000);
         }
 
-        // AUTO-RECONNECT MONITOR JIKA WEBSOCKET TERPUTUS
         function startAutoReconnectWatcher() {
             setInterval(() => {
                 if (isAccountConnected && currentActiveAccountId && accessToken) {
@@ -680,7 +681,7 @@
                     document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
                     
                     if(banner) {
-                        banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
+                        banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
                         document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
                         document.getElementById('api-status-badge').innerText = "VERIFIED";
                         document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
@@ -690,7 +691,7 @@
                     document.getElementById('payout').innerText = "Error";
                     
                     if(banner) {
-                        banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
+                        banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
                         document.getElementById('api-status-text').innerText = data.error.message;
                         document.getElementById('api-status-badge').innerText = "ERROR";
                         document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded uppercase";
@@ -711,19 +712,19 @@
             if (!btn) return;
             if (isAccountConnected) {
                 btn.disabled = false;
-                btn.className = "px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer transition";
+                btn.className = "px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer transition text-[11px]";
                 btn.innerText = "Add Level (+)";
             } else {
                 btn.disabled = true;
-                btn.className = "px-3 py-1.5 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition";
-                btn.innerText = "Add Level (+) [Menunggu Akun Terhubung]";
+                btn.className = "px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]";
+                btn.innerText = "Add Level (+) [Menunggu Akun]";
             }
         }
 
         function setApiPendingStatus(message) {
             const banner = document.getElementById('api-status-banner');
             if(!banner) return;
-            banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
+            banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
             document.getElementById('api-status-text').innerText = message;
             const badge = document.getElementById('api-status-badge');
             badge.innerText = "PENDING";
@@ -937,7 +938,7 @@
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 const isSelected = (selectedChoice === choiceName);
-                btn.className = `choice-btn py-2 rounded-xl border font-bold text-xs transition cursor-pointer ${isSelected ? 'active bg-slate-900 text-white border-slate-900 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
+                btn.className = `choice-btn py-1.5 rounded-lg border font-bold text-xs transition cursor-pointer ${isSelected ? 'active bg-slate-900 text-white border-slate-900 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
                 btn.innerText = choiceName;
                 btn.onclick = () => {
                     selectedChoice = choiceName;
@@ -957,7 +958,7 @@
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 const isSelected = (selectedDigit === i);
-                btn.className = `digit-btn py-2 rounded-lg border font-bold text-xs transition cursor-pointer ${isSelected ? 'active bg-indigo-600 text-white border-indigo-600 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
+                btn.className = `digit-btn py-1.5 rounded border font-bold text-xs transition cursor-pointer ${isSelected ? 'active bg-indigo-600 text-white border-indigo-600 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
                 btn.innerText = i;
                 btn.onclick = () => {
                     selectedDigit = i;
@@ -1030,6 +1031,20 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function saveStrategyToLocal() {
+            localStorage.setItem('saved_trading_strategy', JSON.stringify(defaultStrategyData));
+            alert("Strategi berhasil disimpan ke penyimpanan lokal (LocalStorage)!");
+        }
+
+        function loadSavedStrategy() {
+            const saved = localStorage.getItem('saved_trading_strategy');
+            if (saved) {
+                try {
+                    defaultStrategyData = JSON.parse(saved);
+                } catch(e) {}
+            }
         }
 
         function deleteLastRow() {
