@@ -22,10 +22,10 @@
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
         }
-        .digit-btn, .choice-btn, .subtab-btn {
+        .digit-btn, .choice-btn {
             transition: all 0.2s ease;
         }
-        .digit-btn.active, .choice-btn.active, .subtab-btn.active {
+        .digit-btn.active, .choice-btn.active {
             background-color: #0f172a !important;
             color: #ffffff !important;
             border-color: #0f172a !important;
@@ -141,20 +141,10 @@
 
                     <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
                         <div class="flex items-center space-x-2">
-                            <button type="button" onclick="openAddModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer">Add Level (+)</button>
+                            <!-- TOMBOL ADD LEVEL DILINDUNGI STATUS KONEKSI AKUN -->
+                            <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-3 py-1.5 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition">Add Level (+) [Menunggu Akun Terhubung]</button>
                             <button type="button" onclick="deleteLastRow()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer">Delete Last</button>
                             <button type="button" onclick="clearStrategy()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer">Clear</button>
-                        </div>
-
-                        <div class="flex items-center space-x-6 font-semibold">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-slate-600">Target Profit:</span>
-                                <input type="number" id="target-profit" value="10" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold text-xs">
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-slate-600">Stop Loss:</span>
-                                <input type="number" id="stop-loss" value="-33" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold text-xs">
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -186,20 +176,6 @@
                             </tbody>
                         </table>
                     </div>
-
-                    <div class="p-3 bg-slate-50 border-t border-slate-300 flex flex-wrap items-center justify-between text-xs font-semibold">
-                        <button type="button" onclick="clearContractTable()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded shadow-sm cursor-pointer">Clear Contract Table</button>
-                        <div class="flex items-center space-x-6">
-                            <div>Trade Count : <span id="stat-trade-count" class="font-bold text-slate-800">0</span></div>
-                            <div>Total Stake : <span id="stat-total-stake" class="font-bold text-slate-800">0</span></div>
-                            <div>Loss Count : <span id="stat-loss-count" class="font-bold text-rose-600">0</span></div>
-                            <div>Profit Count : <span id="stat-profit-count" class="font-bold text-emerald-600">0</span></div>
-                            <div class="bg-slate-100 border border-slate-300 px-3 py-1 rounded text-right">
-                                <span class="block text-[10px] text-slate-500 uppercase">Total Profit</span>
-                                <span id="stat-total-profit" class="text-xs font-black text-slate-800">0</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
             </main>
@@ -217,31 +193,16 @@
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-2 font-bold text-slate-800">Level 1</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">Volatility 100 Index</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Touch / No Touch</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start time</td><td id="pf-starttime" class="p-2 font-mono text-slate-600">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-2 font-mono text-slate-600">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">0s</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Entry spot</td><td id="pf-entry" class="p-2 font-mono text-slate-700">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">10.00</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">+0.676</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-emerald-600 font-bold">$3.35</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">$2.00</td></tr>
                                 <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">0.00</td></tr>
                             </tbody>
                         </table>
                     </div>
-
-                    <div class="grid grid-cols-2 gap-1.5 pt-1">
-                        <button type="button" onclick="alert('Bot dimulai!')" class="py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer">RUN BOT</button>
-                        <button type="button" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer">SELL & CONTINUE</button>
-                        <button type="button" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer">SELL & STOP</button>
-                        <button type="button" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer">STOP LEVEL</button>
-                    </div>
-                    <button type="button" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow text-xs cursor-pointer">STOP TRADE</button>
                 </div>
 
                 <div class="text-center text-xs text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
-                    <span id="conn-status-indicator" class="flex items-center"><span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected</span>
+                    <span id="conn-status-indicator" class="flex items-center"><span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Menunggu Akun</span>
                     <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
                 </div>
             </aside>
@@ -295,10 +256,10 @@
                     <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
                 </div>
 
-                <!-- CONTAINER DINAMIS DIGIT PREDICTION -->
+                <!-- CONTAINER DIGIT PREDICTION -->
                 <div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
                     <div id="digit-grid-wrapper" class="space-y-2">
-                        <span class="font-bold text-slate-700 block" id="digit-prediction-label">Last digit prediction</span>
+                        <span class="font-bold text-slate-700 block">Last digit prediction</span>
                         <div class="grid grid-cols-5 gap-2" id="digit-grid"></div>
                     </div>
                 </div>
@@ -306,8 +267,7 @@
                 <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
                     <div>
                         <div class="flex justify-between items-center">
-                            <label id="duration-label" class="font-medium text-slate-600">Duration</label>
-                            <span id="min-duration-info" class="text-[11px] text-teal-600 font-semibold">Min: 5t</span>
+                            <label class="font-medium text-slate-600">Duration</label>
                         </div>
                         <div class="flex space-x-1 mt-1">
                             <input type="number" id="modal-duration" value="10" min="1" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 text-xs">
@@ -322,7 +282,6 @@
                     <div>
                         <div class="flex justify-between items-center">
                             <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
-                            <span id="min-stake-info" class="text-[11px] text-amber-600 font-semibold">Min Stake: $0.35</span>
                         </div>
                         <input type="number" step="0.01" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1 text-xs">
                     </div>
@@ -330,7 +289,7 @@
 
                 <!-- BARRIER CONTAINER -->
                 <div id="barrier-container" class="pt-2 border-t border-slate-200">
-                    <label class="font-medium text-slate-600 block mb-1">Barrier Offset</label>
+                    <label class="font-medium text-slate-600 block mb-1">Barrier Offset (Dari Respons contracts_for)</label>
                     <input type="text" id="modal-barrier" value="+0.68" placeholder="+0.68" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 font-mono font-bold text-slate-800 text-xs">
                 </div>
 
@@ -345,7 +304,7 @@
                     </div>
                 </div>
 
-                <!-- PANEL LOG TRANSMISI DATA WEBSOCKET -->
+                <!-- PANEL LOG TRANSMISI DATA -->
                 <div class="pt-2 border-t border-slate-200 space-y-1">
                     <div class="flex justify-between items-center text-[11px]">
                         <span class="font-bold text-slate-600">Monitor Transmisi Data API (Live Log)</span>
@@ -375,6 +334,8 @@
         let currentEstimatedPayout = 3.35;
         let accessToken = null;
         let accountsList = [];
+        let isAccountConnected = false;
+        let lastContractsForResponse = null;
 
         let defaultStrategyData = [
             { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.68", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
@@ -541,7 +502,13 @@
                 if (result.data && result.data.length > 0) {
                     accountsList = result.data;
                     renderAccountsDropdown(accountsList);
-                    await selectAndConnectAccount(accountsList[0].account_id, token);
+
+                    // PRIORITAS AKUN DEMO SAAT BARU LOGIN
+                    let targetAccount = accountsList.find(acc => acc.account_type === 'demo');
+                    if (!targetAccount) targetAccount = accountsList[0]; // Fallback ke akun pertama jika demo tidak ada
+
+                    logMsg(`Akun terpilih (Prioritas Demo): ${targetAccount.account_id}`);
+                    await selectAndConnectAccount(targetAccount.account_id, token);
                 } else {
                     logMsg("Gagal memuat akun atau token invalid.", 'ERR');
                 }
@@ -570,6 +537,8 @@
 
         async function selectAndConnectAccount(accountId, token) {
             try {
+                isAccountConnected = false;
+                updateModalButtonState();
                 logMsg(`Meminta OTP WebSocket untuk akun ${accountId}...`);
                 const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${accountId}/otp`, {
                     method: "POST",
@@ -599,6 +568,11 @@
                 const balanceReq = { balance: 1, subscribe: 1, req_id: 3 };
                 logMsg(`SEND -> ${JSON.stringify(balanceReq)}`, 'SEND');
                 ws.send(JSON.stringify(balanceReq));
+
+                // AKUN SUDAH CONNECT: IZINKAN BUKA POPUP
+                isAccountConnected = true;
+                updateModalButtonState();
+                document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Terhubung';
             };
 
             ws.onmessage = (msg) => {
@@ -615,14 +589,32 @@
                     document.getElementById('account-type-label').className = isDemo ? "text-amber-600 text-[11px]" : "text-slate-500 text-[11px]";
                 }
 
-                // Respon dari contracts_for untuk menyesuaikan trade type / opsi
+                // 1. RESPON contracts_for DITERIMA DULU (BARRIER DIAMBIL DARI SINI)
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
-                    logMsg(`Respon contracts_for diterima, menyesuaikan trade type...`, 'RECV');
-                    // Setelah contracts_for diterima, lanjut kirim request proposal
+                    logMsg(`Respon contracts_for diterima. Menyesuaikan barrier & mengirim proposal...`, 'RECV');
+                    lastContractsForResponse = data.contracts_for;
+                    
+                    // Ambil barrier dari contracts_for jika tersedia
+                    let contractsArray = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
+                    if (contractsArray.length > 0) {
+                        const activeTradeType = document.getElementById('modal-trade-type').value;
+                        const matchedContract = contractsArray.find(c => {
+                            if (activeTradeType === 'Touch/No Touch') return c.contract_type === 'NOTOUCH' || c.contract_type === 'ONETOUCH';
+                            if (activeTradeType === 'Higher/Lower') return c.contract_type === 'HIGHER' || c.contract_type === 'LOWER';
+                            return true;
+                        });
+
+                        if (matchedContract && matchedContract.barrier) {
+                            document.getElementById('modal-barrier').value = matchedContract.barrier;
+                            logMsg(`Barrier otomatis diset dari contracts_for: ${matchedContract.barrier}`);
+                        }
+                    }
+
+                    // 2. SEBELUM ADA RESPON contracts_for, PROPOSAL TIDAK DIKIRIM. KINI BARU KIRIM PROPOSAL.
                     requestProposalUpdate();
                 }
 
-                // Respon dari proposal
+                // 3. RESPON PROPOSAL
                 if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
                     const banner = document.getElementById('api-status-banner');
                     currentEstimatedPayout = parseFloat(data.proposal.payout);
@@ -649,7 +641,26 @@
                 }
             };
 
-            ws.onclose = () => logMsg("WebSocket akun terputus.", 'ERR');
+            ws.onclose = () => {
+                isAccountConnected = false;
+                updateModalButtonState();
+                logMsg("WebSocket akun terputus.", 'ERR');
+                document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Terputus';
+            };
+        }
+
+        function updateModalButtonState() {
+            const btn = document.getElementById('btn-open-modal');
+            if (!btn) return;
+            if (isAccountConnected) {
+                btn.disabled = false;
+                btn.className = "px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer transition";
+                btn.innerText = "Add Level (+)";
+            } else {
+                btn.disabled = true;
+                btn.className = "px-3 py-1.5 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition";
+                btn.innerText = "Add Level (+) [Menunggu Akun Terhubung]";
+            }
         }
 
         function setApiPendingStatus(message) {
@@ -694,7 +705,7 @@
             onSubmarketChange();
         }
 
-        // Saat submarket berubah: Kirim contracts_for -> respon menyesuaikan trade type -> kirim proposal
+        // PADA SAAT PERUBAHAN SUBMARKET: KIRIM contracts_for TERLEBIH DAHULU
         function onSubmarketChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
@@ -704,7 +715,7 @@
             if (symbol && symbol !== "undefined") {
                 const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
                 if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                    setApiPendingStatus("Mengirim request contracts_for & proposal...");
+                    setApiPendingStatus("Mengirim request contracts_for (Menunggu respon barrier)...");
                     const contractsReq = { contracts_for: symbol, req_id: 2 };
                     logMsg(`SEND -> ${JSON.stringify(contractsReq)}`, 'SEND');
                     targetWs.send(JSON.stringify(contractsReq));
@@ -714,39 +725,23 @@
 
         function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
-            if (!subMarketSelect || !subMarketSelect.value) {
-                logMsg("Peringatan: Submarket / Simbol belum dipilih.", "ERR");
-                return;
-            }
+            if (!subMarketSelect || !subMarketSelect.value) return;
 
             const parts = subMarketSelect.value.split('|');
             const underlyingSymbol = parts[1];
-
-            if (!underlyingSymbol || underlyingSymbol === "undefined") {
-                logMsg("Error: Simbol aset bernilai undefined.", "ERR");
-                return;
-            }
+            if (!underlyingSymbol || underlyingSymbol === "undefined") return;
 
             const tradeType = document.getElementById('modal-trade-type').value;
             const duration = parseInt(document.getElementById('modal-duration').value) || 10;
             const durationUnit = document.getElementById('modal-duration-unit').value;
             const amount = parseFloat(document.getElementById('modal-amount').value) || 2.0;
-            
-            let rawBarrier = document.getElementById('modal-barrier').value.trim();
-            let barrier = rawBarrier;
-            if (rawBarrier && !isNaN(parseFloat(rawBarrier))) {
-                const numVal = parseFloat(rawBarrier);
-                const formatted = numVal.toFixed(2);
-                barrier = (numVal > 0 ? '+' : '') + formatted;
-                document.getElementById('modal-barrier').value = barrier;
-            }
+            const barrier = document.getElementById('modal-barrier').value.trim();
 
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
             setApiPendingStatus("Mengirim request proposal baru ke API...");
 
             const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
             if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                // Pemetaan Resmi Deriv API Contract Types
                 let contractTypeApi = "NOTOUCH";
                 if (tradeType === 'Touch/No Touch') {
                     contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
@@ -764,6 +759,7 @@
 
                 const req = {
                     proposal: 1,
+                    subscribe: 0,
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
@@ -803,7 +799,6 @@
                 unitSelect.disabled = true;
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.remove('hidden');
-                document.getElementById('digit-grid-wrapper').classList.remove('hidden');
                 renderDigitGrid();
             } else if (tradeType === 'Even/Odd') {
                 unitSelect.value = 't';
@@ -829,35 +824,15 @@
             container.innerHTML = '';
 
             let choices = [];
-            if (tradeType === 'Rise/Fall') {
-                choices = ['Rise', 'Fall'];
-                label.innerText = 'Prediction Direction';
-                wrapper.classList.remove('hidden');
-            } else if (tradeType === 'Higher/Lower') {
-                choices = ['Higher', 'Lower'];
-                label.innerText = 'Barrier Type';
-                wrapper.classList.remove('hidden');
-            } else if (tradeType === 'Touch/No Touch') {
-                choices = ['Touch', 'No Touch'];
-                label.innerText = 'Touch Type';
-                wrapper.classList.remove('hidden');
-            } else if (tradeType === 'Matches/Differs') {
-                choices = ['Matches', 'Differs'];
-                label.innerText = 'Digit Contract Type';
-                wrapper.classList.remove('hidden');
-            } else if (tradeType === 'Over/Under') {
-                choices = ['Over', 'Under'];
-                label.innerText = 'Digit Contract Type';
-                wrapper.classList.remove('hidden');
-            } else if (tradeType === 'Even/Odd') {
-                choices = ['Even', 'Odd'];
-                label.innerText = 'Digit Contract Type';
-                wrapper.classList.remove('hidden');
-            } else {
-                wrapper.classList.add('hidden');
-                return;
-            }
+            if (tradeType === 'Rise/Fall') choices = ['Rise', 'Fall'];
+            else if (tradeType === 'Higher/Lower') choices = ['Higher', 'Lower'];
+            else if (tradeType === 'Touch/No Touch') choices = ['Touch', 'No Touch'];
+            else if (tradeType === 'Matches/Differs') choices = ['Matches', 'Differs'];
+            else if (tradeType === 'Over/Under') choices = ['Over', 'Under'];
+            else if (tradeType === 'Even/Odd') choices = ['Even', 'Odd'];
+            else { wrapper.classList.add('hidden'); return; }
 
+            wrapper.classList.remove('hidden');
             if (!choices.includes(selectedChoice)) selectedChoice = choices[0];
 
             choices.forEach(choiceName => {
@@ -895,12 +870,18 @@
             }
         }
 
-        // Saat popup modal baru dibuka: kirim contracts_for -> respon menyesuaikan trade type -> kirim proposal
+        // PADA SAAT BUKA POPUP: CEK APAKAH AKUN SUDAH CONNECT
         function openAddModal() {
+            if (!isAccountConnected) {
+                alert("Akun belum terhubung! Harap tunggu hingga koneksi akun selesai.");
+                return;
+            }
+
             document.getElementById('add-strategy-modal').classList.remove('hidden');
             onMarketCategoryChange();
             onTradeTypeChange();
 
+            // Kirim contracts_for saat popup baru dibuka
             const subMarketSelect = document.getElementById('modal-submarket');
             if (subMarketSelect && subMarketSelect.value) {
                 const parts = subMarketSelect.value.split('|');
@@ -908,7 +889,7 @@
                 if (symbol && symbol !== "undefined") {
                     const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
                     if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                        setApiPendingStatus("Membuka modal: Mengirim contracts_for & proposal...");
+                        setApiPendingStatus("Membuka modal: Mengirim contracts_for...");
                         const contractsReq = { contracts_for: symbol, req_id: 2 };
                         logMsg(`SEND (Popup Open) -> ${JSON.stringify(contractsReq)}`, 'SEND');
                         targetWs.send(JSON.stringify(contractsReq));
@@ -926,25 +907,17 @@
             const subMarketSelect = document.getElementById('modal-submarket');
             const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex] ? subMarketSelect.options[subMarketSelect.selectedIndex].text : '';
             const tradeType = document.getElementById('modal-trade-type').value;
-            const durationAmount = document.getElementById('modal-duration').value;
-            const durationUnitEl = document.getElementById('modal-duration-unit');
-
-            let unitText = "Ticks";
-            const valUnit = durationUnitEl.value;
-            if (valUnit === 's') unitText = "Seconds";
-            else if (valUnit === 'm') unitText = "Minutes";
-            else if (valUnit === 'h') unitText = "Hours";
 
             const newItem = {
                 level: defaultStrategyData.length + 1,
                 contract_type: tradeType,
-                market: marketCat === 'synthetic_index' ? 'Derived' : (marketCat === 'forex' ? 'Forex' : 'Crypto'),
+                market: marketCat === 'synthetic_index' ? 'Derived' : 'Forex',
                 submarket: subMarketText,
                 purchase_type: selectedChoice,
                 barrier: document.getElementById('modal-barrier').value,
                 last_digit: ['Matches/Differs', 'Over/Under'].includes(tradeType) ? selectedDigit : "",
-                duration_amount: durationAmount,
-                duration_unit: unitText,
+                duration_amount: document.getElementById('modal-duration').value,
+                duration_unit: document.getElementById('modal-duration-unit').value,
                 amount: parseFloat(document.getElementById('modal-amount').value),
                 payout: currentEstimatedPayout
             };
@@ -970,7 +943,7 @@
                     <td><input type="text" value="${item.barrier || ''}" class="font-mono font-bold text-slate-700"></td>
                     <td><input type="text" value="${item.last_digit || ''}" class="font-bold text-indigo-600 text-center"></td>
                     <td><input type="number" value="${item.duration_amount}"></td>
-                    <td><select><option ${item.duration_unit === 'Ticks' ? 'selected' : ''}>Ticks</option><option ${item.duration_unit === 'Seconds' ? 'selected' : ''}>Seconds</option><option ${item.duration_unit === 'Minutes' ? 'selected' : ''}>Minutes</option><option ${item.duration_unit === 'Hours' ? 'selected' : ''}>Hours</option></select></td>
+                    <td><select><option>Ticks</option><option>Seconds</option></select></td>
                     <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
                     <td class="font-bold text-emerald-600">$${(item.payout || 3.35).toFixed(2)}</td>
                 `;
@@ -988,11 +961,6 @@
         function clearStrategy() {
             defaultStrategyData = [];
             renderStrategyTable(defaultStrategyData);
-        }
-
-        function clearContractTable() {
-            const tbody = document.getElementById('contract-table-body');
-            if(tbody) tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td></tr>';
         }
     </script>
 </body>
