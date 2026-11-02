@@ -115,8 +115,8 @@
                 
                 <!-- STRATEGY MANAGEMENT PANEL -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col">
-                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase">
-                        STRATEGY MANAGEMENT PANEL
+                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase flex justify-between items-center">
+                        <span>STRATEGY MANAGEMENT PANEL</span>
                     </div>
 
                     <div class="overflow-x-auto max-h-36">
@@ -145,7 +145,7 @@
                             <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+) [Menunggu Akun]</button>
                             <button type="button" onclick="deleteLastRow()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Delete Last</button>
                             <button type="button" onclick="clearStrategy()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Clear</button>
-                            <button type="button" onclick="saveStrategyToLocal()" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer text-[11px]">Save Strategy</button>
+                            <button type="button" onclick="saveStrategyToLocal()" class="bg-teal-700 hover:bg-teal-800 text-white px-2.5 py-1 rounded text-[11px] font-semibold cursor-pointer shadow-sm">Save Strategy</button>
                         </div>
                     </div>
                 </div>
@@ -181,10 +181,10 @@
 
             </main>
 
-            <!-- PANEL KANAN: TRADING RUNNING PERMANEN & TOMBOL SESUAI TRADE4(1) -->
-            <aside id="right-panel" class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
-                <div id="panel-portfolio" class="space-y-3 flex flex-col h-full">
-                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-xs tracking-wider uppercase rounded">
+            <!-- PANEL KANAN: TRADING RUNNING PERMANEN & DENGAN STRUKTUR TOMBOL LENGKAP -->
+            <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs">
+                <div id="panel-portfolio" class="space-y-2.5 flex flex-col h-full">
+                    <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase rounded">
                         TRADING RUNNING
                     </div>
 
@@ -199,7 +199,7 @@
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">0s</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Entry spot</td><td id="pf-entry" class="p-2 font-mono text-slate-700">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">10.00</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">+0.46</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">+0.676</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-emerald-600 font-bold">$3.35</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">$2.00</td></tr>
@@ -208,17 +208,17 @@
                         </table>
                     </div>
 
-                    <!-- Tombol Kontrol Eksak Sesuai trade4(1) -->
+                    <!-- Tombol Kontrol Aksional -->
                     <div class="grid grid-cols-2 gap-1.5 pt-1">
                         <button type="button" onclick="botAction('run_bot')" class="py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer">RUN BOT</button>
-                        <button type="button" onclick="botAction('sell_continue')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer">SELL & CONTINUE</button>
-                        <button type="button" onclick="botAction('sell_stop')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer">SELL & STOP</button>
-                        <button type="button" onclick="botAction('stop_level')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer">STOP LEVEL</button>
+                        <button type="button" onclick="botAction('sell_continue')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer text-slate-700">SELL & CONTINUE</button>
+                        <button type="button" onclick="botAction('sell_stop')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer text-slate-700">SELL & STOP</button>
+                        <button type="button" onclick="botAction('stop_level')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer text-slate-700">STOP LEVEL</button>
                     </div>
                     <button type="button" onclick="botAction('stop_trade')" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow text-xs cursor-pointer">STOP TRADE</button>
                 </div>
 
-                <div class="text-center text-xs text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
+                <div class="text-center text-[11px] text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
                     <span id="conn-status-indicator" class="flex items-center"><span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Menunggu Akun</span>
                     <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
                 </div>
@@ -300,7 +300,7 @@
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
-                            <span class="text-[10px] text-slate-400 font-semibold">Min: $0.35</span>
+                            <span id="amount-min-label" class="text-[10px] text-slate-400 font-semibold">Min: $0.35</span>
                         </div>
                         <input type="number" step="1.00" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-1.5 font-bold text-teal-700 text-xs">
                     </div>
@@ -679,12 +679,47 @@
                             return true;
                         });
 
-                        const barrierInput = document.getElementById('modal-barrier');
-                        if (matchedContract && matchedContract.barrier) {
-                            barrierInput.value = matchedContract.barrier;
+                        if (matchedContract) {
+                            // 1. SET DURASI & MIN DURATION DARI API
+                            if (matchedContract.min_contract_duration) {
+                                const minDurStr = matchedContract.min_contract_duration; // Contoh: "5t"
+                                const minDurVal = parseInt(minDurStr) || 1;
+                                
+                                const durationInput = document.getElementById('modal-duration');
+                                durationInput.value = minDurVal;
+                                durationInput.min = minDurVal;
+
+                                const minLabel = document.getElementById('duration-min-label');
+                                if (minLabel) minLabel.innerText = `Min: ${minDurStr}`;
+                            }
+
+                            // 2. SET STAKE DEFAULT DARI API UNTUK AMOUNT
+                            if (matchedContract.default_stake !== undefined) {
+                                const stakeVal = parseFloat(matchedContract.default_stake) || 2.00;
+                                const amountInput = document.getElementById('modal-amount');
+                                amountInput.value = stakeVal.toFixed(2);
+                                amountInput.min = stakeVal.toFixed(2);
+
+                                const stakeLabel = document.getElementById('amount-min-label');
+                                if (stakeLabel) stakeLabel.innerText = `Min: $${stakeVal.toFixed(2)}`;
+                            }
+
+                            // 3. SET BARRIER
+                            const barrierInput = document.getElementById('modal-barrier');
+                            if (matchedContract.barrier) {
+                                barrierInput.value = matchedContract.barrier;
+                            }
                         } else {
                             const tickFallback = contractsArray.find(c => c.expiry_type === 'tick' && c.barrier);
-                            if (tickFallback) barrierInput.value = tickFallback.barrier;
+                            if (tickFallback) {
+                                document.getElementById('modal-barrier').value = tickFallback.barrier;
+                                if (tickFallback.min_contract_duration) {
+                                    document.getElementById('modal-duration').value = parseInt(tickFallback.min_contract_duration) || 1;
+                                }
+                                if (tickFallback.default_stake !== undefined) {
+                                    document.getElementById('modal-amount').value = parseFloat(tickFallback.default_stake).toFixed(2);
+                                }
+                            }
                         }
                     }
 
@@ -797,27 +832,6 @@
         }
 
         function onDurationUnitChange() {
-            const unit = document.getElementById('modal-duration-unit').value;
-            const durationInput = document.getElementById('modal-duration');
-            const minLabel = document.getElementById('duration-min-label');
-
-            if (unit === 't') {
-                durationInput.value = "1";
-                durationInput.min = "1";
-                minLabel.innerText = "Min: 1t";
-            } else if (unit === 's') {
-                durationInput.value = "15";
-                durationInput.min = "15";
-                minLabel.innerText = "Min: 15s";
-            } else if (unit === 'm') {
-                durationInput.value = "1";
-                durationInput.min = "1";
-                minLabel.innerText = "Min: 1m";
-            } else if (unit === 'h') {
-                durationInput.value = "1";
-                durationInput.min = "1";
-                minLabel.innerText = "Min: 1h";
-            }
             requestProposalUpdate();
         }
 
@@ -1064,8 +1078,7 @@
         }
 
         function botAction(actionType) {
-            logMsg(`Aksi bot dipicu: ${actionType}`);
-            alert(`Aksi bot '${actionType}' dijalankan!`);
+            logMsg(`Aksi Tombol Kontrol: ${actionType}`);
         }
 
         function deleteLastRow() {
@@ -1082,4 +1095,3 @@
     </script>
 </body>
 </html>
-`
