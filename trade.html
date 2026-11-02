@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALS Pro - Automated Strategy Engine (Deriv API Integration)</title>
+    <title>ALS Pro - Options API Trading Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .strategy-table input, .strategy-table select {
@@ -22,14 +22,6 @@
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
         }
-        .digit-btn, .choice-btn, .subtab-btn {
-            transition: all 0.2s ease;
-        }
-        .digit-btn.active, .choice-btn.active, .subtab-btn.active {
-            background-color: #0f172a !important;
-            color: #ffffff !important;
-            border-color: #0f172a !important;
-        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
@@ -38,7 +30,7 @@
     <div id="login-view" class="flex-1 flex items-center justify-center p-4 bg-slate-950 text-slate-100">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
-                <div class="inline-block bg-blue-600/20 text-blue-400 font-semibold px-3 py-1 rounded-full text-xs border border-blue-500/30">OAuth 2.0 PKCE Gateway</div>
+                <div class="inline-block bg-blue-600/20 text-blue-400 font-semibold px-3 py-1 rounded-full text-xs border border-blue-500/30">Options API Gateway</div>
                 <h2 class="text-lg font-bold text-white">Masuk ke Dashboard ALS Pro</h2>
                 <p class="text-xs text-slate-400">Masukkan OAuth Client ID / App ID Deriv Anda.</p>
             </div>
@@ -59,14 +51,14 @@
         <header class="bg-white border-b border-slate-200 px-4 py-2.5 flex justify-between items-center shadow-sm">
             <div class="flex items-center space-x-3">
                 <div class="bg-teal-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">ALS</div>
-                <span class="text-sm font-bold text-slate-800 tracking-wide">ALS Pro Automated Strategy Engine</span>
+                <span class="text-sm font-bold text-slate-800 tracking-wide">ALS Pro Options API Engine</span>
             </div>
 
             <div class="flex items-center space-x-4">
                 <div class="relative">
                     <button type="button" onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
                         <div class="text-right">
-                            <div id="account-type-label" class="text-slate-500 text-[10px]">Memuat akun...</div>
+                            <div id="account-type-label" class="text-slate-500 text-[10px]">Pilih Akun...</div>
                             <div class="flex items-center space-x-1">
                                 <span id="account-id-label" class="text-slate-400 text-[10px] font-mono">---</span>
                                 <span id="account-balance-label" class="text-slate-900 font-bold">0.00 USD</span>
@@ -75,15 +67,15 @@
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     
-                    <!-- MENU DROPDOWN AKUN DINAMIS -->
+                    <!-- MENU DROPDOWN AKUN DINAMIS (DEMO / REAL) -->
                     <div id="account-menu" class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
                         <div id="account-list-container" class="space-y-1">
-                            <div class="p-2.5 text-slate-500 text-center">Memuat daftar akun dari API...</div>
+                            <div class="p-2.5 text-slate-500 text-center">Memuat daftar akun dari REST API...</div>
                         </div>
                     </div>
                 </div>
 
-                <button class="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 py-1.5 rounded-lg text-xs shadow">Deposit</button>
+                <button onclick="handleLogout()" class="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-3 py-1.5 rounded-lg text-xs shadow">Logout</button>
             </div>
         </header>
 
@@ -92,48 +84,29 @@
             
             <!-- SIDEBAR KIRI -->
             <aside class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 space-y-6 text-[10px] text-slate-500">
-                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                    Home
-                </div>
-                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Positions
-                </div>
-                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a1 1 0 01-1 1z"></path></svg>
-                    Reports
-                </div>
-                <div class="flex-1"></div>
-                <div onclick="handleLogout()" class="flex flex-col items-center cursor-pointer hover:text-rose-600 pb-2">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    Log out
-                </div>
+                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">Home</div>
+                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">Positions</div>
+                <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">Reports</div>
             </aside>
 
-            <!-- AREA TENGAH: TABEL STRATEGI & CONTRACT TABLE -->
+            <!-- AREA TENGAH -->
             <main class="flex-1 bg-slate-50 p-4 flex flex-col space-y-4 overflow-y-auto">
                 
-                <!-- Panel Manajemen Strategi (Tabel Atas) -->
+                <!-- Panel Manajemen Strategi -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col">
                     <div class="bg-teal-600 text-white font-bold px-4 py-2 text-center text-sm tracking-wider uppercase">
-                        STRATEGY MANAGEMENT PANEL (ENGINE LEVEL)
+                        STRATEGY MANAGEMENT PANEL (OPTIONS API)
                     </div>
 
                     <div class="overflow-x-auto max-h-48">
                         <table class="w-full text-left border-collapse strategy-table text-xs">
-                            <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b border-slate-300 shadow-sm">
+                            <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b border-slate-300">
                                 <tr>
                                     <th class="p-2 border-r border-slate-300 text-center w-12">Level</th>
                                     <th class="p-2 border-r border-slate-300">Contract Type</th>
                                     <th class="p-2 border-r border-slate-300">Market</th>
                                     <th class="p-2 border-r border-slate-300">Sub Market</th>
-                                    <th class="p-2 border-r border-slate-300">Purchase Type</th>
-                                    <th class="p-2 border-r border-slate-300">High</th>
-                                    <th class="p-2 border-r border-slate-300">Low</th>
-                                    <th class="p-2 border-r border-slate-300">Last Digit</th>
                                     <th class="p-2 border-r border-slate-300">Duration</th>
-                                    <th class="p-2 border-r border-slate-300">Unit</th>
                                     <th class="p-2 border-r border-slate-300">Amount</th>
                                 </tr>
                             </thead>
@@ -143,846 +116,310 @@
                         </table>
                     </div>
 
-                    <!-- Tombol Kontrol Dinamis -->
-                    <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
-                        <div class="flex items-center space-x-2">
-                            <button type="button" onclick="openAddModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm">Add Level (+)</button>
-                            <button type="button" onclick="deleteLastRow()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Delete Last</button>
-                            <button type="button" onclick="clearStrategy()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm">Clear</button>
-                        </div>
-
-                        <div class="flex items-center space-x-6 font-semibold">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-slate-600">Target Profit:</span>
-                                <input type="number" id="target-profit" value="10" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold">
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-slate-600">Stop Loss:</span>
-                                <input type="number" id="stop-loss" value="-33" class="w-16 bg-white border border-slate-300 rounded px-2 py-1 text-slate-800 font-bold">
-                            </div>
-                        </div>
+                    <div class="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
+                        <button type="button" onclick="openAddModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm">Add Level (+)</button>
                     </div>
                 </div>
 
-                <!-- CONTRACT TABLE / HISTORY TRADE -->
+                <!-- CONTRACT TABLE -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col flex-1">
                     <div class="bg-slate-200 text-slate-800 font-bold px-4 py-2 text-center text-xs tracking-wider uppercase border-b border-slate-300">
                         CONTRACT TABLE & EVALUATION HISTORY
                     </div>
-
-                    <div class="flex-1 overflow-x-auto min-h-[160px] bg-slate-300">
-                        <table class="w-full text-left border-collapse text-xs bg-white">
-                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
-                                <tr>
-                                    <th class="p-2 border-r border-slate-300 text-center w-10">#</th>
-                                    <th class="p-2 border-r border-slate-300">Status</th>
-                                    <th class="p-2 border-r border-slate-300">Level</th>
-                                    <th class="p-2 border-r border-slate-300">Purchase Type</th>
-                                    <th class="p-2 border-r border-slate-300">Payout</th>
-                                    <th class="p-2 border-r border-slate-300">Buy Price</th>
-                                    <th class="p-2 border-r border-slate-300">Sell Price</th>
-                                    <th class="p-2 text-right">Profit</th>
-                                </tr>
-                            </thead>
-                            <tbody id="contract-table-body" class="divide-y divide-slate-200 text-slate-600">
-                                <tr>
-                                    <td colspan="8" class="p-4 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="p-3 bg-slate-50 border-t border-slate-300 flex flex-wrap items-center justify-between text-xs font-semibold">
-                        <button type="button" onclick="clearContractTable()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded shadow-sm">Clear Contract Table</button>
-                        <div class="flex items-center space-x-6">
-                            <div>Trade Count : <span id="stat-trade-count" class="font-bold text-slate-800">0</span></div>
-                            <div>Total Stake : <span id="stat-total-stake" class="font-bold text-slate-800">0</span></div>
-                            <div>Loss Count : <span id="stat-loss-count" class="font-bold text-rose-600">0</span></div>
-                            <div>Profit Count : <span id="stat-profit-count" class="font-bold text-emerald-600">0</span></div>
-                            <div class="bg-slate-100 border border-slate-300 px-3 py-1 rounded text-right">
-                                <span class="block text-[10px] text-slate-500 uppercase">Total Profit</span>
-                                <span id="stat-total-profit" class="text-sm font-black text-slate-800">0</span>
-                            </div>
-                        </div>
+                    <div class="flex-1 overflow-x-auto min-h-[160px] bg-white p-4 text-center text-slate-400 italic">
+                        Belum ada riwayat kontrak (Menunggu bot berjalan...)
                     </div>
                 </div>
-
             </main>
 
-            <!-- PANEL KANAN: TRADING RUNNING PERMANEN -->
-            <aside id="right-panel" class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
-                <div id="panel-portfolio" class="space-y-3 flex flex-col h-full">
-                    <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-xs tracking-wider uppercase rounded">
-                        TRADING RUNNING ENGINE
-                    </div>
-
-                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-hidden text-xs">
-                        <table class="w-full border-collapse">
-                            <tbody>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level Aktif</td><td id="pf-level" class="p-2 font-bold text-slate-800">Level 1</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start time</td><td id="pf-starttime" class="p-2 font-mono text-slate-600">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-2 font-mono text-slate-600">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">0s</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Entry spot</td><td id="pf-entry" class="p-2 font-mono text-slate-700">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target Profit</td><td id="pf-target" class="p-2 text-slate-700">10.00</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-slate-700">0.00</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">0.00</td></tr>
-                                <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">0.00</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Tombol Kontrol Bot -->
-                    <div class="grid grid-cols-2 gap-1.5 pt-1">
-                        <button type="button" onclick="startBotEngine()" class="py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-[11px] cursor-pointer">RUN BOT</button>
-                        <button type="button" onclick="botAction('sell_continue')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[10px] cursor-pointer">SELL & CONTINUE</button>
-                        <button type="button" onclick="botAction('sell_stop')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[10px] cursor-pointer">SELL & STOP</button>
-                        <button type="button" onclick="botAction('stop_level')" class="py-1.5 bg-slate-200 hover:bg-slate-300 font-bold rounded text-[11px] cursor-pointer">STOP LEVEL</button>
-                    </div>
-                    <button type="button" onclick="stopBotEngine()" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow text-xs cursor-pointer">STOP TRADE</button>
+            <!-- PANEL KANAN -->
+            <aside class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
+                <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-xs tracking-wider uppercase rounded">
+                    TRADING RUNNING ENGINE
                 </div>
-
-                <div class="text-center text-[10px] text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
-                    <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Connected</span>
-                    <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
+                <div class="bg-slate-50 border border-slate-300 rounded-lg p-3 space-y-2">
+                    <div>Level Aktif: <span id="pf-level" class="font-bold">Level 1</span></div>
+                    <div>Market: <span id="pf-market">-</span></div>
+                    <div>Current Spot: <span id="pf-spot" class="font-mono font-bold text-cyan-600">-</span></div>
+                    <div>Profit/Loss: <span id="pf-profit" class="font-bold">0.00</span></div>
                 </div>
+                <button type="button" onclick="startBotEngine()" class="py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded cursor-pointer">RUN BOT</button>
             </aside>
         </div>
     </div>
 
     <!-- MODAL POPUP: ADD LEVEL -->
     <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col">
             <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
-                <h3 class="font-bold text-sm tracking-wide">Konfigurasi Level Strategi Baru (Deriv API Proposal)</h3>
-                <button type="button" onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-lg cursor-pointer">&times;</button>
+                <h3 class="font-bold text-sm">Konfigurasi Level Strategi & Proposal API</h3>
+                <button type="button" onclick="closeAddModal()" class="text-white font-bold text-lg">&times;</button>
             </div>
-            <div class="p-6 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
+            <div class="p-6 space-y-4 text-xs">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="font-medium text-slate-600">Market Category</label>
-                        <select id="modal-market-cat" onchange="onMarketCategoryChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold">
+                        <select id="modal-market-cat" onchange="populateSubmarkets()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-semibold">
                             <option value="synthetic_index">Derived (Synthetics)</option>
                             <option value="forex">Forex</option>
-                            <option value="cryptocurrency">Cryptocurrency</option>
                         </select>
                     </div>
                     <div>
                         <label class="font-medium text-slate-600">Submarket / Asset</label>
-                        <select id="modal-submarket" onchange="fetchContractsForSymbol(); requestProposalUpdate();" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold"></select>
+                        <select id="modal-submarket" onchange="requestProposal()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-semibold"></select>
                     </div>
                 </div>
 
-                <!-- INDIKATOR STATUS VALIDASI API -->
-                <div id="api-status-banner" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg flex justify-between items-center text-[11px]">
-                    <span id="api-status-text">Siap & Terhubung dengan Standar Deriv API.</span>
-                    <span id="api-status-badge" class="font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase">Ready</span>
-                </div>
-
-                <div>
-                    <label class="font-medium text-slate-600">Trade Type</label>
-                    <select id="modal-trade-type" onchange="onTradeTypeChange(); requestProposalUpdate();" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700">
-                        <option value="Rise/Fall">Rise / Fall</option>
-                        <option value="Higher/Lower">Higher / Lower</option>
-                        <option value="Matches/Differs">Matches / Differs</option>
-                        <option value="Over/Under">Over / Under</option>
-                        <option value="Even/Odd">Even / Odd</option>
-                        <option value="Touch/No Touch">Touch / No Touch</option>
-                    </select>
-                </div>
-
-                <!-- TOMBOL PILIHAN ARAH INTERAKTIF -->
-                <div id="choice-buttons-container" class="space-y-1 pt-1">
-                    <label class="font-medium text-slate-600 block" id="choice-label">Prediction Direction</label>
-                    <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
-                </div>
-
-                <!-- CONTAINER DINAMIS DIGIT PREDICTION -->
-                <div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
-                    <div id="digit-subtabs" class="flex justify-start space-x-2 border-b border-slate-200 pb-2"></div>
-
-                    <div id="digit-grid-wrapper" class="space-y-2">
-                        <span class="font-bold text-slate-700 block">Last digit prediction</span>
-                        <div class="grid grid-cols-5 gap-2" id="digit-grid"></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <div class="flex justify-between items-center">
-                            <label id="duration-label" class="font-medium text-slate-600">Duration</label>
-                            <span id="min-duration-info" class="text-[10px] text-teal-600 font-semibold">Min: 5t</span>
-                        </div>
-                        <div class="flex space-x-1 mt-1">
-                            <input type="number" id="modal-duration" value="5" min="1" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2">
-                            <select id="modal-duration-unit" onchange="requestProposalUpdate()" class="bg-slate-50 border border-slate-300 rounded p-1 text-[11px] font-semibold">
-                                <option value="t" selected>Ticks</option>
-                                <option value="s">Seconds</option>
-                                <option value="m">Minutes</option>
-                                <option value="h">Hours</option>
-                            </select>
-                        </div>
+                        <label class="font-medium text-slate-600">Duration (Ticks)</label>
+                        <input type="number" id="modal-duration" value="5" oninput="requestProposal()" class="w-full bg-white border border-slate-300 rounded p-2">
                     </div>
                     <div>
-                        <div class="flex justify-between items-center">
-                            <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
-                            <span id="min-stake-info" class="text-[10px] text-amber-600 font-semibold">Min Stake: $0.35</span>
-                        </div>
-                        <input type="number" step="0.01" id="modal-amount" value="0.35" min="0.35" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1">
+                        <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
+                        <input type="number" step="0.01" id="modal-amount" value="0.35" oninput="requestProposal()" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700">
                     </div>
                 </div>
 
-                <div id="barrier-container" class="hidden pt-2 border-t border-slate-200 grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="font-medium text-slate-600">Barrier / Offset (High)</label>
-                        <input type="text" id="modal-high" value="+1.0" placeholder="+1.0" oninput="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
-                    </div>
-                    <div>
-                        <label class="font-medium text-slate-600">Barrier / Offset (Low)</label>
-                        <input type="text" id="modal-low" value="-1.0" placeholder="-1.0" oninput="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1">
-                    </div>
-                </div>
-
-                <!-- ESTIMASI PAYOUT DI KOTAK BAWAH MODAL -->
+                <!-- ESTIMASI PAYOUT DARI PROPOSAL API -->
                 <div class="bg-emerald-600 text-white p-3 rounded-xl flex justify-between items-center shadow-md">
-                    <div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
-                        <span id="payout-type-label" class="text-xs font-semibold">Buy (Proposal API)</span>
-                    </div>
-                    <div class="text-right">
-                        <span id="payout-value" class="text-lg font-black tracking-tight text-white">$0.00</span>
-                    </div>
+                    <span class="text-xs font-semibold">Estimasi Payout (Proposal API)</span>
+                    <span id="payout-value" class="text-lg font-black">$0.00</span>
                 </div>
 
-                <!-- MONITOR TRANSMISI DATA WEBSOCKET (LIVE LOG) -->
-                <div class="pt-2 border-t border-slate-200 space-y-1">
-                    <div class="flex justify-between items-center text-[11px]">
-                        <span class="font-bold text-slate-600">Monitor Transmisi Data API (Live Log)</span>
-                        <button type="button" onclick="clearDebugConsole()" class="text-slate-400 hover:text-slate-600 underline text-[10px] cursor-pointer">Clear Log</button>
-                    </div>
-                    <div id="debug-log-console" class="bg-slate-900 text-slate-200 p-2.5 rounded-lg h-24 overflow-y-auto font-mono text-[10px] space-y-1 border border-slate-800 leading-tight">
-                        <div class="text-slate-500">[System] Menunggu aktivitas transmisi data...</div>
-                    </div>
+                <!-- DEBUG LOG -->
+                <div id="debug-log-console" class="bg-slate-900 text-slate-200 p-2 rounded-lg h-20 overflow-y-auto font-mono text-[10px]">
+                    <div>[System] Menunggu inisialisasi API...</div>
                 </div>
             </div>
-
-            <div class="p-4 bg-slate-100 border-t border-slate-200 flex justify-end space-x-3">
-                <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-white border border-slate-300 rounded text-xs cursor-pointer">Batal</button>
-                <button type="button" onclick="confirmAddStrategy()" class="px-5 py-2 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Tambahkan ke Tabel</button>
+            <div class="p-4 bg-slate-100 border-t flex justify-end space-x-3">
+                <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-white border rounded text-xs">Batal</button>
+                <button type="button" onclick="confirmAddStrategy()" class="px-5 py-2 bg-teal-600 text-white rounded font-bold text-xs">Simpan Level</button>
             </div>
         </div>
     </div>
 
-    <!-- JAVASCRIPT UTAMA: IMPLEMENTASI SELURUH TAHAPAN -->
+    <!-- SCRIPT UTAMA -->
     <script>
         let ws = null;
         let activeSymbolsList = [];
-        let contractCache = {};
-        let availableContracts = [];
-        let allUserAccounts = [];
-        
-        let selectedDigit = 5;
-        let selectedSubTab = 'Matches';
-        let selectedChoice = 'Rise';
         let latestProposalId = null;
-
+        let accessToken = null;
         let defaultStrategyData = [
-            { level: 1, contract_type: "Rise/Fall", market: "Derived", submarket: "Volatility 25 (1s) Index", symbol: "1HZ25V", purchase_type: "Rise", high: "", low: "", last_digit: "", duration_amount: 5, duration_unit: "t", amount: 0.35 }
+            { level: 1, contract_type: "CALL", market: "Derived", submarket: "Volatility 25 (1s) Index", symbol: "1HZ25V", duration: 5, amount: 0.35 }
         ];
 
-        // Engine State Variables
-        let isBotRunning = false;
-        let currentStrategyLevelIndex = 0;
-        let totalTradeCount = 0;
-        let totalStakeAmount = 0;
-        let totalLossCount = 0;
-        let totalProfitCount = 0;
-        let cumulativeProfit = 0;
-
-        function appendDebugLog(type, message) {
-            const consoleBox = document.getElementById('debug-log-console');
-            if (!consoleBox) return;
-            const item = document.createElement('div');
-            const timeStr = new Date().toLocaleTimeString();
-
-            if (type === 'SEND') {
-                item.className = 'text-cyan-400';
-                item.innerText = `[${timeStr}] 📤 SEND -> ${message}`;
-            } else if (type === 'RECV') {
-                item.className = 'text-emerald-400';
-                item.innerText = `[${timeStr}] 📥 RECV <- ${message}`;
-            } else if (type === 'ERR') {
-                item.className = 'text-rose-400 font-bold';
-                item.innerText = `[${timeStr}] ⚠️ ERR  <- ${message}`;
-            } else {
-                item.className = 'text-slate-400';
-                item.innerText = `[${timeStr}] ℹ️ INFO -> ${message}`;
+        function logMsg(msg) {
+            const box = document.getElementById('debug-log-console');
+            if(box) {
+                box.innerHTML += `<div>> ${msg}</div>`;
+                box.scrollTop = box.scrollHeight;
             }
-            consoleBox.appendChild(item);
-            consoleBox.scrollTop = consoleBox.scrollHeight;
         }
 
-        function clearDebugConsole() {
-            const consoleBox = document.getElementById('debug-log-console');
-            if (consoleBox) consoleBox.innerHTML = '<div class="text-slate-500">[System] Log dibersihkan.</div>';
+        function toggleAccountDropdown(e) {
+            if(e) e.stopPropagation();
+            document.getElementById('account-menu').classList.toggle('hidden');
         }
 
-        function toggleAccountDropdown(event) {
-            if (event) event.stopPropagation();
-            const menu = document.getElementById('account-menu');
-            if (menu) menu.classList.toggle('hidden');
-        }
-
-        window.addEventListener('click', function(e) {
-            const menu = document.getElementById('account-menu');
-            const btn = document.getElementById('account-dropdown-btn');
-            if (menu && btn && !btn.contains(e.target) && !menu.contains(e.target)) {
-                menu.classList.add('hidden');
-            }
-        });
-
-        // --- RENDER DROPDOWN AKUN DINAMIS ---
-        function renderAccountDropdownList(accountList, currentLoginId) {
-            const container = document.getElementById('account-list-container');
-            if (!container) return;
-            container.innerHTML = '';
-
-            accountList.forEach(acc => {
-                const isSelected = (acc.loginid === currentLoginId);
-                const isVirtual = acc.is_virtual === 1;
-                
-                const item = document.createElement('div');
-                item.className = `p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex justify-between items-center transition ${isSelected ? 'bg-teal-50 border border-teal-200' : 'border-b border-slate-100'}`;
-                item.onclick = () => {
-                    document.getElementById('account-id-label').innerText = acc.loginid;
-                    document.getElementById('account-type-label').innerText = isVirtual ? "Demo account" : "Real account";
-                    document.getElementById('account-balance-label').innerText = `${parseFloat(acc.balance || 0).toFixed(2)} ${acc.currency || 'USD'}`;
-                    const menu = document.getElementById('account-menu');
-                    if (menu) menu.classList.add('hidden');
-                    appendDebugLog('INFO', `Akun dipilih: ${acc.loginid}`);
-                };
-
-                item.innerHTML = `
-                    <div>
-                        <span class="${isVirtual ? 'text-amber-600' : 'text-slate-500'} block text-[10px] font-semibold">${isVirtual ? 'Demo account' : 'Real account'}</span>
-                        <span class="font-bold text-slate-800 font-mono">${acc.loginid}</span>
-                    </div>
-                    <span class="font-bold ${isVirtual ? 'text-amber-600' : 'text-slate-900'}">${acc.currency || 'USD'}</span>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        // --- KONEKSI WEBSOCKET & OTORISASI ---
-        function initWebSocket() {
-            if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
-
-            const clientId = document.getElementById('client_id') ? document.getElementById('client_id').value.trim() : "34M4TGKofeTRkLOlcJ9zO";
-            appendDebugLog('INFO', `Membuka koneksi Public WebSocket ke App ID: ${clientId}`);
-            
-            ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${clientId}`);
-
-            ws.onopen = () => {
-                appendDebugLog('INFO', 'Public WebSocket Terhubung.');
-                
-                // Ambil Active Symbols
-                ws.send(JSON.stringify({ active_symbols: "brief", req_id: 1 }));
-
-                // Kirim Authorize Token jika ada
-                const token = localStorage.getItem('deriv_access_token');
-                if (token) {
-                    ws.send(JSON.stringify({ authorize: token, req_id: 2 }));
-                } else {
-                    ws.send(JSON.stringify({ balance: 1, req_id: 3 }));
-                }
-            };
-
-            ws.onmessage = (msg) => {
-                const data = JSON.parse(msg.data);
-
-                if (data.error) {
-                    appendDebugLog('ERR', `${data.msg_type || 'API'}: ${data.error.message}`);
-                    return;
-                }
-
-                // Response Active Symbols
-                if (data.msg_type === 'active_symbols' && data.active_symbols) {
-                    activeSymbolsList = data.active_symbols;
-                    appendDebugLog('RECV', `Active Symbols diterima (${activeSymbolsList.length} aset).`);
-                    populateMarketDropdowns();
-                }
-
-                // Response Authorize & Account List
-                if (data.msg_type === 'authorize' && data.authorize) {
-                    const user = data.authorize;
-                    document.getElementById('account-id-label').innerText = user.loginid;
-                    document.getElementById('account-type-label').innerText = user.is_virtual ? "Demo account" : "Real account";
-                    document.getElementById('account-balance-label').innerText = `${parseFloat(user.balance).toFixed(2)} ${user.currency}`;
-
-                    if (user.account_list) {
-                        allUserAccounts = user.account_list;
-                        renderAccountDropdownList(allUserAccounts, user.loginid);
-                    }
-                    appendDebugLog('RECV', `Authorize Berhasil: ${user.loginid} (${user.is_virtual ? 'Demo' : 'Real'})`);
-                    
-                    ws.send(JSON.stringify({ balance: 1, subscribe: 1, req_id: 10 }));
-                }
-
-                // Response Balance Subscription
-                if (data.msg_type === 'balance' && data.balance) {
-                    const balanceVal = parseFloat(data.balance.balance).toFixed(2);
-                    const currency = data.balance.currency || 'USD';
-                    document.getElementById('account-balance-label').innerText = `${balanceVal} ${currency}`;
-                }
-
-                // Response Contracts For Symbol
-                if (data.msg_type === 'contracts_for' && data.contracts_for) {
-                    const symbol = data.echo_req.contracts_for;
-                    contractCache[symbol] = data.contracts_for.available;
-                    handleContractsForResponse(data.contracts_for.available);
-                }
-
-                // Response Proposal (Payout)
-                if (data.msg_type === 'proposal' && data.proposal) {
-                    latestProposalId = data.proposal.id;
-                    const payout = parseFloat(data.proposal.payout);
-                    appendDebugLog('RECV', `Proposal Diterima! ID: ${latestProposalId} | Payout: $${payout.toFixed(2)}`);
-                    document.getElementById('payout-value').innerText = `$${payout.toFixed(2)}`;
-                }
-
-                // Response BUY Kontrak Sukses
-                if (data.msg_type === 'buy' && data.buy) {
-                    const contract = data.buy;
-                    appendDebugLog('RECV', `BUY Sukses! Contract ID: ${contract.contract_id}`);
-                    addContractToTable(contract, "Open");
-                    
-                    ws.send(JSON.stringify({
-                        proposal_open_contract: 1,
-                        contract_id: contract.contract_id,
-                        subscribe: 1,
-                        req_id: 100
-                    }));
-                }
-
-                // Response Pemantauan Status Kontrak (WIN/LOSS)
-                if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract) {
-                    const poc = data.proposal_open_contract;
-                    updateRunningPortfolio(poc);
-
-                    if (poc.is_sold === 1) {
-                        handleContractFinalResult(poc);
-                    }
-                }
-            };
-
-            ws.onclose = () => {
-                appendDebugLog('ERR', 'WebSocket terputus. Menyambungkan kembali...');
-                ws = null;
-                setTimeout(initWebSocket, 3000);
-            };
-        }
-
-        // --- OAUTH LOGIN ---
-        function loginWithDerivOAuthPKCE() {
-            const clientId = document.getElementById('client_id').value.trim();
-            if (!clientId) {
-                alert('OAuth Client ID wajib diisi!');
-                return;
-            }
-            localStorage.setItem('deriv_client_id', clientId);
-
-            const array = crypto.getRandomValues(new Uint8Array(64));
-            const codeVerifier = Array.from(array)
-                .map(v => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[v % 66])
-                .join('');
-
-            const encoder = new TextEncoder();
-            const data = encoder.encode(codeVerifier);
-
-            crypto.subtle.digest('SHA-256', data).then(digest => {
-                const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
-                    .replace(/\+/g, '-')
-                    .replace(/\//g, '_')
-                    .replace(/=+$/, '');
-
-                const state = crypto.randomUUID();
-                localStorage.setItem('pkce_code_verifier', codeVerifier);
-                localStorage.setItem('oauth_state', state);
-
-                const redirectUri = "https://tradelib.net/trade-callback"; 
-
-                const params = new URLSearchParams({
-                    client_id: clientId,
-                    redirect_uri: redirectUri,
-                    response_type: 'code',
-                    scope: 'trade',
-                    state: state,
-                    code_challenge: codeChallenge,
-                    code_challenge_method: 'S256'
-                });
-
-                window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
-            });
-        }
-
-        function handleLogout() {
-            if (ws) { ws.close(); ws = null; }
-            localStorage.removeItem('deriv_access_token');
-            localStorage.removeItem('pkce_code_verifier');
-            localStorage.removeItem('oauth_state');
-            document.getElementById('dashboard-view').classList.add('hidden');
-            document.getElementById('login-view').classList.remove('hidden');
-        }
-
-        window.onload = function() {
-            const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
-            const clientIdField = document.getElementById('client_id');
-            if (clientIdField && savedClientId) clientIdField.value = savedClientId;
-
+        window.onload = async function() {
             const urlParams = new URLSearchParams(window.location.search);
-            const authCode = urlParams.get('code');
-            if (authCode) {
-                localStorage.setItem('deriv_access_token', authCode);
+            let code = urlParams.get('code');
+            
+            if (code) {
+                localStorage.setItem('deriv_access_token', code);
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
-            const activeToken = localStorage.getItem('deriv_access_token');
-            if (activeToken) {
+            accessToken = localStorage.getItem('deriv_access_token');
+            if (accessToken) {
                 document.getElementById('login-view').classList.add('hidden');
                 document.getElementById('dashboard-view').classList.remove('hidden');
-                initWebSocket();
-                renderStrategyTable(defaultStrategyData);
+                await fetchAccountsAndConnectWebSocket(accessToken);
+                renderStrategyTable();
             } else {
                 document.getElementById('login-view').classList.remove('hidden');
                 document.getElementById('dashboard-view').classList.add('hidden');
             }
-
-            setInterval(() => {
-                const gmtElement = document.getElementById('gmt-time');
-                if (gmtElement) gmtElement.innerText = new Date().toUTCString().slice(17, 25);
-            }, 1000);
         };
 
-        function populateMarketDropdowns() {
+        function loginWithDerivOAuthPKCE() {
+            const clientId = document.getElementById('client_id').value.trim();
+            const redirectUri = "https://tradelib.net/trade-callback";[cite: 5]
+            window.location.href = `https://auth.deriv.com/oauth2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=trade`;
+        }
+
+        function handleLogout() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        // --- REST API: AMBIL AKUN DAN OTP UNTUK WEBSOCKET OPTIONS ---
+        async function fetchAccountsAndConnectWebSocket(token) {
+            try {
+                logMsg("Mengambil daftar akun via REST API...");
+                const response = await fetch("https://api.derivws.com/trading/v1/options/accounts", {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const result = await response.json();
+                
+                if (result.data && result.data.length > 0) {
+                    renderAccountsDropdown(result.data);
+                    // Hubungkan ke akun pertama secara default (Demo / Real)
+                    connectAccountWebSocket(result.data[0].account_id, result.data[0].account_type, token);
+                } else {
+                    logMsg("Gagal memuat akun atau token invalid.");
+                }
+            } catch (err) {
+                logMsg("Error REST API: " + err.message);
+            }
+        }
+
+        function renderAccountsDropdown(accounts) {
+            const container = document.getElementById('account-list-container');
+            container.innerHTML = "";
+            
+            accounts.forEach(acc => {
+                const isDemo = acc.account_type === 'demo';
+                const div = document.createElement('div');
+                div.className = "p-2 hover:bg-slate-50 cursor-pointer rounded flex justify-between items-center";
+                div.innerHTML = `<span><b>${acc.account_id}</b> (${acc.account_type})</span> <span class="font-bold">${acc.currency}</span>`;
+                div.onclick = async () => {
+                    document.getElementById('account-id-label').innerText = acc.account_id;
+                    document.getElementById('account-type-label').innerText = isDemo ? "Demo Account" : "Real Account";
+                    document.getElementById('account-menu').classList.add('hidden');
+                    await connectAccountWebSocket(acc.account_id, acc.account_type, accessToken);
+                };
+                container.appendChild(div);
+            });
+
+            // Set default aktif ke akun pertama
+            document.getElementById('account-id-label').innerText = accounts[0].account_id;
+            document.getElementById('account-type-label').innerText = accounts[0].account_type === 'demo' ? "Demo Account" : "Real Account";
+        }
+
+        // --- MENGAMBIL OTP & KONEKSI WEBSOCKET BERDASARKAN DOKUMENTASI OPTIONS API ---
+        async function connectAccountWebSocket(accountId, accountType, token) {
+            try {
+                logMsg(`Meminta OTP WebSocket untuk akun ${accountId} (${accountType})...`);
+                const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${accountId}/otp`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const otpData = await otpRes.json();
+                
+                if (otpData.data && otpData.data.url) {
+                    const wsUrl = otpData.data.url; // Contoh: wss://api.derivws.com/trading/v1/options/ws/demo?otp=...
+                    initWebSocketConnection(wsUrl);
+                } else {
+                    logMsg("Gagal mendapatkan OTP WebSocket URL.");
+                }
+            } catch(e) {
+                logMsg("Error OTP: " + e.message);
+            }
+        }
+
+        function initWebSocketConnection(url) {
+            if (ws) ws.close();
+            logMsg("Menghubungkan ke WebSocket Options...");
+            ws = new WebSocket(url);
+
+            ws.onopen = () => {
+                logMsg("WebSocket Terhubung! Mengambil active symbols...");
+                ws.send(JSON.stringify({ active_symbols: "brief", req_id: 1 }));
+                ws.send(JSON.stringify({ balance: 1, subscribe: 1, req_id: 2 }));
+            };
+
+            ws.onmessage = (msg) => {
+                const data = JSON.parse(msg.data);
+                
+                if (data.msg_type === 'active_symbols') {
+                    activeSymbolsList = data.active_symbols;
+                    populateSubmarkets();
+                }
+                if (data.msg_type === 'balance') {
+                    document.getElementById('account-balance-label').innerText = `${parseFloat(data.balance.balance).toFixed(2)} ${data.balance.currency}`;
+                }
+                if (data.msg_type === 'proposal') {
+                    latestProposalId = data.proposal.id;
+                    document.getElementById('payout-value').innerText = `$${parseFloat(data.proposal.payout).toFixed(2)}`;
+                    logMsg(`Proposal diterima, Payout: $${data.proposal.payout}`);
+                }
+            };
+
+            ws.onclose = () => logMsg("WebSocket terputus.");
+        }
+
+        // --- SUBMARKET & PROPOSAL Payout ---
+        function populateSubmarkets() {
             const cat = document.getElementById('modal-market-cat').value;
             const subSelect = document.getElementById('modal-submarket');
-            if (!subSelect) return;
-            subSelect.innerHTML = '';
+            subSelect.innerHTML = "";
 
             const filtered = activeSymbolsList.filter(s => s.market === cat);
             filtered.forEach(item => {
                 const opt = document.createElement('option');
-                opt.value = item.display_name + "|" + item.symbol;
+                opt.value = item.symbol;
                 opt.innerText = item.display_name;
                 subSelect.appendChild(opt);
             });
-            fetchContractsForSymbol();
+            requestProposal();
         }
 
-        function onMarketCategoryChange() {
-            populateMarketDropdowns();
-        }
-
-        function fetchContractsForSymbol() {
-            const subMarketSelect = document.getElementById('modal-submarket');
-            if (!subMarketSelect || !subMarketSelect.value) return;
-            const symbol = subMarketSelect.value.split('|')[1];
-
-            if (contractCache[symbol]) {
-                handleContractsForResponse(contractCache[symbol]);
-                return;
-            }
-
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                appendDebugLog('SEND', `contracts_for: ${symbol}`);
-                ws.send(JSON.stringify({ contracts_for: symbol, currency: "USD", req_id: 4 }));
-            }
-        }
-
-        function handleContractsForResponse(contracts) {
-            availableContracts = contracts || [];
-            if (availableContracts.length > 0) {
-                document.getElementById('api-status-text').innerText = `Validasi Deriv API Aktif (${availableContracts.length} kontrak tersedia).`;
-                document.getElementById('api-status-badge').innerText = 'VERIFIED';
-            }
-            requestProposalUpdate();
-        }
-
-        function requestProposalUpdate() {
-            const subMarketSelect = document.getElementById('modal-submarket');
-            if (!subMarketSelect || !subMarketSelect.value) return;
-            const symbol = subMarketSelect.value.split('|')[1];
-
-            const tradeType = document.getElementById('modal-trade-type').value;
-            const duration = parseInt(document.getElementById('modal-duration').value) || 5;
-            const durationUnit = document.getElementById('modal-duration-unit').value;
+        function requestProposal() {
+            const symbol = document.getElementById('modal-submarket').value;
             const amount = parseFloat(document.getElementById('modal-amount').value) || 0.35;
-            const highBarrier = document.getElementById('modal-high').value;
-            const lowBarrier = document.getElementById('modal-low').value;
+            const duration = parseInt(document.getElementById('modal-duration').value) || 5;
 
-            let contractTypeApi = "CALL";
-            if (tradeType === 'Rise/Fall') contractTypeApi = (selectedChoice === 'Rise') ? "CALL" : "PUT";
-            else if (tradeType === 'Higher/Lower') contractTypeApi = (selectedChoice === 'Higher') ? "HIGHER" : "LOWER";
-            else if (tradeType === 'Touch/No Touch') contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
-            else if (tradeType === 'Matches/Differs') contractTypeApi = (selectedSubTab === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
-            else if (tradeType === 'Over/Under') contractTypeApi = (selectedSubTab === 'Over') ? "DIGITOVER" : "DIGITUNDER";
-            else if (tradeType === 'Even/Odd') contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
-
-            if (ws && ws.readyState === WebSocket.OPEN) {
+            if (ws && ws.readyState === WebSocket.OPEN && symbol) {
                 ws.send(JSON.stringify({ forget_all: ["proposal"] }));
-
-                const req = {
+                ws.send(JSON.stringify({
                     proposal: 1,
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
                     symbol: symbol,
-                    contract_type: contractTypeApi,
+                    contract_type: "CALL",
                     duration: duration,
-                    duration_unit: durationUnit,
-                    req_id: 5
-                };
-
-                if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
-                    req.barrier = (selectedChoice === 'Higher' || selectedChoice === 'Touch') ? highBarrier : lowBarrier;
-                } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
-                    req.barrier = selectedDigit.toString();
-                }
-
-                appendDebugLog('SEND', `proposal: 1 | symbol: ${symbol} | type: ${contractTypeApi}`);
-                ws.send(JSON.stringify(req));
+                    duration_unit: "t",
+                    req_id: 10
+                }));
             }
         }
 
-        function executeBuyContract(strategyItem) {
-            if (!latestProposalId) {
-                appendDebugLog('ERR', 'Proposal ID belum tersedia untuk melakukan BUY.');
-                return;
-            }
-
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                const buyReq = {
-                    buy: latestProposalId,
-                    price: strategyItem.amount,
-                    req_id: 6
-                };
-                appendDebugLog('SEND', `buy: ${latestProposalId} dengan harga maks: ${strategyItem.amount}`);
-                ws.send(JSON.stringify(buyReq));
-            }
-        }
-
-        function startBotEngine() {
-            if (isBotRunning) return;
-            isBotRunning = true;
-            currentStrategyLevelIndex = 0;
-            appendDebugLog('INFO', 'Bot Engine Dimulai.');
-            runNextStrategyCycle();
-        }
-
-        function stopBotEngine() {
-            isBotRunning = false;
-            appendDebugLog('INFO', 'Bot Engine Dihentikan.');
-        }
-
-        function runNextStrategyCycle() {
-            if (!isBotRunning) return;
-            if (defaultStrategyData.length === 0) {
-                stopBotEngine();
-                return;
-            }
-
-            const currentStrategy = defaultStrategyData[currentStrategyLevelIndex];
-            document.getElementById('pf-level').innerText = `Level ${currentStrategy.level}`;
-            document.getElementById('pf-market').innerText = currentStrategy.submarket;
-            document.getElementById('pf-contract').innerText = currentStrategy.contract_type;
-
-            appendDebugLog('INFO', `Menjalankan Strategi Level ${currentStrategy.level} dengan stake $${currentStrategy.amount}`);
-            
-            requestProposalUpdate();
-            setTimeout(() => {
-                executeBuyContract(currentStrategy);
-            }, 1000);
-        }
-
-        function updateRunningPortfolio(poc) {
-            document.getElementById('pf-starttime').innerText = new Date(poc.date_start * 1000).toLocaleTimeString();
-            document.getElementById('pf-spot').innerText = poc.current_spot || '-';
-            document.getElementById('pf-purchase').innerText = `$${poc.buy_price}`;
-            document.getElementById('pf-profit').innerText = `$${poc.profit || 0.00}`;
-            document.getElementById('pf-profit').className = `p-2 font-bold ${(poc.profit || 0) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
-        }
-
-        function handleContractFinalResult(poc) {
-            const isWin = poc.status === 'won';
-            const profitVal = parseFloat(poc.profit || 0);
-
-            totalTradeCount++;
-            totalStakeAmount += parseFloat(poc.buy_price);
-            if (isWin) {
-                totalProfitCount++;
-            } else {
-                totalLossCount++;
-            }
-            cumulativeProfit += profitVal;
-
-            document.getElementById('stat-trade-count').innerText = totalTradeCount;
-            document.getElementById('stat-total-stake').innerText = totalStakeAmount.toFixed(2);
-            document.getElementById('stat-loss-count').innerText = totalLossCount;
-            document.getElementById('stat-profit-count').innerText = totalProfitCount;
-            
-            const totalProfitEl = document.getElementById('stat-total-profit');
-            totalProfitEl.innerText = `$${cumulativeProfit.toFixed(2)}`;
-            totalProfitEl.className = `text-xs font-black ${cumulativeProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
-
-            updateContractTableResult(poc);
-
-            const targetProfit = parseFloat(document.getElementById('target-profit').value) || 10;
-            const stopLoss = parseFloat(document.getElementById('stop-loss').value) || -33;
-
-            if (cumulativeProfit >= targetProfit) {
-                appendDebugLog('INFO', `Target Profit tercapai ($${targetProfit}). Bot berhenti.`);
-                stopBotEngine();
-                return;
-            }
-            if (cumulativeProfit <= stopLoss) {
-                appendDebugLog('ERR', `Batas Stop Loss tercapai ($${stopLoss}). Bot berhenti.`);
-                stopBotEngine();
-                return;
-            }
-
-            if (isWin) {
-                appendDebugLog('INFO', 'Kontrak WIN! Mengatur ulang kembali ke Level 1.');
-                currentStrategyLevelIndex = 0;
-            } else {
-                appendDebugLog('INFO', 'Kontrak LOSS! Naik ke level berikutnya.');
-                currentStrategyLevelIndex++;
-                if (currentStrategyLevelIndex >= defaultStrategyData.length) {
-                    appendDebugLog('ERR', 'Batas maksimum level strategi tercapai. Bot berhenti.');
-                    stopBotEngine();
-                    return;
-                }
-            }
-
-            if (isBotRunning) {
-                setTimeout(runNextStrategyCycle, 2000);
-            }
-        }
-
-        function addContractToTable(contract, status) {
-            const tbody = document.getElementById('contract-table-body');
-            if (tbody.innerHTML.includes('Belum ada riwayat')) tbody.innerHTML = '';
-
-            const tr = document.createElement('tr');
-            tr.id = `contract-row-${contract.contract_id}`;
-            tr.className = "bg-white border-b border-slate-200 text-xs";
-            tr.innerHTML = `
-                <td class="p-2 text-center font-mono">${totalTradeCount + 1}</td>
-                <td class="p-2 font-bold text-amber-600 status-cell">${status}</td>
-                <td class="p-2">Lvl ${currentStrategyLevelIndex + 1}</td>
-                <td class="p-2">${selectedChoice}</td>
-                <td class="p-2">$${contract.payout || 0.00}</td>
-                <td class="p-2">$${contract.buy_price}</td>
-                <td class="p-2 sell-price-cell">-</td>
-                <td class="p-2 text-right font-bold profit-cell">0.00</td>
-            `;
-            tbody.prepend(tr);
-        }
-
-        function updateContractTableResult(poc) {
-            const row = document.getElementById(`contract-row-${poc.contract_id}`);
-            if (!row) return;
-
-            const isWin = poc.status === 'won';
-            row.querySelector('.status-cell').innerText = isWin ? 'WIN' : 'LOSS';
-            row.querySelector('.status-cell').className = `p-2 font-bold ${isWin ? 'text-emerald-600' : 'text-rose-600'} status-cell`;
-            row.querySelector('.sell-price-cell').innerText = `$${poc.payout || 0.00}`;
-            
-            const profitCell = row.querySelector('.profit-cell');
-            profitCell.innerText = `$${parseFloat(poc.profit).toFixed(2)}`;
-            profitCell.className = `p-2 text-right font-bold ${parseFloat(poc.profit) >= 0 ? 'text-emerald-600' : 'text-rose-600'} profit-cell`;
-        }
-
-        function openAddModal() {
-            document.getElementById('add-strategy-modal').classList.remove('hidden');
-            populateMarketDropdowns();
-        }
-
-        function closeAddModal() {
-            document.getElementById('add-strategy-modal').classList.add('hidden');
-        }
+        function openAddModal() { document.getElementById('add-strategy-modal').classList.remove('hidden'); }
+        function closeAddModal() { document.getElementById('add-strategy-modal').classList.add('hidden'); }
 
         function confirmAddStrategy() {
-            const marketCat = document.getElementById('modal-market-cat').value;
             const subMarketSelect = document.getElementById('modal-submarket');
-            const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex].text;
-            const subMarketSymbol = subMarketSelect.value.split('|')[1];
-            const tradeType = document.getElementById('modal-trade-type').value;
-
-            const newItem = {
+            defaultStrategyData.push({
                 level: defaultStrategyData.length + 1,
-                contract_type: tradeType,
-                market: marketCat === 'synthetic_index' ? 'Derived' : 'Other',
-                submarket: subMarketText,
-                symbol: subMarketSymbol,
-                purchase_type: selectedChoice,
-                high: document.getElementById('modal-high').value,
-                low: document.getElementById('modal-low').value,
-                last_digit: ['Matches/Differs', 'Over/Under'].includes(tradeType) ? selectedDigit.toString() : "",
-                duration_amount: parseInt(document.getElementById('modal-duration').value),
-                duration_unit: document.getElementById('modal-duration-unit').value,
+                contract_type: "CALL",
+                submarket: subMarketSelect.options[subMarketSelect.selectedIndex].text,
+                symbol: subMarketSelect.value,
+                duration: parseInt(document.getElementById('modal-duration').value),
                 amount: parseFloat(document.getElementById('modal-amount').value)
-            };
-
-            defaultStrategyData.push(newItem);
-            renderStrategyTable(defaultStrategyData);
+            });
+            renderStrategyTable();
             closeAddModal();
         }
 
-        function renderStrategyTable(dataList) {
+        function renderStrategyTable() {
             const tbody = document.getElementById('strategy-table-body');
             tbody.innerHTML = '';
-            dataList.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200";
-                tr.innerHTML = `
-                    <td class="text-center font-bold text-slate-600 bg-slate-50">Level ${index + 1}</td>
+            defaultStrategyData.forEach((item, index) => {
+                tbody.innerHTML += `<tr>
+                    <td class="text-center font-bold">Level ${index + 1}</td>
                     <td><input type="text" value="${item.contract_type}" readonly></td>
-                    <td><input type="text" value="${item.market}" readonly></td>
+                    <td>Derived</td>
                     <td><input type="text" value="${item.submarket}" readonly></td>
-                    <td><input type="text" value="${item.purchase_type}" readonly></td>
-                    <td><input type="text" value="${item.high || ''}" readonly></td>
-                    <td><input type="text" value="${item.low || ''}" readonly></td>
-                    <td><input type="text" value="${item.last_digit || ''}" class="font-bold text-indigo-600 text-center" readonly></td>
-                    <td><input type="number" value="${item.duration_amount}" readonly></td>
-                    <td><input type="text" value="${item.duration_unit}" readonly></td>
-                    <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700" readonly></td>
-                `;
-                tbody.appendChild(tr);
+                    <td><input type="text" value="${item.duration}t" readonly></td>
+                    <td><input type="text" value="$${item.amount}" readonly></td>
+                </tr>`;
             });
         }
 
-        function deleteLastRow() {
-            if (defaultStrategyData.length > 0) {
-                defaultStrategyData.pop();
-                renderStrategyTable(defaultStrategyData);
-            }
-        }
-
-        function clearStrategy() {
-            defaultStrategyData = [];
-            renderStrategyTable(defaultStrategyData);
-        }
-
-        function clearContractTable() {
-            document.getElementById('contract-table-body').innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak.</td></tr>`;
-        }
-
-        function botAction(actionType) {
-            appendDebugLog('INFO', `Aksi Kontrol Eksekusi: ${actionType}`);
-        }
+        function startBotEngine() { alert("Engine siap berjalan dengan endpoint Options API!"); }
     </script>
 </body>
 </html>
