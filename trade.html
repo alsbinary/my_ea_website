@@ -282,10 +282,10 @@
                     <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-semibold text-teal-700 text-xs cursor-pointer">
                         <option value="Rise/Fall">Rise / Fall</option>
                         <option value="Higher/Lower">Higher / Lower</option>
+                        <option value="Touch/No Touch" selected>Touch / No Touch</option>
                         <option value="Matches/Differs">Matches / Differs</option>
                         <option value="Over/Under">Over / Under</option>
                         <option value="Even/Odd">Even / Odd</option>
-                        <option value="Touch/No Touch" selected>Touch / No Touch</option>
                     </select>
                 </div>
 
@@ -295,7 +295,7 @@
                     <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
                 </div>
 
-                <!-- CONTAINER DINAMIS DIGIT PREDICTION (Sudah Bersih dari Duplikasi) -->
+                <!-- CONTAINER DINAMIS DIGIT PREDICTION -->
                 <div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
                     <div id="digit-grid-wrapper" class="space-y-2">
                         <span class="font-bold text-slate-700 block" id="digit-prediction-label">Last digit prediction</span>
@@ -328,7 +328,7 @@
                     </div>
                 </div>
 
-                <!-- BARRIER CONTAINER (BARRIER + / BARRIER -) -->
+                <!-- BARRIER CONTAINER -->
                 <div id="barrier-container" class="pt-2 border-t border-slate-200">
                     <label class="font-medium text-slate-600 block mb-1">Barrier Offset</label>
                     <input type="text" id="modal-barrier" value="+0.68" placeholder="+0.68" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 font-mono font-bold text-slate-800 text-xs">
@@ -371,7 +371,6 @@
         let publicWs = null;
         let activeSymbolsList = [];
         let selectedDigit = 5;
-        let selectedSubTab = 'Matches';
         let selectedChoice = 'No Touch';
         let currentEstimatedPayout = 3.35;
         let accessToken = null;
@@ -735,6 +734,7 @@
                 targetWs.send(JSON.stringify(forgetMsg));
                 logMsg(`SEND -> ${JSON.stringify(forgetMsg)}`, 'SEND');
 
+                // Pemetaan Resmi Deriv API Contract Types
                 let contractTypeApi = "NOTOUCH";
                 if (tradeType === 'Touch/No Touch') {
                     contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
@@ -743,11 +743,11 @@
                 } else if (tradeType === 'Higher/Lower') {
                     contractTypeApi = (selectedChoice === 'Higher') ? "HIGHER" : "LOWER";
                 } else if (tradeType === 'Matches/Differs') {
-                    contractTypeApi = (selectedSubTab === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
+                    contractTypeApi = (selectedChoice === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
                 } else if (tradeType === 'Over/Under') {
-                    contractTypeApi = (selectedSubTab === 'Over') ? "DIGITOVER" : "DIGITUNDER";
+                    contractTypeApi = (selectedChoice === 'Over') ? "DIGITOVER" : "DIGITUNDER";
                 } else if (tradeType === 'Even/Odd') {
-                    contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
+                    contractTypeApi = (selectedChoice === 'Even') ? "DIGITEVEN" : "DIGITODD";
                 }
 
                 const req = {
@@ -763,13 +763,14 @@
                     req_id: 4
                 };
 
+                // Pengaturan Barrier / Digit berdasarkan Jenis Kontrak sesuai Deriv API
                 if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
                     req.barrier = barrier;
-                } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
+                } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
                     req.barrier = selectedDigit.toString();
                 }
 
-                logMsg(`SEND proposal (req_id: 4) -> underlying_symbol: ${underlyingSymbol} | type: ${contractTypeApi}`, 'SEND');
+                logMsg(`SEND proposal (req_id: 4) -> symbol: ${underlyingSymbol} | contract_type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`, 'SEND');
                 targetWs.send(JSON.stringify(req));
             }
         }
@@ -787,29 +788,18 @@
                 unitSelect.disabled = false;
                 barrierContainer.classList.remove('hidden');
                 digitContainer.classList.add('hidden');
-            } else if (tradeType === 'Matches/Differs') {
+            } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
                 unitSelect.value = 't';
                 unitSelect.disabled = true;
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.remove('hidden');
                 document.getElementById('digit-grid-wrapper').classList.remove('hidden');
-                selectedSubTab = 'Matches';
-                renderDigitGrid();
-            } else if (tradeType === 'Over/Under') {
-                unitSelect.value = 't';
-                unitSelect.disabled = true;
-                barrierContainer.classList.add('hidden');
-                digitContainer.classList.remove('hidden');
-                document.getElementById('digit-grid-wrapper').classList.remove('hidden');
-                selectedSubTab = 'Over';
                 renderDigitGrid();
             } else if (tradeType === 'Even/Odd') {
                 unitSelect.value = 't';
                 unitSelect.disabled = true;
                 barrierContainer.classList.add('hidden');
-                digitContainer.classList.remove('hidden');
-                document.getElementById('digit-grid-wrapper').classList.add('hidden');
-                selectedSubTab = 'Even';
+                digitContainer.classList.add('hidden');
             } else {
                 unitSelect.value = 't';
                 unitSelect.disabled = false;
@@ -840,6 +830,18 @@
             } else if (tradeType === 'Touch/No Touch') {
                 choices = ['Touch', 'No Touch'];
                 label.innerText = 'Touch Type';
+                wrapper.classList.remove('hidden');
+            } else if (tradeType === 'Matches/Differs') {
+                choices = ['Matches', 'Differs'];
+                label.innerText = 'Digit Contract Type';
+                wrapper.classList.remove('hidden');
+            } else if (tradeType === 'Over/Under') {
+                choices = ['Over', 'Under'];
+                label.innerText = 'Digit Contract Type';
+                wrapper.classList.remove('hidden');
+            } else if (tradeType === 'Even/Odd') {
+                choices = ['Even', 'Odd'];
+                label.innerText = 'Digit Contract Type';
                 wrapper.classList.remove('hidden');
             } else {
                 wrapper.classList.add('hidden');
@@ -896,7 +898,7 @@
         function confirmAddStrategy() {
             const marketCat = document.getElementById('modal-market-cat').value;
             const subMarketSelect = document.getElementById('modal-submarket');
-            const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex].text;
+            const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex] ? subMarketSelect.options[subMarketSelect.selectedIndex].text : '';
             const tradeType = document.getElementById('modal-trade-type').value;
             const durationAmount = document.getElementById('modal-duration').value;
             const durationUnitEl = document.getElementById('modal-duration-unit');
