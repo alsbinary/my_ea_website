@@ -295,15 +295,8 @@
                     <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
                 </div>
 
-                <!-- CONTAINER DINAMIS DIGIT PREDICTION -->
-<!-- CONTAINER DINAMIS DIGIT PREDICTION (Tanpa tombol sub-tab yang redundan) -->
-<div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
-    <div id="digit-grid-wrapper" class="space-y-2">
-        <span class="font-bold text-slate-700 block" id="digit-prediction-label">Last digit prediction</span>
-        <div class="grid grid-cols-5 gap-2" id="digit-grid"></div>
-    </div>
-</div>
-
+                <!-- CONTAINER DINAMIS DIGIT PREDICTION (Sudah Bersih dari Duplikasi) -->
+                <div id="digit-prediction-container" class="hidden space-y-3 pt-2 border-t border-slate-200 bg-slate-50 p-3 rounded-xl border">
                     <div id="digit-grid-wrapper" class="space-y-2">
                         <span class="font-bold text-slate-700 block" id="digit-prediction-label">Last digit prediction</span>
                         <div class="grid grid-cols-5 gap-2" id="digit-grid"></div>
@@ -338,7 +331,7 @@
                 <!-- BARRIER CONTAINER (BARRIER + / BARRIER -) -->
                 <div id="barrier-container" class="pt-2 border-t border-slate-200">
                     <label class="font-medium text-slate-600 block mb-1">Barrier Offset</label>
-                    <input type="text" id="modal-barrier" value="+0.676" placeholder="+0.676" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 font-mono font-bold text-slate-800 text-xs">
+                    <input type="text" id="modal-barrier" value="+0.68" placeholder="+0.68" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 font-mono font-bold text-slate-800 text-xs">
                 </div>
 
                 <!-- WIDGET SIMULASI PAYOUT -->
@@ -385,7 +378,7 @@
         let accountsList = [];
 
         let defaultStrategyData = [
-            { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.676", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
+            { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.68", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
         ];
 
         function logMsg(msg, type='INFO') {
@@ -430,30 +423,6 @@
                 menu.classList.add('hidden');
             }
         });
-
-        async function generatePKCE() {
-            const array = crypto.getRandomValues(new Uint8Array(64));
-            const codeVerifier = Array.from(array)
-                .map(v => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[v % 66])
-                .join('');
-
-            const encoder = new TextEncoder();
-            const data = encoder.encode(codeVerifier);
-            const digest = await crypto.subtle.digest('SHA-256', data);
-            
-            const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=+$/, '');
-
-            const stateArray = crypto.getRandomValues(new Uint8Array(16));
-            const state = Array.from(stateArray).map(b => b.toString(16).padStart(2, '0')).join('');
-
-            sessionStorage.setItem('pkce_code_verifier', codeVerifier);
-            sessionStorage.setItem('oauth_state', state);
-
-            return { codeChallenge, state };
-        }
 
         function loginWithDerivOAuthPKCE() {
             const clientId = document.getElementById('client_id').value.trim();
@@ -539,7 +508,6 @@
             }, 1000);
         }
 
-        // --- PUBLIC WEBSOCKET (Req_id: 1) ---
         function initPublicWebSocket() {
             logMsg("Membuka Public WebSocket ke Deriv...");
             publicWs = new WebSocket(`wss://api.derivws.com/trading/v1/options/ws/public`);
@@ -563,7 +531,6 @@
             };
         }
 
-        // --- REST API ACCOUNTS & OTP ---
         async function fetchAccountsAndSetup(token) {
             try {
                 logMsg("Mengambil daftar akun via REST API...");
@@ -621,7 +588,6 @@
             }
         }
 
-        // --- AUTHENTICATED WEBSOCKET (Req_id: 3, 4, 6, 7) ---
         function connectAuthenticatedWebSocket(url, accountId) {
             if (ws) ws.close();
             logMsg(`Menghubungkan ke WebSocket Akun Terautentikasi...`);
@@ -712,8 +678,6 @@
             onSubmarketChange();
         }
 
-        // --- Req_id: 2 untuk memuat jenis kontrak (contracts_for) ---
-        // Perbaikan pada onSubmarketChange (Menghapus parameter currency dari contracts_for)
         function onSubmarketChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
@@ -723,7 +687,6 @@
             if (symbol && symbol !== "undefined") {
                 const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
                 if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                    // Sesuai log error: parameter currency tidak diizinkan untuk contracts_for
                     const contractsReq = { contracts_for: symbol, req_id: 2 };
                     logMsg(`SEND -> ${JSON.stringify(contractsReq)}`, 'SEND');
                     targetWs.send(JSON.stringify(contractsReq));
@@ -734,7 +697,6 @@
             requestProposalUpdate();
         }
 
-        // Perbaikan pada requestProposalUpdate (Memastikan format barrier maksimal 2 desimal)
         function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) {
@@ -755,7 +717,6 @@
             const durationUnit = document.getElementById('modal-duration-unit').value;
             const amount = parseFloat(document.getElementById('modal-amount').value) || 2.0;
             
-            // Format barrier agar maksimal 2 angka di belakang koma
             let rawBarrier = document.getElementById('modal-barrier').value.trim();
             let barrier = rawBarrier;
             if (rawBarrier && !isNaN(parseFloat(rawBarrier))) {
@@ -770,7 +731,6 @@
 
             const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
             if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                // 1. Kirim forget_all terlebih dahulu dengan req_id: 4
                 const forgetMsg = { forget_all: ["proposal"], req_id: 4 };
                 targetWs.send(JSON.stringify(forgetMsg));
                 logMsg(`SEND -> ${JSON.stringify(forgetMsg)}`, 'SEND');
@@ -790,7 +750,6 @@
                     contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
                 }
 
-                // 2. Kirim request proposal menggunakan underlying_symbol dan barrier yang sudah diformat
                 const req = {
                     proposal: 1,
                     subscribe: 1,
@@ -834,7 +793,7 @@
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.remove('hidden');
                 document.getElementById('digit-grid-wrapper').classList.remove('hidden');
-                selectedSubTab = 'Matches'; // Default ke Matches jika Trade Type Matches/Differs
+                selectedSubTab = 'Matches';
                 renderDigitGrid();
             } else if (tradeType === 'Over/Under') {
                 unitSelect.value = 't';
@@ -842,14 +801,14 @@
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.remove('hidden');
                 document.getElementById('digit-grid-wrapper').classList.remove('hidden');
-                selectedSubTab = 'Over'; // Default ke Over jika Trade Type Over/Under
+                selectedSubTab = 'Over';
                 renderDigitGrid();
             } else if (tradeType === 'Even/Odd') {
                 unitSelect.value = 't';
                 unitSelect.disabled = true;
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.remove('hidden');
-                document.getElementById('digit-grid-wrapper').classList.add('hidden'); // Sembunyikan grid angka untuk Even/Odd
+                document.getElementById('digit-grid-wrapper').classList.add('hidden');
                 selectedSubTab = 'Even';
             } else {
                 unitSelect.value = 't';
@@ -921,98 +880,6 @@
                     requestProposalUpdate();
                 };
                 grid.appendChild(btn);
-            }
-        }
-
-        function switchDigitSubTab(tabName) {
-            selectedSubTab = tabName;
-            const buttons = ['matches', 'differs', 'over', 'under', 'even', 'odd'];
-            buttons.forEach(b => {
-                const el = document.getElementById(`subtab-${b}`);
-                if (el) {
-                    if (b === tabName.toLowerCase()) {
-                        el.className = 'subtab-btn active px-3 py-1.5 rounded font-bold text-xs bg-slate-900 text-white cursor-pointer';
-                    } else {
-                        el.className = 'subtab-btn px-3 py-1.5 rounded font-bold text-xs bg-white text-slate-700 border border-slate-200 cursor-pointer';
-                    }
-                }
-            });
-            renderDigitGrid();
-            requestProposalUpdate();
-        }
-
-        // --- PROPOSAL UTAMA (Menggunakan underlying_symbol & forget_all req_id: 4 secara sekuensial) ---
-        function requestProposalUpdate() {
-            const subMarketSelect = document.getElementById('modal-submarket');
-            if (!subMarketSelect || !subMarketSelect.value) {
-                logMsg("Peringatan: Submarket / Simbol belum dipilih.", "ERR");
-                return;
-            }
-
-            const parts = subMarketSelect.value.split('|');
-            const underlyingSymbol = parts[1];
-
-            if (!underlyingSymbol || underlyingSymbol === "undefined") {
-                logMsg("Error: Simbol aset bernilai undefined.", "ERR");
-                return;
-            }
-
-            const tradeType = document.getElementById('modal-trade-type').value;
-            const duration = parseInt(document.getElementById('modal-duration').value) || 10;
-            const durationUnit = document.getElementById('modal-duration-unit').value;
-            const amount = parseFloat(document.getElementById('modal-amount').value) || 2.0;
-            let barrier = document.getElementById('modal-barrier').value;
-
-            document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
-            setApiPendingStatus("Mengirim request proposal baru ke API...");
-
-            const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
-            if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                // 1. KIRIM FORGET_ALL TERLEBIH DAHULU
-                const forgetMsg = { forget_all: ["proposal"], req_id: 4 };
-                targetWs.send(JSON.stringify(forgetMsg));
-                logMsg(`SEND -> ${JSON.stringify(forgetMsg)}`, 'SEND');
-
-                let contractTypeApi = "NOTOUCH";
-                if (tradeType === 'Touch/No Touch') {
-                    contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
-                } else if (tradeType === 'Rise/Fall') {
-                    contractTypeApi = (selectedChoice === 'Rise') ? "CALL" : "PUT";
-                } else if (tradeType === 'Higher/Lower') {
-                    contractTypeApi = (selectedChoice === 'Higher') ? "HIGHER" : "LOWER";
-                } else if (tradeType === 'Matches/Differs') {
-                    contractTypeApi = (selectedSubTab === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
-                } else if (tradeType === 'Over/Under') {
-                    contractTypeApi = (selectedSubTab === 'Over') ? "DIGITOVER" : "DIGITUNDER";
-                } else if (tradeType === 'Even/Odd') {
-                    contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
-                }
-
-                // 2. KIRIM REQUEST PROPOSAL (Menggunakan underlying_symbol)
-                const req = {
-                    proposal: 1,
-                    subscribe: 1,
-                    amount: amount,
-                    basis: "stake",
-                    currency: "USD",
-                    underlying_symbol: underlyingSymbol, // Menggunakan underlying_symbol sesuai standar API
-                    contract_type: contractTypeApi,
-                    duration: duration,
-                    duration_unit: durationUnit,
-                    req_id: 4
-                };
-
-                if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
-                    if (barrier && !barrier.startsWith('+') && !barrier.startsWith('-')) {
-                        barrier = '+' + barrier;
-                    }
-                    req.barrier = barrier;
-                } else if (['Matches/Differs', 'Over/Under'].includes(tradeType)) {
-                    req.barrier = selectedDigit.toString();
-                }
-
-                logMsg(`SEND proposal (req_id: 4) -> underlying_symbol: ${underlyingSymbol} | type: ${contractTypeApi}`, 'SEND');
-                targetWs.send(JSON.stringify(req));
             }
         }
 
