@@ -110,10 +110,9 @@
                 </div>
             </aside>
 
-            <!-- AREA TENGAH: TABEL STRATEGI & CONTRACT TABLE -->
+            <!-- AREA TENGAH -->
             <main class="flex-1 bg-slate-50 p-4 flex flex-col space-y-4 overflow-y-auto text-xs">
                 
-                <!-- Panel Manajemen Strategi -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col">
                     <div class="bg-teal-600 text-white font-bold px-4 py-2.5 text-center text-xs tracking-wider uppercase">
                         STRATEGY MANAGEMENT PANEL
@@ -140,7 +139,6 @@
                         </table>
                     </div>
 
-                    <!-- Tombol Kontrol Dinamis -->
                     <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
                         <div class="flex items-center space-x-2">
                             <button type="button" onclick="openAddModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer">Add Level (+)</button>
@@ -233,7 +231,6 @@
                         </table>
                     </div>
 
-                    <!-- Tombol Kontrol -->
                     <div class="grid grid-cols-2 gap-1.5 pt-1">
                         <button type="button" onclick="alert('Bot dimulai!')" class="py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer">RUN BOT</button>
                         <button type="button" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer">SELL & CONTINUE</button>
@@ -303,10 +300,14 @@
                     <div id="digit-subtabs" class="flex justify-start space-x-2 border-b border-slate-200 pb-2">
                         <button type="button" onclick="switchDigitSubTab('Matches')" id="subtab-matches" class="subtab-btn active px-3 py-1.5 rounded font-bold text-xs bg-slate-900 text-white cursor-pointer">Matches</button>
                         <button type="button" onclick="switchDigitSubTab('Differs')" id="subtab-differs" class="subtab-btn px-3 py-1.5 rounded font-bold text-xs bg-white text-slate-700 border border-slate-200 cursor-pointer">Differs</button>
+                        <button type="button" onclick="switchDigitSubTab('Over')" id="subtab-over" class="subtab-btn hidden px-3 py-1.5 rounded font-bold text-xs bg-white text-slate-700 border border-slate-200 cursor-pointer">Over</button>
+                        <button type="button" onclick="switchDigitSubTab('Under')" id="subtab-under" class="subtab-btn hidden px-3 py-1.5 rounded font-bold text-xs bg-white text-slate-700 border border-slate-200 cursor-pointer">Under</button>
+                        <button type="button" onclick="switchDigitSubTab('Even')" id="subtab-even" class="subtab-btn hidden px-3 py-1.5 rounded font-bold text-xs bg-white text-slate-700 border border-slate-200 cursor-pointer">Even</button>
+                        <button type="button" onclick="switchDigitSubTab('Odd')" id="subtab-odd" class="subtab-btn hidden px-3 py-1.5 rounded font-bold text-xs bg-white text-slate-700 border border-slate-200 cursor-pointer">Odd</button>
                     </div>
 
                     <div id="digit-grid-wrapper" class="space-y-2">
-                        <span class="font-bold text-slate-700 block">Last digit prediction</span>
+                        <span class="font-bold text-slate-700 block" id="digit-prediction-label">Last digit prediction</span>
                         <div class="grid grid-cols-5 gap-2" id="digit-grid"></div>
                     </div>
                 </div>
@@ -336,10 +337,10 @@
                     </div>
                 </div>
 
-                <!-- BARRIER TUNGGAL -->
+                <!-- BARRIER CONTAINER (BARRIER + / BARRIER -) -->
                 <div id="barrier-container" class="pt-2 border-t border-slate-200">
-                    <label class="font-medium text-slate-600">Barrier Offset</label>
-                    <input type="text" id="modal-barrier" value="+0.676" placeholder="+0.676" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 mt-1 font-mono font-bold text-slate-800 text-xs">
+                    <label class="font-medium text-slate-600 block mb-1">Barrier Offset</label>
+                    <input type="text" id="modal-barrier" value="+0.676" placeholder="+0.676" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 font-mono font-bold text-slate-800 text-xs">
                 </div>
 
                 <!-- WIDGET SIMULASI PAYOUT -->
@@ -378,8 +379,6 @@
         let ws = null;
         let publicWs = null;
         let activeSymbolsList = [];
-        let contractCache = {};
-        let availableContracts = [];
         let selectedDigit = 5;
         let selectedSubTab = 'Matches';
         let selectedChoice = 'No Touch';
@@ -542,14 +541,13 @@
             }, 1000);
         }
 
-        // --- PUBLIC WEBSOCKET (Active Symbols & Public Proposals) ---
+        // --- PUBLIC WEBSOCKET (Req_id: 1) ---
         function initPublicWebSocket() {
             logMsg("Membuka Public WebSocket ke Deriv...");
             publicWs = new WebSocket(`wss://api.derivws.com/trading/v1/options/ws/public`);
 
             publicWs.onopen = () => {
                 logMsg("Public WebSocket Terhubung. Meminta active symbols...");
-                // Req_id: 1 untuk Active Symbols
                 const req = { active_symbols: "brief", req_id: 1 };
                 logMsg(`SEND -> ${JSON.stringify(req)}`, 'SEND');
                 publicWs.send(JSON.stringify(req));
@@ -567,10 +565,10 @@
             };
         }
 
-        // --- REST API: ACCOUNTS & OTP ---
+        // --- REST API ACCOUNTS & OTP ---
         async function fetchAccountsAndSetup(token) {
             try {
-                logMsg("Mengambil daftar akun via REST API (`/trading/v1/options/accounts`)...");
+                logMsg("Mengambil daftar akun via REST API...");
                 const response = await fetch("https://api.derivws.com/trading/v1/options/accounts", {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
@@ -625,7 +623,7 @@
             }
         }
 
-        // --- AUTHENTICATED WEBSOCKET ---
+        // --- AUTHENTICATED WEBSOCKET (Req_id: 3, 4, 6, 7) ---
         function connectAuthenticatedWebSocket(url, accountId) {
             if (ws) ws.close();
             logMsg(`Menghubungkan ke WebSocket Akun Terautentikasi...`);
@@ -635,7 +633,6 @@
                 logMsg(`WebSocket Akun ${accountId} Terhubung! Meminta langganan saldo...`);
                 document.getElementById('account-id-label').innerText = accountId;
                 
-                // Req_id: 3 untuk Mengambil/Berlangganan Saldo
                 const balanceReq = { balance: 1, subscribe: 1, req_id: 3 };
                 logMsg(`SEND -> ${JSON.stringify(balanceReq)}`, 'SEND');
                 ws.send(JSON.stringify(balanceReq));
@@ -655,34 +652,20 @@
                     document.getElementById('account-balance-label').innerText = `${bal} ${cur}`;
                     document.getElementById('account-type-label').innerText = isDemo ? "Demo account" : "Real account";
                     document.getElementById('account-type-label').className = isDemo ? "text-amber-600 text-[11px]" : "text-slate-500 text-[11px]";
-                    logMsg(`Saldo diperbarui: ${bal} ${cur}`);
                 }
 
-                if (data.msg_type === 'proposal' && data.proposal) {
-                    // Cek req_id 4 untuk popup, atau req_id 5 untuk buy
-                    if (data.req_id === 4) {
-                        currentEstimatedPayout = parseFloat(data.proposal.payout);
-                        logMsg(`Proposal Popup diterima! Payout: $${currentEstimatedPayout.toFixed(2)} (req_id: 4)`, 'RECV');
-                        document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
-                        
-                        const banner = document.getElementById('api-status-banner');
-                        if(banner) {
-                            banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
-                            document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
-                            document.getElementById('api-status-badge').innerText = "VERIFIED";
-                            document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
-                        }
+                if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
+                    currentEstimatedPayout = parseFloat(data.proposal.payout);
+                    logMsg(`Proposal Popup diterima! Payout: $${currentEstimatedPayout.toFixed(2)}`, 'RECV');
+                    document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
+                    
+                    const banner = document.getElementById('api-status-banner');
+                    if(banner) {
+                        banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
+                        document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
+                        document.getElementById('api-status-badge').innerText = "VERIFIED";
+                        document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
                     }
-                }
-
-                // req_id: 6 untuk buy/sell response
-                if (data.msg_type === 'buy' && data.req_id === 6) {
-                    logMsg(`Buy berhasil dieksekusi! Kontrak ID: ${data.buy.contract_id}`, 'RECV');
-                }
-
-                // req_id: 7 untuk pemantauan dan hasil transaksi (Proposal Open Contract)
-                if (data.msg_type === 'proposal_open_contract' && data.req_id === 7) {
-                    logMsg(`Pemantauan Transmisi POC diterima (req_id: 7)`, 'RECV');
                 }
             };
 
@@ -699,7 +682,6 @@
             badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
         }
 
-        // --- FUNGSI PEMUATAN SUBMARKET BERDASARKAN ACTIVE SYMBOLS API ---
         function onMarketCategoryChange() {
             const cat = document.getElementById('modal-market-cat').value;
             const subSelect = document.getElementById('modal-submarket');
@@ -732,23 +714,76 @@
             onSubmarketChange();
         }
 
+        // --- Req_id: 2 untuk memuat jenis kontrak (contracts_for) ---
         function onSubmarketChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             
-            // Req_id: 2 untuk Memeriksa jenis kontrak yang tersedia (contracts_for)
             const parts = subMarketSelect.value.split('|');
             const symbol = parts[1];
             if (symbol && symbol !== "undefined") {
                 const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
                 if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                    const contractsReq = { contracts_for: symbol, req_id: 2 };
+                    const contractsReq = { contracts_for: symbol, currency: "USD", req_id: 2 };
                     logMsg(`SEND -> ${JSON.stringify(contractsReq)}`, 'SEND');
                     targetWs.send(JSON.stringify(contractsReq));
                 }
             }
 
             setApiPendingStatus("Mengambil data proposal baru...");
+            requestProposalUpdate();
+        }
+
+        function onTradeTypeChange() {
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const unitSelect = document.getElementById('modal-duration-unit');
+            const barrierContainer = document.getElementById('barrier-container');
+            const digitContainer = document.getElementById('digit-prediction-container');
+
+            renderChoiceButtons(tradeType);
+
+            // Subtabs visibility & setup
+            const subtabs = ['matches', 'differs', 'over', 'under', 'even', 'odd'];
+            subtabs.forEach(t => {
+                const el = document.getElementById(`subtab-${t}`);
+                if (el) el.classList.add('hidden');
+            });
+
+            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
+                unitSelect.value = 't';
+                unitSelect.disabled = false;
+                barrierContainer.classList.remove('hidden');
+                digitContainer.classList.add('hidden');
+            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
+                unitSelect.value = 't';
+                unitSelect.disabled = true;
+                barrierContainer.classList.add('hidden');
+                digitContainer.classList.remove('hidden');
+
+                if (tradeType === 'Matches/Differs') {
+                    document.getElementById('subtab-matches').classList.remove('hidden');
+                    document.getElementById('subtab-differs').classList.remove('hidden');
+                    document.getElementById('digit-grid-wrapper').classList.remove('hidden');
+                    switchDigitSubTab('Matches');
+                } else if (tradeType === 'Over/Under') {
+                    document.getElementById('subtab-over').classList.remove('hidden');
+                    document.getElementById('subtab-under').classList.remove('hidden');
+                    document.getElementById('digit-grid-wrapper').classList.remove('hidden');
+                    switchDigitSubTab('Over');
+                } else if (tradeType === 'Even/Odd') {
+                    document.getElementById('subtab-even').classList.remove('hidden');
+                    document.getElementById('subtab-odd').classList.remove('hidden');
+                    document.getElementById('digit-grid-wrapper').classList.add('hidden');
+                    switchDigitSubTab('Even');
+                }
+            } else {
+                unitSelect.value = 't';
+                unitSelect.disabled = false;
+                barrierContainer.classList.add('hidden');
+                digitContainer.classList.add('hidden');
+            }
+
+            setApiPendingStatus("Menyesuaikan parameter tipe perdagangan...");
             requestProposalUpdate();
         }
 
@@ -816,12 +851,22 @@
 
         function switchDigitSubTab(tabName) {
             selectedSubTab = tabName;
-            document.getElementById('subtab-matches').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs cursor-pointer ${tabName === 'Matches' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
-            document.getElementById('subtab-differs').className = `subtab-btn px-3 py-1.5 rounded font-bold text-xs cursor-pointer ${tabName === 'Differs' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'}`;
+            const buttons = ['matches', 'differs', 'over', 'under', 'even', 'odd'];
+            buttons.forEach(b => {
+                const el = document.getElementById(`subtab-${b}`);
+                if (el) {
+                    if (b === tabName.toLowerCase()) {
+                        el.className = 'subtab-btn active px-3 py-1.5 rounded font-bold text-xs bg-slate-900 text-white cursor-pointer';
+                    } else {
+                        el.className = 'subtab-btn px-3 py-1.5 rounded font-bold text-xs bg-white text-slate-700 border border-slate-200 cursor-pointer';
+                    }
+                }
+            });
+            renderDigitGrid();
             requestProposalUpdate();
         }
 
-        // --- FUNGSI PROPOSAL POPUP MENGGUNAKAN req_id: 4 (beserta forget_all req_id: 4) ---
+        // --- PROPOSAL UTAMA (Menggunakan underlying_symbol & forget_all req_id: 4 secara sekuensial) ---
         function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) {
@@ -830,9 +875,9 @@
             }
 
             const parts = subMarketSelect.value.split('|');
-            const symbol = parts[1];
+            const underlyingSymbol = parts[1];
 
-            if (!symbol || symbol === "undefined") {
+            if (!underlyingSymbol || underlyingSymbol === "undefined") {
                 logMsg("Error: Simbol aset bernilai undefined.", "ERR");
                 return;
             }
@@ -848,7 +893,7 @@
 
             const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
             if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                // Sesuai keputusan: forget_all menggunakan req_id: 4
+                // 1. KIRIM FORGET_ALL TERLEBIH DAHULU
                 const forgetMsg = { forget_all: ["proposal"], req_id: 4 };
                 targetWs.send(JSON.stringify(forgetMsg));
                 logMsg(`SEND -> ${JSON.stringify(forgetMsg)}`, 'SEND');
@@ -868,14 +913,14 @@
                     contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
                 }
 
-                // Sesuai keputusan: Meminta proposal untuk di popup menggunakan req_id: 4
+                // 2. KIRIM REQUEST PROPOSAL (Menggunakan underlying_symbol)
                 const req = {
                     proposal: 1,
                     subscribe: 1,
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
-                    symbol: underlying_symbol,
+                    underlying_symbol: underlyingSymbol, // Menggunakan underlying_symbol sesuai standar API
                     contract_type: contractTypeApi,
                     duration: duration,
                     duration_unit: durationUnit,
@@ -891,30 +936,8 @@
                     req.barrier = selectedDigit.toString();
                 }
 
-                logMsg(`SEND proposal (req_id: 4) -> symbol: ${symbol} | type: ${contractTypeApi}`, 'SEND');
+                logMsg(`SEND proposal (req_id: 4) -> underlying_symbol: ${underlyingSymbol} | type: ${contractTypeApi}`, 'SEND');
                 targetWs.send(JSON.stringify(req));
-            }
-        }
-
-        // --- CONTOH FUNGSI EKSEKUSI BUY (req_id: 5 & req_id: 6) ---
-        function executeBuyProposal(proposalId) {
-            const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
-            if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                // req_id: 5 untuk Meminta proposal sebelum di-buy (jika diperlukan validasi ulang)
-                // req_id: 6 untuk buy/sell
-                const buyReq = { buy: proposalId, price: 2.00, req_id: 6 };
-                logMsg(`SEND buy -> ${JSON.stringify(buyReq)}`, 'SEND');
-                targetWs.send(JSON.stringify(buyReq));
-            }
-        }
-
-        // --- CONTOH FUNGSI PEMANTAUAN TRANSAKSI (req_id: 7) ---
-        function subscribeProposalOpenContract(contractId) {
-            const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
-            if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                const pocReq = { proposal_open_contract: 1, contract_id: contractId, subscribe: 1, req_id: 7 };
-                logMsg(`SEND POC -> ${JSON.stringify(pocReq)}`, 'SEND');
-                targetWs.send(JSON.stringify(pocReq));
             }
         }
 
