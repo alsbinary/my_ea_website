@@ -684,6 +684,7 @@
         }
 
         // --- PERBAIKAN PEMUATAN SUBMARKET BERDASARKAN ACTIVE SYMBOLS API ---
+// Memuat daftar submarket/aset secara murni dari API active_symbols
         function onMarketCategoryChange() {
             const cat = document.getElementById('modal-market-cat').value;
             const subSelect = document.getElementById('modal-submarket');
@@ -692,49 +693,28 @@
 
             let filtered = [];
             if (activeSymbolsList && activeSymbolsList.length > 0) {
-                // Sesuai dokumentasi Deriv API, filter berdasarkan field 'market' dari active_symbols
+                // Memfilter berdasarkan properti market (misal: synthetic_index, forex, dll)
                 filtered = activeSymbolsList.filter(s => s.market === cat);
             }
 
             if (filtered.length > 0) {
                 filtered.forEach(item => {
                     const opt = document.createElement('option');
-                    // Menggunakan display_name untuk teks dan symbol untuk value
-                    opt.value = item.display_name + "|" + item.symbol;
-                    opt.innerText = item.display_name;
-                    subSelect.appendChild(opt);
+                    // Value menyimpan underlying_symbol (atau symbol), text menampilkan underlying_symbol_name (atau display_name)
+                    const symbolKey = item.underlying_symbol || item.symbol;
+                    const nameKey = item.underlying_symbol_name || item.display_name;
+
+                    if (symbolKey && nameKey) {
+                        opt.value = nameKey + "|" + symbolKey;
+                        opt.innerText = nameKey;
+                        subSelect.appendChild(opt);
+                    }
                 });
             } else {
-                const fallbackData = {
-                    synthetic_index: [
-                        { name: "Volatility 100 Index", symbol: "R_100" },
-                        { name: "Volatility 75 Index", symbol: "R_75" },
-                        { name: "Volatility 50 Index", symbol: "R_50" },
-                        { name: "Volatility 25 Index", symbol: "R_25" },
-                        { name: "Volatility 10 Index", symbol: "R_10" },
-                        { name: "Volatility 100 (1s) Index", symbol: "1HZ100V" },
-                        { name: "Volatility 75 (1s) Index", symbol: "1HZ75V" },
-                        { name: "Volatility 50 (1s) Index", symbol: "1HZ50V" },
-                        { name: "Volatility 25 (1s) Index", symbol: "1HZ25V" },
-                        { name: "Volatility 10 (1s) Index", symbol: "1HZ10V" }
-                    ],
-                    forex: [
-                        { name: "EUR/USD", symbol: "frxEURUSD" },
-                        { name: "GBP/USD", symbol: "frxGBPUSD" },
-                        { name: "USD/JPY", symbol: "frxUSDJPY" }
-                    ],
-                    cryptocurrency: [
-                        { name: "BTC/USD", symbol: "cryBTCUSD" },
-                        { name: "ETH/USD", symbol: "cryETHUSD" }
-                    ]
-                };
-                const list = fallbackData[cat] || fallbackData['synthetic_index'];
-                list.forEach(item => {
-                    const opt = document.createElement('option');
-                    opt.value = item.name + "|" + item.symbol;
-                    opt.innerText = item.name;
-                    subSelect.appendChild(opt);
-                });
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.innerText = "Memuat data dari API...";
+                subSelect.appendChild(opt);
             }
             onSubmarketChange();
         }
@@ -743,37 +723,6 @@
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             setApiPendingStatus("Mengambil data proposal baru...");
-            clearActiveApiSubscriptions();
-            requestProposalUpdate();
-        }
-
-        function onTradeTypeChange() {
-            const tradeType = document.getElementById('modal-trade-type').value;
-            const unitSelect = document.getElementById('modal-duration-unit');
-            const barrierContainer = document.getElementById('barrier-container');
-            const digitContainer = document.getElementById('digit-prediction-container');
-
-            renderChoiceButtons(tradeType);
-
-            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
-                unitSelect.value = 't';
-                unitSelect.disabled = false;
-                barrierContainer.classList.remove('hidden');
-                digitContainer.classList.add('hidden');
-            } else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(tradeType)) {
-                unitSelect.value = 't';
-                unitSelect.disabled = true;
-                barrierContainer.classList.add('hidden');
-                digitContainer.classList.remove('hidden');
-                renderDigitGrid();
-            } else {
-                unitSelect.value = 't';
-                unitSelect.disabled = false;
-                barrierContainer.classList.add('hidden');
-                digitContainer.classList.add('hidden');
-            }
-
-            setApiPendingStatus("Menyesuaikan parameter tipe perdagangan...");
             clearActiveApiSubscriptions();
             requestProposalUpdate();
         }
@@ -850,16 +799,15 @@
         function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) {
-                logMsg("Peringatan: Submarket / Simbol belum dipilih atau masih kosong.", "ERR");
+                logMsg("Peringatan: Submarket / Simbol belum dipilih.", "ERR");
                 return;
             }
 
-            // Memisahkan nama display dan symbol dari value select (format: "Display Name|SYMBOL")
             const parts = subMarketSelect.value.split('|');
-            const symbol = parts[1] || subMarketSelect.value;
+            const symbol = parts[1]; // Mengambil underlying_symbol / symbol asli dari API
 
             if (!symbol || symbol === "undefined") {
-                logMsg("Error: Simbol aset bernilai undefined. Mohon pilih ulang submarket.", "ERR");
+                logMsg("Error: Simbol aset bernilai undefined. Mohon tunggu daftar market dimuat dari WebSocket.", "ERR");
                 return;
             }
 
@@ -895,7 +843,7 @@
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
-                    symbol: symbol,
+                    symbol: symbol, // Mengirim underlying_symbol murni dari API
                     contract_type: contractTypeApi,
                     duration: duration,
                     duration_unit: durationUnit
@@ -909,14 +857,10 @@
                     req.barrier = selectedDigit.toString();
                 }
 
-                // Log payload yang dikirim secara lengkap untuk keperluan analisis
                 logMsg(`SEND -> ${JSON.stringify(req)}`, 'SEND');
                 targetWs.send(JSON.stringify(req));
-            } else {
-                logMsg("Error: WebSocket belum terhubung saat mencoba mengirim proposal.", "ERR");
             }
         }
-
         function openAddModal() {
             document.getElementById('add-strategy-modal').classList.remove('hidden');
             onMarketCategoryChange();
