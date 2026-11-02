@@ -652,7 +652,7 @@
                     }
                 }
 
-                // Menangani data kontrak dari contracts_for untuk validasi barrier & MENGIRIM PROPOSAL
+                // Menangani data kontrak dari contracts_for untuk validasi barrier & memicu request proposal
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
                     logMsg(`Data contracts_for diterima.`, 'RECV');
                     if (data.contracts_for.available) {
@@ -671,34 +671,9 @@
                         }
                     }
                     
-                    // PERBAIKAN UTAMA: Langsung panggil requestProposalUpdate() di sini
+                    // Lanjutkan langsung dengan mengirim request proposal setelah contracts_for diterima
                     requestProposalUpdate();
                 }
-            };
-
-                // Menangani data kontrak dari contracts_for untuk validasi barrier
-// Menangani data kontrak dari contracts_for untuk validasi barrier
-if (data.msg_type === 'contracts_for' && data.contracts_for) {
-    logMsg(`Data contracts_for diterima.`, 'RECV');
-    if (data.contracts_for.available) {
-        const activeTradeType = document.getElementById('modal-trade-type').value;
-        const matchedContract = data.contracts_for.available.find(c => {
-            if (activeTradeType === 'Touch/No Touch') return c.contract_type === 'NOTOUCH' || c.contract_type === 'ONETOUCH';
-            if (activeTradeType === 'Higher/Lower') return c.contract_type === 'HIGHER' || c.contract_type === 'LOWER';
-            return true;
-        });
-
-        if (matchedContract && matchedContract.barrier) {
-            const barrierInput = document.getElementById('modal-barrier');
-            if (barrierInput && !barrierInput.value) {
-                barrierInput.value = matchedContract.barrier;
-            }
-        }
-    }
-    
-    // TAMBAHKAN INI: Panggil proposal update setelah contracts_for selesai diproses
-    requestProposalUpdate();
-}
             };
 
             ws.onclose = () => logMsg("WebSocket akun terputus.", 'ERR');
@@ -746,7 +721,7 @@ if (data.msg_type === 'contracts_for' && data.contracts_for) {
             onSubmarketChange();
         }
 
-        // Saat submarket berubah, kirim forget_all, lalu request contracts_for, kemudian request proposal
+        // Saat submarket berubah, kirim forget_all lalu request contracts_for (yang kemudian men-trigger proposal)
         function onSubmarketChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
@@ -768,10 +743,9 @@ if (data.msg_type === 'contracts_for' && data.contracts_for) {
             }
 
             setApiPendingStatus("Memeriksa kontrak & memperbarui proposal...");
-            requestProposalUpdate();
         }
 
-        // Saat trade type berubah, kirim forget_all, lalu request contracts_for, kemudian request proposal
+        // Saat trade type berubah, kirim forget_all lalu request contracts_for (yang kemudian men-trigger proposal)
         function onTradeTypeChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             let symbol = "";
@@ -825,7 +799,6 @@ if (data.msg_type === 'contracts_for' && data.contracts_for) {
             }
 
             setApiPendingStatus("Menyesuaikan parameter tipe perdagangan...");
-            requestProposalUpdate();
         }
 
         function requestProposalUpdate() {
@@ -893,7 +866,7 @@ if (data.msg_type === 'contracts_for' && data.contracts_for) {
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
-                    symbol: underlying_symbol,
+                    symbol: symbol,
                     contract_type: contractTypeApi,
                     duration: duration,
                     duration_unit: durationUnit,
