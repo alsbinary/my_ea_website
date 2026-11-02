@@ -47,7 +47,7 @@
                     <label class="block font-medium text-slate-400 mb-1">OAuth Client ID / App ID</label>
                     <input type="text" id="client_id" value="34M4TGKofeTRkLOlcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500 text-xs">
                 </div>
-                <button onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs cursor-pointer">LOGIN VIA DERIV (OAUTH PKCE)</button>
+                <button type="button" onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs cursor-pointer">LOGIN VIA DERIV (OAUTH PKCE)</button>
             </div>
         </div>
     </div>
@@ -64,7 +64,7 @@
 
             <div class="flex items-center space-x-4">
                 <div class="relative">
-                    <button onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
+                    <button type="button" onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
                         <div class="text-right">
                             <div id="account-type-label" class="text-slate-500 text-[11px]">Memuat akun...</div>
                             <div class="flex items-center space-x-1">
@@ -82,7 +82,7 @@
                     </div>
                 </div>
 
-                <button class="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 py-1.5 rounded-lg text-xs shadow">Deposit</button>
+                <button type="button" class="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 py-1.5 rounded-lg text-xs shadow">Deposit</button>
             </div>
         </header>
 
@@ -123,7 +123,7 @@
                     </div>
 
                     <div class="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
-                        <button onclick="openAddModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer">Add Level (+)</button>
+                        <button type="button" onclick="openAddModal()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer">Add Level (+)</button>
                     </div>
                 </div>
             </main>
@@ -139,7 +139,7 @@
                     <div>Current Spot: <span id="pf-spot" class="font-mono font-bold text-cyan-600">-</span></div>
                     <div>Profit/Loss: <span id="pf-profit" class="font-bold">0.00</span></div>
                 </div>
-                <button onclick="alert('Engine berjalan dengan arsitektur Options API!')" class="py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer">RUN BOT</button>
+                <button type="button" onclick="alert('Engine berjalan dengan arsitektur Options API!')" class="py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer">RUN BOT</button>
             </aside>
         </div>
     </div>
@@ -149,7 +149,7 @@
         <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col text-xs">
             <div class="bg-teal-600 text-white px-6 py-3 flex justify-between items-center">
                 <h3 class="font-bold text-xs tracking-wide">Konfigurasi Level Strategi & Proposal API</h3>
-                <button onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-base cursor-pointer">&times;</button>
+                <button type="button" onclick="closeAddModal()" class="text-white hover:text-slate-200 font-bold text-base cursor-pointer">&times;</button>
             </div>
             <div class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
                 <div class="grid grid-cols-2 gap-3">
@@ -198,12 +198,13 @@
                 </div>
             </div>
             <div class="p-4 bg-slate-100 border-t flex justify-end space-x-3">
-                <button onclick="closeAddModal()" class="px-4 py-2 bg-white border rounded text-xs cursor-pointer">Batal</button>
-                <button onclick="confirmAddStrategy()" class="px-5 py-2 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Simpan Level</button>
+                <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-white border rounded text-xs cursor-pointer">Batal</button>
+                <button type="button" onclick="confirmAddStrategy()" class="px-5 py-2 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Simpan Level</button>
             </div>
         </div>
     </div>
 
+    <!-- SCRIPT UTAMA PERBAIKAN -->
     <script>
         let ws = null;
         let publicWs = null;
@@ -239,31 +240,25 @@
             }
 
             accessToken = localStorage.getItem('deriv_access_token');
+            
+            // 1. Inisialisasi Public WebSocket untuk Active Symbols
+            initPublicWebSocket();
+
             if (accessToken) {
                 document.getElementById('login-view').classList.add('hidden');
                 document.getElementById('dashboard-view').classList.remove('hidden');
                 
-                // Inisialisasi Public WebSocket untuk Active Symbols
-                initPublicWebSocket();
-                
-                // Inisialisasi REST API Accounts
+                // 2. Inisialisasi REST API Accounts jika token tersedia
                 await fetchAccountsAndSetup(accessToken);
             } else {
-                document.getElementById('login-view').classList.add('hidden');
-                document.getElementById('dashboard-view').classList.remove('hidden');
-                initPublicWebSocket();
+                document.getElementById('login-view').classList.remove('hidden');
+                document.getElementById('dashboard-view').classList.add('hidden');
             }
-
-            setInterval(() => {
-                const now = new Date();
-                const el = document.getElementById('gmt-time');
-                if (el) el.innerText = now.toUTCString().split(' ')[4] + ' GMT';
-            }, 1000);
         };
 
         function loginWithDerivOAuthPKCE() {
             const clientId = document.getElementById('client_id').value.trim();
-            const redirectUri = "https://tradelib.net/trade-callback";[cite: 5]
+            const redirectUri = "https://tradelib.net/trade-callback";
             window.location.href = `https://auth.deriv.com/oauth2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=trade`;
         }
 
@@ -272,21 +267,21 @@
             location.reload();
         }
 
-        // --- PUBLIC WEBSOCKET (Active Symbols) ---
+        // --- PUBLIC WEBSOCKET (Active Symbols & Public Proposals) ---
         function initPublicWebSocket() {
-            const clientId = document.getElementById('client_id').value.trim() || "34M4TGKofeTRkLOlcJ9zO";
+            logMsg("Membuka Public WebSocket ke Deriv...");
             publicWs = new WebSocket(`wss://api.derivws.com/trading/v1/options/ws/public`);
 
             publicWs.onopen = () => {
                 logMsg("Public WebSocket Terhubung. Meminta active symbols...");
-                publicWs.send(JSON.stringify({ active_symbols: "brief", req_id: 1 }));[cite: 3]
+                publicWs.send(JSON.stringify({ active_symbols: "brief", req_id: 1 }));
             };
 
             publicWs.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
                 if (data.msg_type === 'active_symbols' && data.active_symbols) {
                     activeSymbolsList = data.active_symbols;
-                    logMsg(`Active Symbols diterima: ${activeSymbolsList.length} aset.`);[cite: 3]
+                    logMsg(`Active Symbols diterima: ${activeSymbolsList.length} aset.`);
                     populateSubmarkets();
                 }
             };
@@ -295,16 +290,15 @@
         // --- REST API: ACCOUNTS & OTP ---
         async function fetchAccountsAndSetup(token) {
             try {
-                logMsg("Mengambil daftar akun via REST API (`/trading/v1/options/accounts`)...");[cite: 3]
+                logMsg("Mengambil daftar akun via REST API (`/trading/v1/options/accounts`)...");
                 const response = await fetch("https://api.derivws.com/trading/v1/options/accounts", {
-                    headers: { "Authorization": `Bearer ${token}` }[cite: 3]
+                    headers: { "Authorization": `Bearer ${token}` }
                 });
                 const result = await response.json();
                 
                 if (result.data && result.data.length > 0) {
                     accountsList = result.data;
                     renderAccountsDropdown(accountsList);
-                    // Hubungkan ke akun pertama secara default
                     await selectAndConnectAccount(accountsList[0].account_id, token);
                 } else {
                     logMsg("Gagal memuat akun atau token invalid.", 'ERR');
@@ -333,15 +327,15 @@
 
         async function selectAndConnectAccount(accountId, token) {
             try {
-                logMsg(`Meminta OTP WebSocket untuk akun ${accountId}...`);[cite: 3]
+                logMsg(`Meminta OTP WebSocket untuk akun ${accountId}...`);
                 const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${accountId}/otp`, {
                     method: "POST",
-                    headers: { "Authorization": `Bearer ${token}` }[cite: 3]
+                    headers: { "Authorization": `Bearer ${token}` }
                 });
                 const otpData = await otpRes.json();
                 
                 if (otpData.data && otpData.data.url) {
-                    connectAuthenticatedWebSocket(otpData.data.url, accountId);[cite: 3]
+                    connectAuthenticatedWebSocket(otpData.data.url, accountId);
                 } else {
                     logMsg("Gagal mendapatkan OTP URL.", 'ERR');
                 }
@@ -353,13 +347,13 @@
         // --- AUTHENTICATED WEBSOCKET (Balance & Trading) ---
         function connectAuthenticatedWebSocket(url, accountId) {
             if (ws) ws.close();
-            logMsg(`Menghubungkan ke WebSocket Akun Terautentikasi...`);[cite: 3]
-            ws = new WebSocket(url);[cite: 3]
+            logMsg(`Menghubungkan ke WebSocket Akun Terautentikasi...`);
+            ws = new WebSocket(url);
 
             ws.onopen = () => {
                 logMsg(`WebSocket Akun ${accountId} Terhubung! Meminta langganan saldo...`);
                 document.getElementById('account-id-label').innerText = accountId;
-                ws.send(JSON.stringify({ balance: 1, subscribe: 1, req_id: 10 }));[cite: 3]
+                ws.send(JSON.stringify({ balance: 1, subscribe: 1, req_id: 10 }));
             };
 
             ws.onmessage = (msg) => {
@@ -415,8 +409,8 @@
             const symbol = subSelect.value.split('|')[1];
 
             if (publicWs && publicWs.readyState === WebSocket.OPEN) {
-                logMsg(`Meminta contracts_for: ${symbol}`);[cite: 3]
-                publicWs.send(JSON.stringify({ contracts_for: symbol, currency: "USD", req_id: 2 }));[cite: 3]
+                logMsg(`Meminta contracts_for: ${symbol}`);
+                publicWs.send(JSON.stringify({ contracts_for: symbol, currency: "USD", req_id: 2 }));
             }
             requestProposal();
         }
