@@ -249,7 +249,7 @@
                     </select>
                 </div>
 
-                <!-- TOMBOL PILIHAN ARAH INTERAKTIF (LABEL DINAMIS) -->
+                <!-- TOMBOL PILIHAN ARAH INTERAKTIF -->
                 <div id="choice-buttons-container" class="space-y-1 pt-1">
                     <label class="font-medium text-slate-600 block" id="choice-label">Touch Type</label>
                     <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
@@ -267,10 +267,11 @@
                     <div>
                         <div class="flex justify-between items-center">
                             <label class="font-medium text-slate-600">Duration</label>
+                            <span id="duration-min-label" class="text-[10px] text-slate-400 font-semibold">Min: 1t</span>
                         </div>
                         <div class="flex space-x-1 mt-1">
-                            <input type="number" id="modal-duration" value="10" min="1" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 text-xs">
-                            <select id="modal-duration-unit" onchange="requestProposalUpdate()" class="bg-slate-50 border border-slate-300 rounded p-1 text-xs font-semibold cursor-pointer">
+                            <input type="number" id="modal-duration" value="1" min="1" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 text-xs">
+                            <select id="modal-duration-unit" onchange="onDurationUnitChange()" class="bg-slate-50 border border-slate-300 rounded p-1 text-xs font-semibold cursor-pointer">
                                 <option value="t" selected>Ticks</option>
                                 <option value="s">Seconds</option>
                                 <option value="m">Minutes</option>
@@ -281,8 +282,9 @@
                     <div>
                         <div class="flex justify-between items-center">
                             <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
+                            <span class="text-[10px] text-slate-400 font-semibold">Min: $0.35</span>
                         </div>
-                        <input type="number" step="0.01" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1 text-xs">
+                        <input type="number" step="1.00" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-2 font-bold text-teal-700 mt-1 text-xs">
                     </div>
                 </div>
 
@@ -335,12 +337,13 @@
         let accountsList = [];
         let isAccountConnected = false;
         let currentActiveAccountId = "";
+        let lastWsUrl = "";
 
         let defaultStrategyData = [
-            { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
+            { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 1, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
         ];
 
-        // Deteksi Demo Akun (Awalan D atau VR)
+        // Deteksi Akun Demo (Awalan D atau VR)
         function checkIsDemoAccount(accountId) {
             if (!accountId) return true;
             const upperId = accountId.toString().trim().toUpperCase();
@@ -460,6 +463,7 @@
 
         window.onload = async function() {
             startGMTClock();
+            startAutoReconnectWatcher(); // Monitor otomatis koneksi WebSocket terputus
             
             const urlParams = new URLSearchParams(window.location.search);
             let code = urlParams.get('code');
@@ -494,6 +498,22 @@
             }, 1000);
         }
 
+        // AUTO-RECONNECT MONITOR JIKA WEBSOCKET TERPUTUS
+        function startAutoReconnectWatcher() {
+            setInterval(() => {
+                if (isAccountConnected && currentActiveAccountId && accessToken) {
+                    if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+                        logMsg("Koneksi WebSocket terputus. Menghubungkan ulang otomatis...", 'ERR');
+                        if (lastWsUrl) {
+                            connectAuthenticatedWebSocket(lastWsUrl, currentActiveAccountId);
+                        } else {
+                            selectAndConnectAccount(currentActiveAccountId, accessToken);
+                        }
+                    }
+                }
+            }, 3000);
+        }
+
         function initPublicWebSocket() {
             logMsg("Membuka Public WebSocket ke Deriv...");
             publicWs = new WebSocket(`wss://api.derivws.com/trading/v1/options/ws/public`);
@@ -514,6 +534,12 @@
                     logMsg(`Active Symbols diterima: ${activeSymbolsList.length} aset.`);
                     onMarketCategoryChange();
                 }
+            };
+
+            publicWs.onclose = () => {
+                setTimeout(() => {
+                    if (!publicWs || publicWs.readyState === WebSocket.CLOSED) initPublicWebSocket();
+                }, 5000);
             };
         }
 
@@ -575,7 +601,8 @@
                 const otpData = await otpRes.json();
                 
                 if (otpData.data && otpData.data.url) {
-                    connectAuthenticatedWebSocket(otpData.data.url, accountId);
+                    lastWsUrl = otpData.data.url;
+                    connectAuthenticatedWebSocket(lastWsUrl, accountId);
                 } else {
                     logMsg("Gagal mendapatkan OTP URL.", 'ERR');
                 }
@@ -612,19 +639,14 @@
                     updateAccountUiLabel(currentActiveAccountId, `${bal} ${cur}`);
                 }
 
-                // FILTER & PENGAMBILAN BARRIER YANG SESUAI DENGAN EXPIRY_TYPE (TICK VS DAILY)
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
-                    logMsg(`Respon contracts_for diterima. Menyaring barrier sesuai Trade Type & Durasi tick...`, 'RECV');
-                    
                     let contractsArray = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
                     if (contractsArray.length > 0) {
                         const activeTradeType = document.getElementById('modal-trade-type').value;
-                        const durationUnitVal = document.getElementById('modal-duration-unit').value; // 't' untuk tick
+                        const durationUnitVal = document.getElementById('modal-duration-unit').value;
 
                         const matchedContract = contractsArray.find(c => {
                             const cType = c.contract_type || "";
-                            
-                            // Pastikan expiry_type cocok dengan unit durasi (misal 'tick' untuk 't') agar tidak mengambil barrier 'daily' 1436.09
                             const matchesExpiry = (durationUnitVal === 't') ? (c.expiry_type === 'tick') : true;
                             if (!matchesExpiry) return false;
 
@@ -643,13 +665,9 @@
                         const barrierInput = document.getElementById('modal-barrier');
                         if (matchedContract && matchedContract.barrier) {
                             barrierInput.value = matchedContract.barrier;
-                            logMsg(`Barrier valid ditemukan dari contracts_for (${matchedContract.contract_type}, expiry: ${matchedContract.expiry_type}): ${matchedContract.barrier}`);
                         } else {
                             const tickFallback = contractsArray.find(c => c.expiry_type === 'tick' && c.barrier);
-                            if (tickFallback) {
-                                barrierInput.value = tickFallback.barrier;
-                                logMsg(`Barrier fallback tick diset: ${tickFallback.barrier}`);
-                            }
+                            if (tickFallback) barrierInput.value = tickFallback.barrier;
                         }
                     }
 
@@ -659,7 +677,6 @@
                 if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
                     const banner = document.getElementById('api-status-banner');
                     currentEstimatedPayout = parseFloat(data.proposal.payout);
-                    logMsg(`Proposal diterima! Payout: $${currentEstimatedPayout.toFixed(2)}`, 'RECV');
                     document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
                     
                     if(banner) {
@@ -670,7 +687,6 @@
                     }
                 } else if (data.msg_type === 'proposal' && data.error && data.req_id === 4) {
                     const banner = document.getElementById('api-status-banner');
-                    logMsg(`Proposal Error: ${data.error.message}`, 'ERR');
                     document.getElementById('payout').innerText = "Error";
                     
                     if(banner) {
@@ -686,7 +702,7 @@
                 isAccountConnected = false;
                 updateModalButtonState();
                 logMsg("WebSocket akun terputus.", 'ERR');
-                document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Terputus';
+                document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Terputus (Menghubungkan ulang...)';
             };
         }
 
@@ -755,12 +771,37 @@
             if (symbol && symbol !== "undefined") {
                 const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
                 if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                    setApiPendingStatus("Mengirim request contracts_for (Menunggu respon barrier)...");
+                    setApiPendingStatus("Mengirim request contracts_for...");
                     const contractsReq = { contracts_for: symbol, req_id: 2 };
                     logMsg(`SEND -> ${JSON.stringify(contractsReq)}`, 'SEND');
                     targetWs.send(JSON.stringify(contractsReq));
                 }
             }
+        }
+
+        function onDurationUnitChange() {
+            const unit = document.getElementById('modal-duration-unit').value;
+            const durationInput = document.getElementById('modal-duration');
+            const minLabel = document.getElementById('duration-min-label');
+
+            if (unit === 't') {
+                durationInput.value = "1";
+                durationInput.min = "1";
+                minLabel.innerText = "Min: 1t";
+            } else if (unit === 's') {
+                durationInput.value = "15";
+                durationInput.min = "15";
+                minLabel.innerText = "Min: 15s";
+            } else if (unit === 'm') {
+                durationInput.value = "1";
+                durationInput.min = "1";
+                minLabel.innerText = "Min: 1m";
+            } else if (unit === 'h') {
+                durationInput.value = "1";
+                durationInput.min = "1";
+                minLabel.innerText = "Min: 1h";
+            }
+            requestProposalUpdate();
         }
 
         function requestProposalUpdate() {
@@ -772,7 +813,7 @@
             if (!underlyingSymbol || underlyingSymbol === "undefined") return;
 
             const tradeType = document.getElementById('modal-trade-type').value;
-            const duration = parseInt(document.getElementById('modal-duration').value) || 10;
+            const duration = parseInt(document.getElementById('modal-duration').value) || 1;
             const durationUnit = document.getElementById('modal-duration-unit').value;
             const amount = parseFloat(document.getElementById('modal-amount').value) || 2.0;
             const barrier = document.getElementById('modal-barrier').value.trim();
@@ -797,7 +838,6 @@
                     contractTypeApi = (selectedChoice === 'Even') ? "DIGITEVEN" : "DIGITODD";
                 }
 
-                // PAYLOAD PROPOSAL MENGGUNAKAN underlying_symbol TANPA SUBSCRIBE
                 const req = {
                     proposal: 1,
                     amount: amount,
@@ -852,7 +892,7 @@
                 digitContainer.classList.add('hidden');
             }
 
-            setApiPendingStatus("Menyesuaikan parameter tipe perdagangan...");
+            onDurationUnitChange();
             onSubmarketChange(); 
         }
 
@@ -985,7 +1025,7 @@
                     <td><input type="text" value="${item.last_digit || ''}" class="font-bold text-indigo-600 text-center"></td>
                     <td><input type="number" value="${item.duration_amount}"></td>
                     <td><select><option>Ticks</option><option>Seconds</option></select></td>
-                    <td><input type="number" step="0.01" value="${item.amount}" class="font-bold text-teal-700"></td>
+                    <td><input type="number" step="1.00" value="${item.amount}" class="font-bold text-teal-700"></td>
                     <td class="font-bold text-emerald-600">$${(item.payout || 3.35).toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
