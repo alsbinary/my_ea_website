@@ -652,7 +652,7 @@
                     }
                 }
 
-                // Menangani data kontrak dari contracts_for untuk validasi barrier
+                // Menangani data kontrak dari contracts_for untuk validasi barrier & MENGIRIM PROPOSAL
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
                     logMsg(`Data contracts_for diterima.`, 'RECV');
                     if (data.contracts_for.available) {
@@ -670,7 +670,35 @@
                             }
                         }
                     }
+                    
+                    // PERBAIKAN UTAMA: Langsung panggil requestProposalUpdate() di sini
+                    requestProposalUpdate();
                 }
+            };
+
+                // Menangani data kontrak dari contracts_for untuk validasi barrier
+// Menangani data kontrak dari contracts_for untuk validasi barrier
+if (data.msg_type === 'contracts_for' && data.contracts_for) {
+    logMsg(`Data contracts_for diterima.`, 'RECV');
+    if (data.contracts_for.available) {
+        const activeTradeType = document.getElementById('modal-trade-type').value;
+        const matchedContract = data.contracts_for.available.find(c => {
+            if (activeTradeType === 'Touch/No Touch') return c.contract_type === 'NOTOUCH' || c.contract_type === 'ONETOUCH';
+            if (activeTradeType === 'Higher/Lower') return c.contract_type === 'HIGHER' || c.contract_type === 'LOWER';
+            return true;
+        });
+
+        if (matchedContract && matchedContract.barrier) {
+            const barrierInput = document.getElementById('modal-barrier');
+            if (barrierInput && !barrierInput.value) {
+                barrierInput.value = matchedContract.barrier;
+            }
+        }
+    }
+    
+    // TAMBAHKAN INI: Panggil proposal update setelah contracts_for selesai diproses
+    requestProposalUpdate();
+}
             };
 
             ws.onclose = () => logMsg("WebSocket akun terputus.", 'ERR');
