@@ -549,12 +549,16 @@
 
             publicWs.onopen = () => {
                 logMsg("Public WebSocket Terhubung. Meminta active symbols...");
-                // Permintaan active_symbols sesuai referensi resmi
-                publicWs.send(JSON.stringify({ active_symbols: "brief", req_id: 1 }));
+                // Req_id: 1 untuk Active Symbols
+                const req = { active_symbols: "brief", req_id: 1 };
+                logMsg(`SEND -> ${JSON.stringify(req)}`, 'SEND');
+                publicWs.send(JSON.stringify(req));
             };
 
             publicWs.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
+                logMsg(`RECV <- ${JSON.stringify(data)}`, 'RECV');
+
                 if (data.msg_type === 'active_symbols' && data.active_symbols) {
                     activeSymbolsList = data.active_symbols;
                     logMsg(`Active Symbols diterima: ${activeSymbolsList.length} aset.`);
@@ -630,12 +634,18 @@
             ws.onopen = () => {
                 logMsg(`WebSocket Akun ${accountId} Terhubung! Meminta langganan saldo...`);
                 document.getElementById('account-id-label').innerText = accountId;
-                ws.send(JSON.stringify({ balance: 1, subscribe: 1, req_id: 10 }));
+                
+                // Req_id: 3 untuk Mengambil/Berlangganan Saldo
+                const balanceReq = { balance: 1, subscribe: 1, req_id: 3 };
+                logMsg(`SEND -> ${JSON.stringify(balanceReq)}`, 'SEND');
+                ws.send(JSON.stringify(balanceReq));
+
                 requestProposalUpdate();
             };
 
             ws.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
+                logMsg(`RECV <- ${JSON.stringify(data)}`, 'RECV');
                 
                 if (data.msg_type === 'balance') {
                     const bal = parseFloat(data.balance.balance).toFixed(2);
@@ -649,17 +659,30 @@
                 }
 
                 if (data.msg_type === 'proposal' && data.proposal) {
-                    currentEstimatedPayout = parseFloat(data.proposal.payout);
-                    logMsg(`Proposal diterima! Payout: $${currentEstimatedPayout.toFixed(2)}`, 'RECV');
-                    document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
-                    
-                    const banner = document.getElementById('api-status-banner');
-                    if(banner) {
-                        banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
-                        document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
-                        document.getElementById('api-status-badge').innerText = "VERIFIED";
-                        document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
+                    // Cek req_id 4 untuk popup, atau req_id 5 untuk buy
+                    if (data.req_id === 4) {
+                        currentEstimatedPayout = parseFloat(data.proposal.payout);
+                        logMsg(`Proposal Popup diterima! Payout: $${currentEstimatedPayout.toFixed(2)} (req_id: 4)`, 'RECV');
+                        document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
+                        
+                        const banner = document.getElementById('api-status-banner');
+                        if(banner) {
+                            banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
+                            document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
+                            document.getElementById('api-status-badge').innerText = "VERIFIED";
+                            document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
+                        }
                     }
+                }
+
+                // req_id: 6 untuk buy/sell response
+                if (data.msg_type === 'buy' && data.req_id === 6) {
+                    logMsg(`Buy berhasil dieksekusi! Kontrak ID: ${data.buy.contract_id}`, 'RECV');
+                }
+
+                // req_id: 7 untuk pemantauan dan hasil transaksi (Proposal Open Contract)
+                if (data.msg_type === 'proposal_open_contract' && data.req_id === 7) {
+                    logMsg(`Pemantauan Transmisi POC diterima (req_id: 7)`, 'RECV');
                 }
             };
 
@@ -676,15 +699,7 @@
             badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
         }
 
-        function clearActiveApiSubscriptions() {
-            const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
-            if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                targetWs.send(JSON.stringify({ forget_all: ["proposal"] }));
-            }
-        }
-
-        // --- PERBAIKAN PEMUATAN SUBMARKET BERDASARKAN ACTIVE SYMBOLS API ---
-// Memuat daftar submarket/aset secara murni dari API active_symbols
+        // --- FUNGSI PEMUATAN SUBMARKET BERDASARKAN ACTIVE SYMBOLS API ---
         function onMarketCategoryChange() {
             const cat = document.getElementById('modal-market-cat').value;
             const subSelect = document.getElementById('modal-submarket');
@@ -693,14 +708,12 @@
 
             let filtered = [];
             if (activeSymbolsList && activeSymbolsList.length > 0) {
-                // Memfilter berdasarkan properti market (misal: synthetic_index, forex, dll)
                 filtered = activeSymbolsList.filter(s => s.market === cat);
             }
 
             if (filtered.length > 0) {
                 filtered.forEach(item => {
                     const opt = document.createElement('option');
-                    // Value menyimpan underlying_symbol (atau symbol), text menampilkan underlying_symbol_name (atau display_name)
                     const symbolKey = item.underlying_symbol || item.symbol;
                     const nameKey = item.underlying_symbol_name || item.display_name;
 
@@ -722,8 +735,20 @@
         function onSubmarketChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
+            
+            // Req_id: 2 untuk Memeriksa jenis kontrak yang tersedia (contracts_for)
+            const parts = subMarketSelect.value.split('|');
+            const symbol = parts[1];
+            if (symbol && symbol !== "undefined") {
+                const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
+                if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+                    const contractsReq = { contracts_for: symbol, currency: "USD", req_id: 2 };
+                    logMsg(`SEND -> ${JSON.stringify(contractsReq)}`, 'SEND');
+                    targetWs.send(JSON.stringify(contractsReq));
+                }
+            }
+
             setApiPendingStatus("Mengambil data proposal baru...");
-            clearActiveApiSubscriptions();
             requestProposalUpdate();
         }
 
@@ -796,24 +821,7 @@
             requestProposalUpdate();
         }
 
-        // Variabel pelacak req_id unik untuk membedakan jenis request
-        let currentReqId = 100;
-
-        function getUniqueReqId(type = 'proposal') {
-            currentReqId += 1;
-            return currentReqId;
-        }
-
-        function clearActiveApiSubscriptions() {
-            const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
-            if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                // Sesuai instruksi: lakukan forget_all proposal terlebih dahulu
-                const forgetReqId = getUniqueReqId('forget');
-                targetWs.send(JSON.stringify({ forget_all: ["proposal"], req_id: forgetReqId }));
-                logMsg(`SEND -> ${JSON.stringify({ forget_all: ["proposal"], req_id: forgetReqId })}`, 'SEND');
-            }
-        }
-
+        // --- FUNGSI PROPOSAL POPUP MENGGUNAKAN req_id: 4 (beserta forget_all req_id: 4) ---
         function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) {
@@ -822,7 +830,7 @@
             }
 
             const parts = subMarketSelect.value.split('|');
-            const symbol = parts[1]; // Mengambil underlying_symbol murni dari API
+            const symbol = parts[1];
 
             if (!symbol || symbol === "undefined") {
                 logMsg("Error: Simbol aset bernilai undefined.", "ERR");
@@ -838,32 +846,32 @@
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
             setApiPendingStatus("Mengirim request proposal baru ke API...");
 
-            // 1. Bersihkan proposal lama menggunakan forget_all terlebih dahulu
-            clearActiveApiSubscriptions();
-
-            let contractTypeApi = "NOTOUCH";
-            if (tradeType === 'Touch/No Touch') {
-                contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
-            } else if (tradeType === 'Rise/Fall') {
-                contractTypeApi = (selectedChoice === 'Rise') ? "CALL" : "PUT";
-            } else if (tradeType === 'Higher/Lower') {
-                contractTypeApi = (selectedChoice === 'Higher') ? "HIGHER" : "LOWER";
-            } else if (tradeType === 'Matches/Differs') {
-                contractTypeApi = (selectedSubTab === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
-            } else if (tradeType === 'Over/Under') {
-                contractTypeApi = (selectedSubTab === 'Over') ? "DIGITOVER" : "DIGITUNDER";
-            } else if (tradeType === 'Even/Odd') {
-                contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
-            }
-
             const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
             if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                // 2. Berikan req_id khusus untuk pengecekan proposal di modal popup (berbeda dengan eksekusi buy/sell)
-                const proposalReqId = getUniqueReqId('modal_proposal');
+                // Sesuai keputusan: forget_all menggunakan req_id: 4
+                const forgetMsg = { forget_all: ["proposal"], req_id: 4 };
+                targetWs.send(JSON.stringify(forgetMsg));
+                logMsg(`SEND -> ${JSON.stringify(forgetMsg)}`, 'SEND');
 
+                let contractTypeApi = "NOTOUCH";
+                if (tradeType === 'Touch/No Touch') {
+                    contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
+                } else if (tradeType === 'Rise/Fall') {
+                    contractTypeApi = (selectedChoice === 'Rise') ? "CALL" : "PUT";
+                } else if (tradeType === 'Higher/Lower') {
+                    contractTypeApi = (selectedChoice === 'Higher') ? "HIGHER" : "LOWER";
+                } else if (tradeType === 'Matches/Differs') {
+                    contractTypeApi = (selectedSubTab === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
+                } else if (tradeType === 'Over/Under') {
+                    contractTypeApi = (selectedSubTab === 'Over') ? "DIGITOVER" : "DIGITUNDER";
+                } else if (tradeType === 'Even/Odd') {
+                    contractTypeApi = (selectedSubTab === 'Even') ? "DIGITEVEN" : "DIGITODD";
+                }
+
+                // Sesuai keputusan: Meminta proposal untuk di popup menggunakan req_id: 4
                 const req = {
                     proposal: 1,
-                    subscribe: 1, // Berlangganan agar update real-time jika harga/payout berubah
+                    subscribe: 1,
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
@@ -871,7 +879,7 @@
                     contract_type: contractTypeApi,
                     duration: duration,
                     duration_unit: durationUnit,
-                    req_id: proposalReqId
+                    req_id: 4
                 };
 
                 if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
@@ -883,10 +891,33 @@
                     req.barrier = selectedDigit.toString();
                 }
 
-                logMsg(`SEND proposal (req_id: ${proposalReqId}) -> symbol: ${symbol} | type: ${contractTypeApi}`, 'SEND');
+                logMsg(`SEND proposal (req_id: 4) -> symbol: ${symbol} | type: ${contractTypeApi}`, 'SEND');
                 targetWs.send(JSON.stringify(req));
             }
         }
+
+        // --- CONTOH FUNGSI EKSEKUSI BUY (req_id: 5 & req_id: 6) ---
+        function executeBuyProposal(proposalId) {
+            const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
+            if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+                // req_id: 5 untuk Meminta proposal sebelum di-buy (jika diperlukan validasi ulang)
+                // req_id: 6 untuk buy/sell
+                const buyReq = { buy: proposalId, price: 2.00, req_id: 6 };
+                logMsg(`SEND buy -> ${JSON.stringify(buyReq)}`, 'SEND');
+                targetWs.send(JSON.stringify(buyReq));
+            }
+        }
+
+        // --- CONTOH FUNGSI PEMANTAUAN TRANSAKSI (req_id: 7) ---
+        function subscribeProposalOpenContract(contractId) {
+            const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
+            if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+                const pocReq = { proposal_open_contract: 1, contract_id: contractId, subscribe: 1, req_id: 7 };
+                logMsg(`SEND POC -> ${JSON.stringify(pocReq)}`, 'SEND');
+                targetWs.send(JSON.stringify(pocReq));
+            }
+        }
+
         function openAddModal() {
             document.getElementById('add-strategy-modal').classList.remove('hidden');
             onMarketCategoryChange();
