@@ -619,58 +619,21 @@
                     document.getElementById('account-type-label').className = isDemo ? "text-amber-600 text-[11px]" : "text-slate-500 text-[11px]";
                 }
 
-                // Menangani respons error dari API (seperti "This contract offers no return.") atau sukses proposal
-                if (data.msg_type === 'proposal') {
+                if (data.msg_type === 'proposal' && data.proposal) {
                     if (data.req_id === proposalReqId) {
-                        const banner = document.getElementById('api-status-banner');
+                        currentEstimatedPayout = parseFloat(data.proposal.payout);
+                        logMsg(`Proposal Valid diterima! Payout: $${currentEstimatedPayout.toFixed(2)}`, 'RECV');
+                        document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
                         
-                        if (data.error) {
-                            // Tampilkan pesan error pada kotak payout sesuai permintaan
-                            currentEstimatedPayout = 0;
-                            document.getElementById('payout').innerText = data.error.message || "No Return";
-                            logMsg(`Proposal Error: ${data.error.message}`, 'ERR');
-
-                            if(banner) {
-                                banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
-                                document.getElementById('api-status-text').innerText = data.error.message;
-                                document.getElementById('api-status-badge').innerText = "INVALID";
-                                document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded uppercase";
-                            }
-                        } else if (data.proposal) {
-                            currentEstimatedPayout = parseFloat(data.proposal.payout);
-                            logMsg(`Proposal Valid diterima! Payout: $${currentEstimatedPayout.toFixed(2)}`, 'RECV');
-                            document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
-                            
-                            if(banner) {
-                                banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
-                                document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
-                                document.getElementById('api-status-badge').innerText = "VERIFIED";
-                                document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
-                            }
+                        const banner = document.getElementById('api-status-banner');
+                        if(banner) {
+                            banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
+                            document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
+                            document.getElementById('api-status-badge').innerText = "VERIFIED";
+                            document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
                         }
                     } else {
                         logMsg(`Mengabaikan respons proposal kedaluwarsa (req_id: ${data.req_id}, current: ${proposalReqId})`, 'INFO');
-                    }
-                }
-
-                // Menangani respons contracts_for untuk mengisi barrier secara otomatis/validasi
-                if (data.msg_type === 'contracts_for' && data.contracts_for) {
-                    logMsg(`Data contracts_for diterima untuk aset: ${data.contracts_for.feed_license || 'OK'}`, 'RECV');
-                    // Jika data kontrak menyertakan informasi barrier default, kita bisa update input barrier di sini
-                    if (data.contracts_for.available) {
-                        const activeTradeType = document.getElementById('modal-trade-type').value;
-                        const matchedContract = data.contracts_for.available.find(c => {
-                            if (activeTradeType === 'Touch/No Touch') return c.contract_type === 'NOTOUCH' || c.contract_type === 'ONETOUCH';
-                            if (activeTradeType === 'Higher/Lower') return c.contract_type === 'HIGHER' || c.contract_type === 'LOWER';
-                            return true;
-                        });
-
-                        if (matchedContract && matchedContract.barrier) {
-                            const barrierInput = document.getElementById('modal-barrier');
-                            if (barrierInput && !barrierInput.value) {
-                                barrierInput.value = matchedContract.barrier;
-                            }
-                        }
                     }
                 }
             };
@@ -720,74 +683,22 @@
             onSubmarketChange();
         }
 
-        // Eksekusi forget_all proposal lalu panggil contracts_for terlebih dahulu saat submarket berubah
         function onSubmarketChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
             
             const parts = subMarketSelect.value.split('|');
             const symbol = parts[1];
-            
-            const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
-            if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                // 1. Lakukan forget_all proposal lama terlebih dahulu
-                const forgetMsg = { forget_all: ["proposal"], req_id: 99 };
-                targetWs.send(JSON.stringify(forgetMsg));
-                logMsg(`SEND -> ${JSON.stringify(forgetMsg)}`, 'SEND');
-
-                // 2. Eksekusi contracts_for untuk mengecek ketersediaan kontrak & barrier
-                if (symbol && symbol !== "undefined") {
+            if (symbol && symbol !== "undefined") {
+                const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
+                if (targetWs && targetWs.readyState === WebSocket.OPEN) {
                     const contractsReq = { contracts_for: symbol, req_id: 2 };
                     logMsg(`SEND -> ${JSON.stringify(contractsReq)}`, 'SEND');
                     targetWs.send(JSON.stringify(contractsReq));
                 }
             }
 
-            setApiPendingStatus("Memeriksa kontrak & memperbarui proposal...");
-            requestProposalUpdate();
-        }
-
-        // Eksekusi forget_all proposal saat trade type berubah, lalu perbarui proposal
-        function onTradeTypeChange() {
-            const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
-            if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                const forgetMsg = { forget_all: ["proposal"], req_id: 98 };
-                targetWs.send(JSON.stringify(forgetMsg));
-                logMsg(`SEND -> ${JSON.stringify(forgetMsg)}`, 'SEND');
-            }
-
-            const tradeType = document.getElementById('modal-trade-type').value;
-            const unitSelect = document.getElementById('modal-duration-unit');
-            const barrierContainer = document.getElementById('barrier-container');
-            const digitContainer = document.getElementById('digit-prediction-container');
-
-            renderChoiceButtons(tradeType);
-
-            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
-                unitSelect.value = 't';
-                unitSelect.disabled = false;
-                barrierContainer.classList.remove('hidden');
-                digitContainer.classList.add('hidden');
-            } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
-                unitSelect.value = 't';
-                unitSelect.disabled = true;
-                barrierContainer.classList.add('hidden');
-                digitContainer.classList.remove('hidden');
-                document.getElementById('digit-grid-wrapper').classList.remove('hidden');
-                renderDigitGrid();
-            } else if (tradeType === 'Even/Odd') {
-                unitSelect.value = 't';
-                unitSelect.disabled = true;
-                barrierContainer.classList.add('hidden');
-                digitContainer.classList.add('hidden');
-            } else {
-                unitSelect.value = 't';
-                unitSelect.disabled = false;
-                barrierContainer.classList.add('hidden');
-                digitContainer.classList.add('hidden');
-            }
-
-            setApiPendingStatus("Menyesuaikan parameter tipe perdagangan...");
+            setApiPendingStatus("Mengambil data proposal baru...");
             requestProposalUpdate();
         }
 
@@ -855,7 +766,7 @@
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
-                    symbol: symbol,
+                    symbol: underlying_symbol,
                     contract_type: contractTypeApi,
                     duration: duration,
                     duration_unit: durationUnit,
@@ -871,6 +782,42 @@
                 logMsg(`SEND proposal (req_id: ${currentReqId}) -> symbol: ${symbol} | type: ${contractTypeApi}`, 'SEND');
                 targetWs.send(JSON.stringify(req));
             }
+        }
+
+        function onTradeTypeChange() {
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const unitSelect = document.getElementById('modal-duration-unit');
+            const barrierContainer = document.getElementById('barrier-container');
+            const digitContainer = document.getElementById('digit-prediction-container');
+
+            renderChoiceButtons(tradeType);
+
+            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
+                unitSelect.value = 't';
+                unitSelect.disabled = false;
+                barrierContainer.classList.remove('hidden');
+                digitContainer.classList.add('hidden');
+            } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
+                unitSelect.value = 't';
+                unitSelect.disabled = true;
+                barrierContainer.classList.add('hidden');
+                digitContainer.classList.remove('hidden');
+                document.getElementById('digit-grid-wrapper').classList.remove('hidden');
+                renderDigitGrid();
+            } else if (tradeType === 'Even/Odd') {
+                unitSelect.value = 't';
+                unitSelect.disabled = true;
+                barrierContainer.classList.add('hidden');
+                digitContainer.classList.add('hidden');
+            } else {
+                unitSelect.value = 't';
+                unitSelect.disabled = false;
+                barrierContainer.classList.add('hidden');
+                digitContainer.classList.add('hidden');
+            }
+
+            setApiPendingStatus("Menyesuaikan parameter tipe perdagangan...");
+            requestProposalUpdate();
         }
 
         function renderChoiceButtons(tradeType) {
