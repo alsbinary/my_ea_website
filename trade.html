@@ -66,7 +66,7 @@
                 <div class="relative">
                     <button type="button" onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
                         <div class="text-right">
-                            <div id="account-type-label" class="text-slate-500 text-[11px]">Memuat akun...</div>
+                            <div id="account-type-label" class="text-amber-600 text-[11px] font-semibold">Demo account</div>
                             <div class="flex items-center space-x-1">
                                 <span id="account-id-label" class="text-slate-400 text-[11px] font-mono">---</span>
                                 <span id="account-balance-label" class="text-slate-900 font-bold text-xs">0.00 USD</span>
@@ -141,7 +141,6 @@
 
                     <div class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
                         <div class="flex items-center space-x-2">
-                            <!-- TOMBOL ADD LEVEL DILINDUNGI STATUS KONEKSI AKUN -->
                             <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-3 py-1.5 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition">Add Level (+) [Menunggu Akun Terhubung]</button>
                             <button type="button" onclick="deleteLastRow()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer">Delete Last</button>
                             <button type="button" onclick="clearStrategy()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer">Clear</button>
@@ -504,8 +503,8 @@
                     renderAccountsDropdown(accountsList);
 
                     // PRIORITAS AKUN DEMO SAAT BARU LOGIN
-                    let targetAccount = accountsList.find(acc => acc.account_type === 'demo');
-                    if (!targetAccount) targetAccount = accountsList[0]; // Fallback ke akun pertama jika demo tidak ada
+                    let targetAccount = accountsList.find(acc => acc.account_type === 'demo' || acc.account_id.startsWith('VR'));
+                    if (!targetAccount) targetAccount = accountsList[0]; 
 
                     logMsg(`Akun terpilih (Prioritas Demo): ${targetAccount.account_id}`);
                     await selectAndConnectAccount(targetAccount.account_id, token);
@@ -523,10 +522,10 @@
             container.innerHTML = "";
             
             accounts.forEach(acc => {
-                const isDemo = acc.account_type === 'demo';
+                const isDemo = acc.account_type === 'demo' || acc.account_id.startsWith('VR');
                 const div = document.createElement('div');
                 div.className = "p-2.5 hover:bg-slate-50 cursor-pointer rounded flex justify-between items-center border-b border-slate-100";
-                div.innerHTML = `<div><span class="${isDemo ? 'text-amber-600' : 'text-slate-500'} block text-[11px] font-semibold">${acc.account_type} account</span><span class="font-bold text-slate-800 font-mono text-xs">${acc.account_id}</span></div><span class="font-bold text-xs">${acc.currency}</span>`;
+                div.innerHTML = `<div><span class="${isDemo ? 'text-amber-600' : 'text-slate-500'} block text-[11px] font-semibold">${isDemo ? 'Demo account' : 'Real account'}</span><span class="font-bold text-slate-800 font-mono text-xs">${acc.account_id}</span></div><span class="font-bold text-xs">${acc.currency}</span>`;
                 div.onclick = async () => {
                     document.getElementById('account-menu').classList.add('hidden');
                     await selectAndConnectAccount(acc.account_id, accessToken);
@@ -569,7 +568,6 @@
                 logMsg(`SEND -> ${JSON.stringify(balanceReq)}`, 'SEND');
                 ws.send(JSON.stringify(balanceReq));
 
-                // AKUN SUDAH CONNECT: IZINKAN BUKA POPUP
                 isAccountConnected = true;
                 updateModalButtonState();
                 document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Terhubung';
@@ -582,11 +580,12 @@
                 if (data.msg_type === 'balance') {
                     const bal = parseFloat(data.balance.balance).toFixed(2);
                     const cur = data.balance.currency || 'USD';
-                    const isDemo = accountId.startsWith('VR');
+                    const isDemo = accountId.startsWith('VR') || data.balance.account_type === 'demo';
                     
                     document.getElementById('account-balance-label').innerText = `${bal} ${cur}`;
+                    document.getElementById('account-id-label').innerText = accountId;
                     document.getElementById('account-type-label').innerText = isDemo ? "Demo account" : "Real account";
-                    document.getElementById('account-type-label').className = isDemo ? "text-amber-600 text-[11px]" : "text-slate-500 text-[11px]";
+                    document.getElementById('account-type-label').className = isDemo ? "text-amber-600 text-[11px] font-semibold" : "text-slate-500 text-[11px] font-semibold";
                 }
 
                 // 1. RESPON contracts_for DITERIMA DULU (BARRIER DIAMBIL DARI SINI)
@@ -594,7 +593,6 @@
                     logMsg(`Respon contracts_for diterima. Menyesuaikan barrier & mengirim proposal...`, 'RECV');
                     lastContractsForResponse = data.contracts_for;
                     
-                    // Ambil barrier dari contracts_for jika tersedia
                     let contractsArray = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
                     if (contractsArray.length > 0) {
                         const activeTradeType = document.getElementById('modal-trade-type').value;
@@ -610,7 +608,7 @@
                         }
                     }
 
-                    // 2. SEBELUM ADA RESPON contracts_for, PROPOSAL TIDAK DIKIRIM. KINI BARU KIRIM PROPOSAL.
+                    // 2. KINI BARU KIRIM PROPOSAL SETELAH contracts_for DITERIMA
                     requestProposalUpdate();
                 }
 
@@ -705,7 +703,6 @@
             onSubmarketChange();
         }
 
-        // PADA SAAT PERUBAHAN SUBMARKET: KIRIM contracts_for TERLEBIH DAHULU
         function onSubmarketChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
@@ -757,9 +754,9 @@
                     contractTypeApi = (selectedChoice === 'Even') ? "DIGITEVEN" : "DIGITODD";
                 }
 
+                // PROPERTI SUBSCRIBE DIHILANGKAN Sepenuhnya
                 const req = {
                     proposal: 1,
-                    subscribe: 0,
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
@@ -870,7 +867,6 @@
             }
         }
 
-        // PADA SAAT BUKA POPUP: CEK APAKAH AKUN SUDAH CONNECT
         function openAddModal() {
             if (!isAccountConnected) {
                 alert("Akun belum terhubung! Harap tunggu hingga koneksi akun selesai.");
@@ -881,7 +877,6 @@
             onMarketCategoryChange();
             onTradeTypeChange();
 
-            // Kirim contracts_for saat popup baru dibuka
             const subMarketSelect = document.getElementById('modal-submarket');
             if (subMarketSelect && subMarketSelect.value) {
                 const parts = subMarketSelect.value.split('|');
