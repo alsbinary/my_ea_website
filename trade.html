@@ -249,7 +249,7 @@
                     </select>
                 </div>
 
-                <!-- TOMBOL PILIHAN ARAH INTERAKTIF -->
+                <!-- TOMBOL PILIHAN ARAH INTERAKTIF (LABEL DINAMIS) -->
                 <div id="choice-buttons-container" class="space-y-1 pt-1">
                     <label class="font-medium text-slate-600 block" id="choice-label">Touch Type</label>
                     <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
@@ -288,8 +288,8 @@
 
                 <!-- BARRIER CONTAINER -->
                 <div id="barrier-container" class="pt-2 border-t border-slate-200">
-                    <label class="font-medium text-slate-600 block mb-1">Barrier Offset (Dari Respons contracts_for)</label>
-                    <input type="text" id="modal-barrier" value="+0.68" placeholder="+0.68" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 font-mono font-bold text-slate-800 text-xs">
+                    <label class="font-medium text-slate-600 block mb-1">Barrier Offset (Sesuai Durasi & Trade Type)</label>
+                    <input type="text" id="modal-barrier" value="+0.46" placeholder="+0.46" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-2 font-mono font-bold text-slate-800 text-xs">
                 </div>
 
                 <!-- WIDGET SIMULASI PAYOUT -->
@@ -337,17 +337,16 @@
         let currentActiveAccountId = "";
 
         let defaultStrategyData = [
-            { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.68", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
+            { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
         ];
 
-        // 1. DETEKSI AKUN DEMO AKURAT DARI AWALAN LOGIN ID (D... atau VR...)
+        // Deteksi Demo Akun (Awalan D atau VR)
         function checkIsDemoAccount(accountId) {
             if (!accountId) return true;
             const upperId = accountId.toString().trim().toUpperCase();
             return upperId.startsWith('D') || upperId.startsWith('VR');
         }
 
-        // 2. LOGIKA UTAMA PEMBARUAN LABEL AKUN UI
         function updateAccountUiLabel(accountId, balanceStr = "") {
             const isDemo = checkIsDemoAccount(accountId);
             const typeLabel = document.getElementById('account-type-label');
@@ -530,7 +529,6 @@
                     accountsList = result.data;
                     renderAccountsDropdown(accountsList);
 
-                    // PRIORITAS UTAMA AKUN DEMO SAAT LOGIN PERTAMA
                     let targetAccount = accountsList.find(acc => checkIsDemoAccount(acc.account_id));
                     if (!targetAccount) targetAccount = accountsList[0]; 
 
@@ -614,17 +612,22 @@
                     updateAccountUiLabel(currentActiveAccountId, `${bal} ${cur}`);
                 }
 
-                // 1. PENGAMBILAN BARRIER DARI contracts_for SESUAI TRADE TYPE & CHOICE
+                // FILTER & PENGAMBILAN BARRIER YANG SESUAI DENGAN EXPIRY_TYPE (TICK VS DAILY)
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
-                    logMsg(`Respon contracts_for diterima. Menyesuaikan barrier berdasarkan Trade Type...`, 'RECV');
+                    logMsg(`Respon contracts_for diterima. Menyaring barrier sesuai Trade Type & Durasi tick...`, 'RECV');
                     
                     let contractsArray = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
                     if (contractsArray.length > 0) {
                         const activeTradeType = document.getElementById('modal-trade-type').value;
-                        
-                        // Cari tipe kontrak spesifik sesuai Trade Type dan Choice
+                        const durationUnitVal = document.getElementById('modal-duration-unit').value; // 't' untuk tick
+
                         const matchedContract = contractsArray.find(c => {
                             const cType = c.contract_type || "";
+                            
+                            // Pastikan expiry_type cocok dengan unit durasi (misal 'tick' untuk 't') agar tidak mengambil barrier 'daily' 1436.09
+                            const matchesExpiry = (durationUnitVal === 't') ? (c.expiry_type === 'tick') : true;
+                            if (!matchesExpiry) return false;
+
                             if (activeTradeType === 'Touch/No Touch') {
                                 return (selectedChoice === 'Touch') ? cType.includes('TOUCH') && !cType.includes('NOTOUCH') : cType.includes('NOTOUCH');
                             }
@@ -640,18 +643,19 @@
                         const barrierInput = document.getElementById('modal-barrier');
                         if (matchedContract && matchedContract.barrier) {
                             barrierInput.value = matchedContract.barrier;
-                            logMsg(`Barrier disesuaikan dari contracts_for (${matchedContract.contract_type}): ${matchedContract.barrier}`);
-                        } else if (contractsArray[0] && contractsArray[0].barrier) {
-                            barrierInput.value = contractsArray[0].barrier;
-                            logMsg(`Barrier fallback diset dari contracts_for: ${contractsArray[0].barrier}`);
+                            logMsg(`Barrier valid ditemukan dari contracts_for (${matchedContract.contract_type}, expiry: ${matchedContract.expiry_type}): ${matchedContract.barrier}`);
+                        } else {
+                            const tickFallback = contractsArray.find(c => c.expiry_type === 'tick' && c.barrier);
+                            if (tickFallback) {
+                                barrierInput.value = tickFallback.barrier;
+                                logMsg(`Barrier fallback tick diset: ${tickFallback.barrier}`);
+                            }
                         }
                     }
 
-                    // KINI BARU KIRIM PROPOSAL SETELAH BARRIER SESUAI DITERIMA
                     requestProposalUpdate();
                 }
 
-                // 2. RESPON PROPOSAL
                 if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
                     const banner = document.getElementById('api-status-banner');
                     currentEstimatedPayout = parseFloat(data.proposal.payout);
@@ -793,7 +797,7 @@
                     contractTypeApi = (selectedChoice === 'Even') ? "DIGITEVEN" : "DIGITODD";
                 }
 
-                // TANPA PARAMETER SUBSCRIBE
+                // PAYLOAD PROPOSAL MENGGUNAKAN underlying_symbol TANPA SUBSCRIBE
                 const req = {
                     proposal: 1,
                     amount: amount,
@@ -812,7 +816,7 @@
                     req.barrier = selectedDigit.toString();
                 }
 
-                logMsg(`SEND proposal (req_id: 4) -> symbol: ${underlyingSymbol} | contract_type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`, 'SEND');
+                logMsg(`SEND proposal (req_id: 4) -> underlying_symbol: ${underlyingSymbol} | contract_type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`, 'SEND');
                 targetWs.send(JSON.stringify(req));
             }
         }
@@ -849,7 +853,7 @@
             }
 
             setApiPendingStatus("Menyesuaikan parameter tipe perdagangan...");
-            onSubmarketChange(); // Minta barrier baru sesuai trade type
+            onSubmarketChange(); 
         }
 
         function renderChoiceButtons(tradeType) {
@@ -860,14 +864,32 @@
             container.innerHTML = '';
 
             let choices = [];
-            if (tradeType === 'Rise/Fall') choices = ['Rise', 'Fall'];
-            else if (tradeType === 'Higher/Lower') choices = ['Higher', 'Lower'];
-            else if (tradeType === 'Touch/No Touch') choices = ['Touch', 'No Touch'];
-            else if (tradeType === 'Matches/Differs') choices = ['Matches', 'Differs'];
-            else if (tradeType === 'Over/Under') choices = ['Over', 'Under'];
-            else if (tradeType === 'Even/Odd') choices = ['Even', 'Odd'];
-            else { wrapper.classList.add('hidden'); return; }
+            let labelText = "Touch Type";
 
+            if (tradeType === 'Rise/Fall') {
+                choices = ['Rise', 'Fall'];
+                labelText = "Prediction Direction";
+            } else if (tradeType === 'Higher/Lower') {
+                choices = ['Higher', 'Lower'];
+                labelText = "Barrier Type";
+            } else if (tradeType === 'Touch/No Touch') {
+                choices = ['Touch', 'No Touch'];
+                labelText = "Touch Type";
+            } else if (tradeType === 'Matches/Differs') {
+                choices = ['Matches', 'Differs'];
+                labelText = "Digit Contract Type";
+            } else if (tradeType === 'Over/Under') {
+                choices = ['Over', 'Under'];
+                labelText = "Digit Contract Type";
+            } else if (tradeType === 'Even/Odd') {
+                choices = ['Even', 'Odd'];
+                labelText = "Digit Contract Type";
+            } else { 
+                wrapper.classList.add('hidden'); 
+                return; 
+            }
+
+            label.innerText = labelText;
             wrapper.classList.remove('hidden');
             if (!choices.includes(selectedChoice)) selectedChoice = choices[0];
 
