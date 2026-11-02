@@ -375,8 +375,6 @@
         let currentEstimatedPayout = 3.35;
         let accessToken = null;
         let accountsList = [];
-        let proposalReqId = 100;
-        let proposalDebounceTimer = null;
 
         let defaultStrategyData = [
             { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.68", last_digit: "", duration_amount: 10, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
@@ -619,21 +617,17 @@
                     document.getElementById('account-type-label').className = isDemo ? "text-amber-600 text-[11px]" : "text-slate-500 text-[11px]";
                 }
 
-                if (data.msg_type === 'proposal' && data.proposal) {
-                    if (data.req_id === proposalReqId) {
-                        currentEstimatedPayout = parseFloat(data.proposal.payout);
-                        logMsg(`Proposal Valid diterima! Payout: $${currentEstimatedPayout.toFixed(2)}`, 'RECV');
-                        document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
-                        
-                        const banner = document.getElementById('api-status-banner');
-                        if(banner) {
-                            banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
-                            document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
-                            document.getElementById('api-status-badge').innerText = "VERIFIED";
-                            document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
-                        }
-                    } else {
-                        logMsg(`Mengabaikan respons proposal kedaluwarsa (req_id: ${data.req_id}, current: ${proposalReqId})`, 'INFO');
+                if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
+                    currentEstimatedPayout = parseFloat(data.proposal.payout);
+                    logMsg(`Proposal Popup diterima! Payout: $${currentEstimatedPayout.toFixed(2)}`, 'RECV');
+                    document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
+                    
+                    const banner = document.getElementById('api-status-banner');
+                    if(banner) {
+                        banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
+                        document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
+                        document.getElementById('api-status-badge').innerText = "VERIFIED";
+                        document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
                     }
                 }
             };
@@ -703,13 +697,6 @@
         }
 
         function requestProposalUpdate() {
-            clearTimeout(proposalDebounceTimer);
-            proposalDebounceTimer = setTimeout(() => {
-                executeProposalRequest();
-            }, 350);
-        }
-
-        function executeProposalRequest() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) {
                 logMsg("Peringatan: Submarket / Simbol belum dipilih.", "ERR");
@@ -717,9 +704,9 @@
             }
 
             const parts = subMarketSelect.value.split('|');
-            const symbol = parts[1];
+            const underlyingSymbol = parts[1];
 
-            if (!symbol || symbol === "undefined") {
+            if (!underlyingSymbol || underlyingSymbol === "undefined") {
                 logMsg("Error: Simbol aset bernilai undefined.", "ERR");
                 return;
             }
@@ -743,9 +730,11 @@
 
             const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
             if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                proposalReqId++;
-                const currentReqId = proposalReqId;
+                const forgetMsg = { forget_all: ["proposal"], req_id: 4 };
+                targetWs.send(JSON.stringify(forgetMsg));
+                logMsg(`SEND -> ${JSON.stringify(forgetMsg)}`, 'SEND');
 
+                // Pemetaan Resmi Deriv API Contract Types
                 let contractTypeApi = "NOTOUCH";
                 if (tradeType === 'Touch/No Touch') {
                     contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
@@ -763,23 +752,25 @@
 
                 const req = {
                     proposal: 1,
+                    subscribe: 1,
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
-                    symbol: underlying_symbol,
+                    underlying_symbol: underlyingSymbol,
                     contract_type: contractTypeApi,
                     duration: duration,
                     duration_unit: durationUnit,
-                    req_id: currentReqId
+                    req_id: 4
                 };
 
+                // Pengaturan Barrier / Digit berdasarkan Jenis Kontrak sesuai Deriv API
                 if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
                     req.barrier = barrier;
                 } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
                     req.barrier = selectedDigit.toString();
                 }
 
-                logMsg(`SEND proposal (req_id: ${currentReqId}) -> symbol: ${symbol} | type: ${contractTypeApi}`, 'SEND');
+                logMsg(`SEND proposal (req_id: 4) -> symbol: ${underlyingSymbol} | contract_type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`, 'SEND');
                 targetWs.send(JSON.stringify(req));
             }
         }
