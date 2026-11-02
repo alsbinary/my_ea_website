@@ -599,8 +599,6 @@
                 const balanceReq = { balance: 1, subscribe: 1, req_id: 3 };
                 logMsg(`SEND -> ${JSON.stringify(balanceReq)}`, 'SEND');
                 ws.send(JSON.stringify(balanceReq));
-
-                requestProposalUpdate();
             };
 
             ws.onmessage = (msg) => {
@@ -617,17 +615,36 @@
                     document.getElementById('account-type-label').className = isDemo ? "text-amber-600 text-[11px]" : "text-slate-500 text-[11px]";
                 }
 
+                // Respon dari contracts_for untuk menyesuaikan trade type / opsi
+                if (data.msg_type === 'contracts_for' && data.contracts_for) {
+                    logMsg(`Respon contracts_for diterima, menyesuaikan trade type...`, 'RECV');
+                    // Setelah contracts_for diterima, lanjut kirim request proposal
+                    requestProposalUpdate();
+                }
+
+                // Respon dari proposal
                 if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
+                    const banner = document.getElementById('api-status-banner');
                     currentEstimatedPayout = parseFloat(data.proposal.payout);
-                    logMsg(`Proposal Popup diterima! Payout: $${currentEstimatedPayout.toFixed(2)}`, 'RECV');
+                    logMsg(`Proposal diterima! Payout: $${currentEstimatedPayout.toFixed(2)}`, 'RECV');
                     document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
                     
-                    const banner = document.getElementById('api-status-banner');
                     if(banner) {
                         banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
                         document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
                         document.getElementById('api-status-badge').innerText = "VERIFIED";
                         document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
+                    }
+                } else if (data.msg_type === 'proposal' && data.error && data.req_id === 4) {
+                    const banner = document.getElementById('api-status-banner');
+                    logMsg(`Proposal Error: ${data.error.message}`, 'ERR');
+                    document.getElementById('payout').innerText = "Error";
+                    
+                    if(banner) {
+                        banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg flex justify-between items-center text-xs";
+                        document.getElementById('api-status-text').innerText = data.error.message;
+                        document.getElementById('api-status-badge').innerText = "ERROR";
+                        document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded uppercase";
                     }
                 }
             };
@@ -677,6 +694,7 @@
             onSubmarketChange();
         }
 
+        // Saat submarket berubah: Kirim contracts_for -> respon menyesuaikan trade type -> kirim proposal
         function onSubmarketChange() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
@@ -686,14 +704,12 @@
             if (symbol && symbol !== "undefined") {
                 const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
                 if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+                    setApiPendingStatus("Mengirim request contracts_for & proposal...");
                     const contractsReq = { contracts_for: symbol, req_id: 2 };
                     logMsg(`SEND -> ${JSON.stringify(contractsReq)}`, 'SEND');
                     targetWs.send(JSON.stringify(contractsReq));
                 }
             }
-
-            setApiPendingStatus("Mengambil data proposal baru...");
-            requestProposalUpdate();
         }
 
         function requestProposalUpdate() {
@@ -730,10 +746,6 @@
 
             const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
             if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                const forgetMsg = { forget_all: ["proposal"], req_id: 4 };
-                targetWs.send(JSON.stringify(forgetMsg));
-                logMsg(`SEND -> ${JSON.stringify(forgetMsg)}`, 'SEND');
-
                 // Pemetaan Resmi Deriv API Contract Types
                 let contractTypeApi = "NOTOUCH";
                 if (tradeType === 'Touch/No Touch') {
@@ -752,7 +764,7 @@
 
                 const req = {
                     proposal: 1,
-                    subscribe: 1,
+                    subscribe: 0, // Ganti subscription proposal dengan 0 saja (tanpa forget_all)
                     amount: amount,
                     basis: "stake",
                     currency: "USD",
@@ -763,7 +775,6 @@
                     req_id: 4
                 };
 
-                // Pengaturan Barrier / Digit berdasarkan Jenis Kontrak sesuai Deriv API
                 if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
                     req.barrier = barrier;
                 } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
@@ -885,10 +896,26 @@
             }
         }
 
+        // Saat popup modal baru dibuka: kirim contracts_for -> respon menyesuaikan trade type -> kirim proposal
         function openAddModal() {
             document.getElementById('add-strategy-modal').classList.remove('hidden');
             onMarketCategoryChange();
             onTradeTypeChange();
+
+            const subMarketSelect = document.getElementById('modal-submarket');
+            if (subMarketSelect && subMarketSelect.value) {
+                const parts = subMarketSelect.value.split('|');
+                const symbol = parts[1];
+                if (symbol && symbol !== "undefined") {
+                    const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
+                    if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+                        setApiPendingStatus("Membuka modal: Mengirim contracts_for & proposal...");
+                        const contractsReq = { contracts_for: symbol, req_id: 2 };
+                        logMsg(`SEND (Popup Open) -> ${JSON.stringify(contractsReq)}`, 'SEND');
+                        targetWs.send(JSON.stringify(contractsReq));
+                    }
+                }
+            }
         }
 
         function closeAddModal() {
