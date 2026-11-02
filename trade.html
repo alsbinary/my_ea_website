@@ -113,11 +113,15 @@
             <!-- AREA TENGAH -->
             <main class="flex-1 bg-slate-50 p-3 flex flex-col space-y-3 overflow-y-auto text-xs">
                 
-                <!-- STRATEGY MANAGEMENT PANEL (Disesuaikan agar tidak terlalu besar) -->
+                <!-- STRATEGY MANAGEMENT PANEL -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col">
                     <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase flex justify-between items-center">
                         <span>STRATEGY MANAGEMENT PANEL</span>
-                        <button type="button" onclick="saveStrategyToLocal()" class="bg-teal-700 hover:bg-teal-800 text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer shadow-sm">Save Strategy</button>
+                        <div class="flex items-center space-x-2">
+                            <button type="button" onclick="saveStrategyToLocal()" class="bg-teal-700 hover:bg-teal-800 text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer shadow-sm">Save Strategy</button>
+                            <button type="button" onclick="startBotEngine()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-[10px] font-bold cursor-pointer shadow-sm">Start Bot 🚀</button>
+                            <button type="button" onclick="stopBotEngine()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded text-[10px] font-bold cursor-pointer shadow-sm">Stop Bot ⏹</button>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto max-h-36">
@@ -181,7 +185,7 @@
 
             </main>
 
-            <!-- PANEL KANAN (TRADING RUNNING DIWASPADAI & TIDAK DIHILANGKAN) -->
+            <!-- PANEL KANAN: TRADING RUNNING LENGKAP -->
             <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs">
                 <div id="panel-portfolio" class="space-y-2.5 flex flex-col h-full">
                     <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase rounded">
@@ -210,7 +214,7 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: ADD LEVEL (Disesuaikan agar tidak terlalu besar dan kolom proporsional) -->
+    <!-- MODAL POPUP: ADD LEVEL -->
     <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3">
         <div class="bg-white border border-slate-200 rounded-xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col text-xs">
             <div class="bg-teal-600 text-white px-4 py-2.5 flex justify-between items-center">
@@ -233,7 +237,6 @@
                     </div>
                 </div>
 
-                <!-- INDIKATOR STATUS VALIDASI API -->
                 <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs">
                     <span id="api-status-text">Memproses permintaan data ke Deriv API...</span>
                     <span id="api-status-badge" class="font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase">PENDING</span>
@@ -251,13 +254,11 @@
                     </select>
                 </div>
 
-                <!-- TOMBOL PILIHAN ARAH INTERAKTIF -->
                 <div id="choice-buttons-container" class="space-y-1">
                     <label class="font-medium text-slate-600 block" id="choice-label">Touch Type</label>
                     <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
                 </div>
 
-                <!-- CONTAINER DIGIT PREDICTION -->
                 <div id="digit-prediction-container" class="hidden space-y-2 pt-2 border-t border-slate-200 bg-slate-50 p-2.5 rounded-lg border">
                     <div id="digit-grid-wrapper" class="space-y-1.5">
                         <span class="font-bold text-slate-700 block text-[11px]">Last digit prediction</span>
@@ -269,34 +270,29 @@
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <label class="font-medium text-slate-600">Duration</label>
-                            <span id="duration-min-label" class="text-[10px] text-slate-400 font-semibold">Min: 1t</span>
+                            <span id="duration-min-label" class="text-[10px] text-slate-400 font-semibold">Min: 1t (Max: 10t)</span>
                         </div>
                         <div class="flex space-x-1">
-                            <input type="number" id="modal-duration" value="1" min="1" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
+                            <input type="number" id="modal-duration" value="1" min="1" max="10" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs">
                             <select id="modal-duration-unit" onchange="onDurationUnitChange()" class="bg-slate-50 border border-slate-300 rounded p-1 text-xs font-semibold cursor-pointer">
                                 <option value="t" selected>Ticks</option>
-                                <option value="s">Seconds</option>
-                                <option value="m">Minutes</option>
-                                <option value="h">Hours</option>
                             </select>
                         </div>
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <label class="font-medium text-teal-700 font-bold">Amount ($)</label>
-                            <span class="text-[10px] text-slate-400 font-semibold">Min: $0.35</span>
+                            <span id="amount-min-label" class="text-[10px] text-slate-400 font-semibold">Min: $2.00</span>
                         </div>
-                        <input type="number" step="1.00" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-1.5 font-bold text-teal-700 text-xs">
+                        <input type="number" step="1.00" id="modal-amount" value="2.00" min="2.00" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-1.5 font-bold text-teal-700 text-xs">
                     </div>
                 </div>
 
-                <!-- BARRIER CONTAINER -->
                 <div id="barrier-container" class="pt-2 border-t border-slate-200">
                     <label class="font-medium text-slate-600 block mb-1">Barrier Offset</label>
-                    <input type="text" id="modal-barrier" value="+0.46" placeholder="+0.46" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-1.5 font-mono font-bold text-slate-800 text-xs">
+                    <input type="text" id="modal-barrier" value="+0.0070" placeholder="+0.0070" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-1.5 font-mono font-bold text-slate-800 text-xs">
                 </div>
 
-                <!-- WIDGET SIMULASI PAYOUT -->
                 <div id="payout-summary-box" class="bg-emerald-600 text-white p-2.5 rounded-lg flex justify-between items-center shadow">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
@@ -307,7 +303,6 @@
                     </div>
                 </div>
 
-                <!-- PANEL LOG TRANSMISI DATA -->
                 <div class="pt-2 border-t border-slate-200 space-y-1">
                     <div class="flex justify-between items-center text-[10px]">
                         <span class="font-bold text-slate-600">Monitor Transmisi Data API (Live Log)</span>
@@ -340,9 +335,10 @@
         let isAccountConnected = false;
         let currentActiveAccountId = "";
         let lastWsUrl = "";
+        let contractsForCache = null;
 
         let defaultStrategyData = [
-            { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 1, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
+            { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 50 Index", purchase_type: "No Touch", barrier: "+0.0070", last_digit: "", duration_amount: 1, duration_unit: "Ticks", amount: 2.00, payout: 3.35 }
         ];
 
         function checkIsDemoAccount(accountId) {
@@ -641,37 +637,8 @@
                 }
 
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
-                    let contractsArray = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
-                    if (contractsArray.length > 0) {
-                        const activeTradeType = document.getElementById('modal-trade-type').value;
-                        const durationUnitVal = document.getElementById('modal-duration-unit').value;
-
-                        const matchedContract = contractsArray.find(c => {
-                            const cType = c.contract_type || "";
-                            const matchesExpiry = (durationUnitVal === 't') ? (c.expiry_type === 'tick') : true;
-                            if (!matchesExpiry) return false;
-
-                            if (activeTradeType === 'Touch/No Touch') {
-                                return (selectedChoice === 'Touch') ? cType.includes('TOUCH') && !cType.includes('NOTOUCH') : cType.includes('NOTOUCH');
-                            }
-                            if (activeTradeType === 'Higher/Lower') {
-                                return (selectedChoice === 'Higher') ? cType.includes('HIGHER') || cType.includes('LONG') : cType.includes('LOWER') || cType.includes('SHORT');
-                            }
-                            if (activeTradeType === 'Rise/Fall') {
-                                return (selectedChoice === 'Rise') ? cType === 'CALL' : cType === 'PUT';
-                            }
-                            return true;
-                        });
-
-                        const barrierInput = document.getElementById('modal-barrier');
-                        if (matchedContract && matchedContract.barrier) {
-                            barrierInput.value = matchedContract.barrier;
-                        } else {
-                            const tickFallback = contractsArray.find(c => c.expiry_type === 'tick' && c.barrier);
-                            if (tickFallback) barrierInput.value = tickFallback.barrier;
-                        }
-                    }
-
+                    contractsForCache = data.contracts_for;
+                    applyContractsForRules(contractsForCache);
                     requestProposalUpdate();
                 }
 
@@ -705,6 +672,51 @@
                 logMsg("WebSocket akun terputus.", 'ERR');
                 document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span> Terputus (Menghubungkan ulang...)';
             };
+        }
+
+        function applyContractsForRules(contractsForObj) {
+            let contractsArray = Array.isArray(contractsForObj) ? contractsForObj : (contractsForObj.available || []);
+            if (contractsArray.length === 0) return;
+
+            const activeTradeType = document.getElementById('modal-trade-type').value;
+
+            const matchedContract = contractsArray.find(c => {
+                const cType = c.contract_type || "";
+                if (activeTradeType === 'Touch/No Touch') {
+                    return (selectedChoice === 'Touch') ? cType.includes('TOUCH') && !cType.includes('NOTOUCH') : cType.includes('NOTOUCH');
+                }
+                if (activeTradeType === 'Higher/Lower') {
+                    return (selectedChoice === 'Higher') ? cType.includes('HIGHER') || cType.includes('LONG') : cType.includes('LOWER') || cType.includes('SHORT');
+                }
+                if (activeTradeType === 'Rise/Fall') {
+                    return (selectedChoice === 'Rise') ? cType === 'CALL' : cType === 'PUT';
+                }
+                return c.expiry_type === 'tick';
+            });
+
+            if (matchedContract) {
+                // Terapkan min, max duration, default stake, dan barrier sesuai data API
+                const durationInput = document.getElementById('modal-duration');
+                const minDur = matchedContract.min_contract_duration || "1t";
+                const maxDur = matchedContract.max_contract_duration || "10t";
+                
+                durationInput.min = parseInt(minDur) || 1;
+                durationInput.max = parseInt(maxDur) || 10;
+                if (parseInt(durationInput.value) > parseInt(durationInput.max)) {
+                    durationInput.value = durationInput.min;
+                }
+                document.getElementById('duration-min-label').innerText = `Min: ${minDur} (Max: ${maxDur})`;
+
+                const amountInput = document.getElementById('modal-amount');
+                const defStake = matchedContract.default_stake || 2.00;
+                amountInput.value = parseFloat(defStake).toFixed(2);
+                document.getElementById('amount-min-label').innerText = `Min: $${parseFloat(defStake).toFixed(2)}`;
+
+                const barrierInput = document.getElementById('modal-barrier');
+                if (matchedContract.barrier) {
+                    barrierInput.value = matchedContract.barrier;
+                }
+            }
         }
 
         function updateModalButtonState() {
@@ -781,27 +793,6 @@
         }
 
         function onDurationUnitChange() {
-            const unit = document.getElementById('modal-duration-unit').value;
-            const durationInput = document.getElementById('modal-duration');
-            const minLabel = document.getElementById('duration-min-label');
-
-            if (unit === 't') {
-                durationInput.value = "1";
-                durationInput.min = "1";
-                minLabel.innerText = "Min: 1t";
-            } else if (unit === 's') {
-                durationInput.value = "15";
-                durationInput.min = "15";
-                minLabel.innerText = "Min: 15s";
-            } else if (unit === 'm') {
-                durationInput.value = "1";
-                durationInput.min = "1";
-                minLabel.innerText = "Min: 1m";
-            } else if (unit === 'h') {
-                durationInput.value = "1";
-                durationInput.min = "1";
-                minLabel.innerText = "Min: 1h";
-            }
             requestProposalUpdate();
         }
 
@@ -864,36 +855,26 @@
 
         function onTradeTypeChange() {
             const tradeType = document.getElementById('modal-trade-type').value;
-            const unitSelect = document.getElementById('modal-duration-unit');
             const barrierContainer = document.getElementById('barrier-container');
             const digitContainer = document.getElementById('digit-prediction-container');
 
             renderChoiceButtons(tradeType);
 
             if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
-                unitSelect.value = 't';
-                unitSelect.disabled = false;
                 barrierContainer.classList.remove('hidden');
                 digitContainer.classList.add('hidden');
             } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
-                unitSelect.value = 't';
-                unitSelect.disabled = true;
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.remove('hidden');
                 renderDigitGrid();
-            } else if (tradeType === 'Even/Odd') {
-                unitSelect.value = 't';
-                unitSelect.disabled = true;
-                barrierContainer.classList.add('hidden');
-                digitContainer.classList.add('hidden');
             } else {
-                unitSelect.value = 't';
-                unitSelect.disabled = false;
                 barrierContainer.classList.add('hidden');
                 digitContainer.classList.add('hidden');
             }
 
-            onDurationUnitChange();
+            if (contractsForCache) {
+                applyContractsForRules(contractsForCache);
+            }
             onSubmarketChange(); 
         }
 
@@ -943,6 +924,7 @@
                 btn.onclick = () => {
                     selectedChoice = choiceName;
                     renderChoiceButtons(tradeType);
+                    if (contractsForCache) applyContractsForRules(contractsForCache);
                     requestProposalUpdate();
                 };
                 container.appendChild(btn);
@@ -1045,6 +1027,14 @@
                     defaultStrategyData = JSON.parse(saved);
                 } catch(e) {}
             }
+        }
+
+        function startBotEngine() {
+            alert("Bot Engine berhasil dimulai!");
+        }
+
+        function stopBotEngine() {
+            alert("Bot Engine dihentikan.");
         }
 
         function deleteLastRow() {
