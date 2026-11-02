@@ -849,8 +849,19 @@
 
         function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
-            if (!subMarketSelect || !subMarketSelect.value) return;
-            const symbol = subMarketSelect.value.split('|')[1];
+            if (!subMarketSelect || !subMarketSelect.value) {
+                logMsg("Peringatan: Submarket / Simbol belum dipilih atau masih kosong.", "ERR");
+                return;
+            }
+
+            // Memisahkan nama display dan symbol dari value select (format: "Display Name|SYMBOL")
+            const parts = subMarketSelect.value.split('|');
+            const symbol = parts[1] || subMarketSelect.value;
+
+            if (!symbol || symbol === "undefined") {
+                logMsg("Error: Simbol aset bernilai undefined. Mohon pilih ulang submarket.", "ERR");
+                return;
+            }
 
             const tradeType = document.getElementById('modal-trade-type').value;
             const duration = parseInt(document.getElementById('modal-duration').value) || 10;
@@ -898,8 +909,11 @@
                     req.barrier = selectedDigit.toString();
                 }
 
-                logMsg(`SEND proposal -> symbol: ${symbol} | type: ${contractTypeApi}`, 'SEND');
+                // Log payload yang dikirim secara lengkap untuk keperluan analisis
+                logMsg(`SEND -> ${JSON.stringify(req)}`, 'SEND');
                 targetWs.send(JSON.stringify(req));
+            } else {
+                logMsg("Error: WebSocket belum terhubung saat mencoba mengirim proposal.", "ERR");
             }
         }
 
