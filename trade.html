@@ -113,11 +113,10 @@
             <!-- AREA TENGAH -->
             <main class="flex-1 bg-slate-50 p-3 flex flex-col space-y-3 overflow-y-auto text-xs">
                 
-                <!-- STRATEGY MANAGEMENT PANEL (Disesuaikan agar tidak terlalu besar) -->
+                <!-- STRATEGY MANAGEMENT PANEL -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col">
-                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase flex justify-between items-center">
-                        <span>STRATEGY MANAGEMENT PANEL</span>
-                        <button type="button" onclick="saveStrategyToLocal()" class="bg-teal-700 hover:bg-teal-800 text-white px-2.5 py-1 rounded text-[10px] font-semibold cursor-pointer shadow-sm">Save Strategy</button>
+                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase">
+                        STRATEGY MANAGEMENT PANEL
                     </div>
 
                     <div class="overflow-x-auto max-h-36">
@@ -146,6 +145,7 @@
                             <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+) [Menunggu Akun]</button>
                             <button type="button" onclick="deleteLastRow()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Delete Last</button>
                             <button type="button" onclick="clearStrategy()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Clear</button>
+                            <button type="button" onclick="saveStrategyToLocal()" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer text-[11px]">Save Strategy</button>
                         </div>
                     </div>
                 </div>
@@ -181,10 +181,10 @@
 
             </main>
 
-            <!-- PANEL KANAN (TRADING RUNNING DIWASPADAI & TIDAK DIHILANGKAN) -->
-            <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs">
-                <div id="panel-portfolio" class="space-y-2.5 flex flex-col h-full">
-                    <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase rounded">
+            <!-- PANEL KANAN: TRADING RUNNING PERMANEN & TOMBOL SESUAI TRADE4(1) -->
+            <aside id="right-panel" class="w-80 bg-white border-l border-slate-200 p-4 flex flex-col space-y-4 text-xs">
+                <div id="panel-portfolio" class="space-y-3 flex flex-col h-full">
+                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-xs tracking-wider uppercase rounded">
                         TRADING RUNNING
                     </div>
 
@@ -194,15 +194,31 @@
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-2 font-bold text-slate-800">Level 1</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">Volatility 100 Index</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Touch / No Touch</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start time</td><td id="pf-starttime" class="p-2 font-mono text-slate-600">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-2 font-mono text-slate-600">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">0s</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Entry spot</td><td id="pf-entry" class="p-2 font-mono text-slate-700">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">10.00</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">+0.46</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-emerald-600 font-bold">$3.35</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">$2.00</td></tr>
                                 <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">0.00</td></tr>
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Tombol Kontrol Eksak Sesuai trade4(1) -->
+                    <div class="grid grid-cols-2 gap-1.5 pt-1">
+                        <button type="button" onclick="botAction('run_bot')" class="py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer">RUN BOT</button>
+                        <button type="button" onclick="botAction('sell_continue')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer">SELL & CONTINUE</button>
+                        <button type="button" onclick="botAction('sell_stop')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer">SELL & STOP</button>
+                        <button type="button" onclick="botAction('stop_level')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer">STOP LEVEL</button>
+                    </div>
+                    <button type="button" onclick="botAction('stop_trade')" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow text-xs cursor-pointer">STOP TRADE</button>
                 </div>
 
-                <div class="text-center text-[11px] text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
+                <div class="text-center text-xs text-slate-400 pt-2 border-t border-slate-100 flex justify-between mt-auto">
                     <span id="conn-status-indicator" class="flex items-center"><span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1"></span> Menunggu Akun</span>
                     <span>GMT: <span id="gmt-time" class="font-mono">-</span></span>
                 </div>
@@ -210,7 +226,7 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: ADD LEVEL (Disesuaikan agar tidak terlalu besar dan kolom proporsional) -->
+    <!-- MODAL POPUP: ADD LEVEL -->
     <div id="add-strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3">
         <div class="bg-white border border-slate-200 rounded-xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col text-xs">
             <div class="bg-teal-600 text-white px-4 py-2.5 flex justify-between items-center">
@@ -1047,6 +1063,11 @@
             }
         }
 
+        function botAction(actionType) {
+            logMsg(`Aksi bot dipicu: ${actionType}`);
+            alert(`Aksi bot '${actionType}' dijalankan!`);
+        }
+
         function deleteLastRow() {
             if (defaultStrategyData.length > 0) {
                 defaultStrategyData.pop();
@@ -1061,3 +1082,4 @@
     </script>
 </body>
 </html>
+`
