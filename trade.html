@@ -619,7 +619,32 @@
                 }
             };
         }
+// Function Navigasi Tampilan
+function goToLoginView() {
+    const landingView = document.getElementById('landing-view');
+    const loginView = document.getElementById('login-view');
+    const dashboardView = document.getElementById('dashboard-view');
 
+    if (landingView) landingView.classList.add('hidden');
+    if (loginView) loginView.classList.remove('hidden');
+    if (dashboardView) dashboardView.classList.add('hidden');
+
+    const statusBox = document.getElementById('login-status-box');
+    if (statusBox) statusBox.classList.add('hidden');
+    
+    const actionContainer = document.getElementById('login-action-container');
+    if (actionContainer) actionContainer.classList.remove('hidden');
+}
+
+function goToLandingView() {
+    const landingView = document.getElementById('landing-view');
+    const loginView = document.getElementById('login-view');
+    const dashboardView = document.getElementById('dashboard-view');
+
+    if (landingView) landingView.classList.remove('hidden');
+    if (loginView) loginView.classList.add('hidden');
+    if (dashboardView) dashboardView.classList.add('hidden');
+}
         function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
