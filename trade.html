@@ -274,15 +274,12 @@
                     <span id="bot-status-subtext" class="text-[10px] text-slate-400 font-mono">Idle</span>
                 </div>
 
-                <!-- CONTROL BUTTONS -->
+                <!-- CONTROL BUTTONS (RUN BOT & STOP TRADE ONLY) -->
                 <div class="space-y-1.5 pb-2 border-b border-slate-200">
-                    <div class="grid grid-cols-2 gap-1.5">
-                        <button type="button" onclick="botAction('run_bot')" class="py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm">RUN BOT</button>
-                        <button type="button" onclick="botAction('sell_continue')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer text-slate-700 shadow-sm">SELL & CONTINUE</button>
-                        <button type="button" onclick="botAction('sell_stop')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer text-slate-700 shadow-sm">SELL & STOP</button>
-                        <button type="button" onclick="botAction('stop_level')" class="py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded text-xs cursor-pointer text-slate-700 shadow-sm">STOP LEVEL</button>
+                    <div class="grid grid-cols-1 gap-1.5">
+                        <button type="button" onclick="botAction('run_bot')" class="py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm">RUN BOT</button>
+                        <button type="button" onclick="botAction('stop_trade')" class="py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow-sm text-xs cursor-pointer">STOP TRADE</button>
                     </div>
-                    <button type="button" onclick="botAction('stop_trade')" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow-sm text-xs cursor-pointer">STOP TRADE</button>
                 </div>
 
                 <!-- TRADING RUNNING PANEL (FIXED HEIGHT / STABLE SIZE) -->
@@ -468,6 +465,7 @@
         let currentStrategyLevelIndex = 0;
         let activeContractId = null;
         let totalSessionProfit = 0;
+        let totalAccumulatedAmount = 0; // Akumulasi amount seluruh level yang telah dikeluarkan
         let winCount = 0;
         let lossCount = 0;
         let contractLogs = []; 
@@ -943,7 +941,13 @@
                 if (data.msg_type === 'buy' && data.req_id === 106 && isBotRunning) {
                     if (data.buy && data.buy.contract_id) {
                         activeContractId = data.buy.contract_id;
-                        logMsg(`[BOT STRATEGI] BUY Successful! Contract ID: ${activeContractId}. Starting monitoring...`, 'INFO');
+                        
+                        // Akumulasikan amount dari level strategi yang sedang dieksekusi
+                        const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
+                        const executedAmount = parseFloat(currentConfig.amount) || parseFloat(data.buy.buy_price) || 0.00;
+                        totalAccumulatedAmount += executedAmount;
+
+                        logMsg(`[BOT STRATEGI] BUY Successful! Contract ID: ${activeContractId} | Amount: $${executedAmount.toFixed(2)} | Total Accumulated Amount: $${totalAccumulatedAmount.toFixed(2)}. Starting monitoring...`, 'INFO');
 
                         const subscribeReq = {
                             proposal_open_contract: 1,
@@ -993,7 +997,6 @@
 
                     saveLogsToStorage(currentActiveAccountId);
 
-                    // Update right panel exclusively for active running contracts
                     if (!isSold) {
                         updateRightPanelPortfolio(poc, existingLog.level);
                     } else {
@@ -1014,6 +1017,7 @@
                         if (poc.status === 'won') {
                             winCount++;
                             currentStrategyLevelIndex = 0;
+                            totalAccumulatedAmount = 0; // Reset akumulasi amount saat win
                         } else if (poc.status === 'lost') {
                             lossCount++;
                             if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) {
@@ -1025,9 +1029,9 @@
                         }
 
                         renderSummaryFooters();
-                        logMsg(`Contract ${cId} Finished: ${poc.status.toUpperCase()} | Profit: $${profitVal.toFixed(2)} | Session Total: $${totalSessionProfit.toFixed(2)}`, 'INFO');
+                        logMsg(`Contract ${cId} Finished: ${poc.status.toUpperCase()} | Profit: $${profitVal.toFixed(2)} | Session Total: $${totalSessionProfit.toFixed(2)} | Accumulated Amount: $${totalAccumulatedAmount.toFixed(2)}`, 'INFO');
 
-                        // Target Profit & Stop Loss Evaluation
+                        // Target Profit & Stop Loss Evaluation (Stop Loss berdasarkan akumulasi amount seluruh level)
                         const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
                         const stopLossLimit = parseFloat(document.getElementById('input-stop-loss').value) || 10.00;
 
@@ -1036,11 +1040,11 @@
                             updateBotStatusUi('STOPPED');
                             alert(`🎉 TARGET PROFIT REACHED! Session Profit: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
                             logMsg(`[STOP TRADE] Target profit reached ($${totalSessionProfit.toFixed(2)})`, 'ERR');
-                        } else if (totalSessionProfit <= -Math.abs(stopLossLimit)) {
+                        } else if (totalAccumulatedAmount >= Math.abs(stopLossLimit)) {
                             isBotRunning = false;
                             updateBotStatusUi('STOPPED');
-                            alert(`⚠️ STOP LOSS REACHED! Session Loss: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
-                            logMsg(`[STOP TRADE] Stop loss reached ($${totalSessionProfit.toFixed(2)})`, 'ERR');
+                            alert(`⚠️ STOP LOSS REACHED! Accumulated Amount: $${totalAccumulatedAmount.toFixed(2)} (Limit: $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
+                            logMsg(`[STOP TRADE] Stop loss reached due to accumulated amount ($${totalAccumulatedAmount.toFixed(2)})`, 'ERR');
                         } else if (isBotRunning) {
                             setTimeout(() => executeNextStrategyStep(), 1500);
                         }
@@ -1182,6 +1186,7 @@
                 localStorage.removeItem(`contract_logs_${currentActiveAccountId}`);
                 processedContractIds.clear();
                 totalSessionProfit = 0;
+                totalAccumulatedAmount = 0;
                 winCount = 0;
                 lossCount = 0;
                 renderContractTable();
@@ -1245,7 +1250,6 @@
             ws.send(JSON.stringify(proposalReq));
         }
 
-        // RENDER CONTRACT TABLE BASED ON ACTIVE ACCOUNT WITH DOUBLE-CLICK EVENT
         function renderContractTable() {
             const tbody = document.getElementById('contract-table-body');
             const badge = document.getElementById('log-count-badge');
@@ -1292,7 +1296,6 @@
                     <td class="text-right font-mono ${profitClass}">${item.profit >= 0 ? '+' : ''}$${item.profit.toFixed(2)}</td>
                 `;
 
-                // DOUBLE-CLICK TO OPEN DETAIL MODAL (DOES NOT TOUCH TRADING RUNNING)
                 tr.ondblclick = () => {
                     openContractDetailModal(item);
                 };
@@ -1741,6 +1744,7 @@
                 isBotRunning = true;
                 currentStrategyLevelIndex = 0;
                 totalSessionProfit = 0;
+                totalAccumulatedAmount = 0;
                 winCount = 0;
                 lossCount = 0;
                 processedContractIds.clear();
