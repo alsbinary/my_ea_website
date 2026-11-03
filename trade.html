@@ -152,7 +152,7 @@
                         </table>
                     </div>
 
-                    <!-- BARIS FOOTER KONTROL STRATEGI & TARGET PROFIT / STOP LOSS DI POJOK KANAN -->
+                    <!-- BARIS FOOTER KONTROL STRATEGI & TARGET PROFIT / STOP LOSS -->
                     <div class="p-2 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
                         <div class="flex items-center space-x-1.5 flex-wrap">
                             <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+)</button>
@@ -165,7 +165,7 @@
                             </label>
                         </div>
 
-                        <!-- TARGET PROFIT & STOP LOSS DIPINDAHKAN KE POJOK KANAN TABEL STRATEGI -->
+                        <!-- TARGET PROFIT & STOP LOSS POJOK KANAN -->
                         <div class="flex items-center space-x-2 ml-auto">
                             <div class="flex items-center space-x-1">
                                 <label class="font-bold text-emerald-700 text-[10px] uppercase">Target Profit ($):</label>
@@ -179,30 +179,32 @@
                     </div>
                 </div>
 
-                <!-- CONTRACT TABLE DENGAN LOG TRADE & STATUS WIN/LOSS -->
-                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col min-h-[160px]">
+                <!-- CONTRACT TABLE DENGAN KOLOM CONTRACT TYPE & SUB MARKET -->
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col min-h-[180px]">
                     <div class="bg-slate-200 text-slate-800 font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase border-b border-slate-300 flex justify-between items-center">
                         <span>CONTRACT TABLE (LOG TRADE)</span>
                         <span id="log-count-badge" class="bg-slate-300 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Kontrak</span>
                     </div>
 
-                    <div class="flex-1 overflow-x-auto min-h-[100px] max-h-56 bg-slate-50">
+                    <div id="contract-table-scroll-container" class="flex-1 overflow-x-auto overflow-y-auto min-h-[120px] max-h-56 bg-slate-50">
                         <table class="w-full text-left border-collapse text-xs bg-white">
-                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300 text-[11px] sticky top-0">
+                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300 text-[11px] sticky top-0 z-10 shadow-sm">
                                 <tr>
                                     <th class="p-1.5 border-r border-slate-300 text-center w-10">#</th>
-                                    <th class="p-1.5 border-r border-slate-300 text-center w-20">Status</th>
-                                    <th class="p-1.5 border-r border-slate-300 text-center w-16">Level</th>
-                                    <th class="p-1.5 border-r border-slate-300 w-28">Purchase Type</th>
-                                    <th class="p-1.5 border-r border-slate-300 w-24">Buy Price</th>
-                                    <th class="p-1.5 border-r border-slate-300 w-24">Sell Price</th>
-                                    <th class="p-1.5 border-r border-slate-300 w-24">Payout</th>
+                                    <th class="p-1.5 border-r border-slate-300 text-center w-16">Status</th>
+                                    <th class="p-1.5 border-r border-slate-300 text-center w-14">Level</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-28">Contract Type</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-36">Sub Market</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-24">Purchase Type</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-20">Buy Price</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-20">Sell Price</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-20">Payout</th>
                                     <th class="p-1.5 text-right w-24">Profit / Loss</th>
                                 </tr>
                             </thead>
                             <tbody id="contract-table-body" class="divide-y divide-slate-200 text-slate-600">
                                 <tr>
-                                    <td colspan="8" class="p-3 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
+                                    <td colspan="10" class="p-3 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -278,10 +280,11 @@
                     <button type="button" onclick="botAction('stop_trade')" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow-sm text-xs cursor-pointer">STOP TRADE</button>
                 </div>
 
-                <!-- PANEL TRADING RUNNING (DEFAULT KOSONG TANPA DATA SEBELUM ADA KONTRAK AKTIF) -->
+                <!-- PANEL TRADING RUNNING -->
                 <div id="panel-portfolio" class="space-y-2 flex flex-col flex-1">
-                    <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase rounded">
-                        TRADING RUNNING
+                    <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase rounded flex justify-between items-center">
+                        <span>TRADING RUNNING</span>
+                        <span id="active-contract-id-badge" class="text-[9px] bg-teal-800 text-teal-100 px-1.5 py-0.5 rounded font-mono hidden">#---</span>
                     </div>
 
                     <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-hidden text-xs flex-1">
@@ -435,16 +438,17 @@
 
         // VARIABEL SESI RUNNING & LOG
         let isBotRunning = false;
-        let currentStrategyLevelIndex = 0; // Menunjuk baris strategi yang berjalan (0 = Level 1)
+        let currentStrategyLevelIndex = 0;
         let activeContractId = null;
         let totalSessionProfit = 0;
         let winCount = 0;
         let lossCount = 0;
-        let contractLogs = [];
+        let contractLogs = []; // Array urutan terlama (0) ke terbaru (n)
         let processedContractIds = new Set();
+        let selectedLogContractId = null; // Menyimpan ID log yang diklik user
 
         let defaultStrategyData = [
-            { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 1, duration_unit: "ticks", amount: 2.00, payout: 3.35 }
+            { level: 1, contract_type: "Touch/No Touch", market: "Derived", submarket: "Volatility 100 (1s) Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 1, duration_unit: "ticks", amount: 2.00, payout: 3.35 }
         ];
 
         function formatDurationUnit(unitCode, amount) {
@@ -529,16 +533,26 @@
             document.getElementById('pf-payout').innerText = "-";
             document.getElementById('pf-purchase').innerText = "-";
             document.getElementById('pf-profit').innerText = "-";
+
+            const badge = document.getElementById('active-contract-id-badge');
+            if (badge) badge.classList.add('hidden');
         }
 
         function updateRightPanelPortfolio(pocData, levelNum) {
             if (!pocData) return;
-            document.getElementById('pf-level').innerText = `Level ${levelNum}`;
-            document.getElementById('pf-market').innerText = pocData.display_name || "Derived Market";
+
+            const badge = document.getElementById('active-contract-id-badge');
+            if (badge) {
+                badge.innerText = `#${pocData.contract_id}`;
+                badge.classList.remove('hidden');
+            }
+
+            document.getElementById('pf-level').innerText = `Level ${levelNum || 1}`;
+            document.getElementById('pf-market').innerText = pocData.display_name || pocData.underlying || "Derived Market";
             document.getElementById('pf-contract').innerText = pocData.contract_type || "-";
-            document.getElementById('pf-starttime').innerText = pocData.date_expiry ? new Date(pocData.date_start * 1000).toLocaleTimeString() : "-";
+            document.getElementById('pf-starttime').innerText = pocData.date_start ? new Date(pocData.date_start * 1000).toLocaleTimeString() : "-";
             document.getElementById('pf-endtime').innerText = pocData.date_expiry ? new Date(pocData.date_expiry * 1000).toLocaleTimeString() : "-";
-            document.getElementById('pf-remain').innerText = pocData.tick_count ? `${pocData.tick_count} ticks` : "Active";
+            document.getElementById('pf-remain').innerText = pocData.is_sold ? "0s (Final)" : (pocData.tick_count ? `${pocData.tick_count} ticks` : "Active");
             document.getElementById('pf-entry').innerText = pocData.entry_spot || "-";
             document.getElementById('pf-target').innerText = pocData.barrier || "-";
             document.getElementById('pf-barrier').innerText = pocData.barrier || "-";
@@ -895,6 +909,7 @@
                 if (data.msg_type === 'buy' && data.req_id === 106 && isBotRunning) {
                     if (data.buy && data.buy.contract_id) {
                         activeContractId = data.buy.contract_id;
+                        selectedLogContractId = activeContractId; // Otomatis pilih transaksi terbaru
                         logMsg(`[BOT STRATEGI] BUY Berhasil! Contract ID: ${activeContractId}. Memulai pemantauan...`, 'INFO');
 
                         const subscribeReq = {
@@ -914,10 +929,9 @@
                 if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract) {
                     const poc = data.proposal_open_contract;
                     const cId = poc.contract_id;
-                    const isSold = poc.is_sold; // 0 = Open, 1 = Closed/Final
+                    const isSold = poc.is_sold;
 
-                    // Update Panel Kanan "TRADING RUNNING" secara dinamis ketika ada kontrak aktif
-                    updateRightPanelPortfolio(poc, currentStrategyLevelIndex + 1);
+                    const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
 
                     let existingLog = contractLogs.find(l => l.contract_id === cId);
                     if (!existingLog) {
@@ -926,20 +940,34 @@
                             contract_id: cId,
                             status: poc.status || 'open',
                             level: currentStrategyLevelIndex + 1,
-                            purchase_type: poc.display_name || 'Contract',
+                            contract_type: currentConfig.contract_type || "Touch/No Touch",
+                            submarket: currentConfig.submarket || "Volatility 100 (1s) Index",
+                            purchase_type: currentConfig.purchase_type || "No Touch",
                             buy_price: parseFloat(poc.buy_price || 0),
                             sell_price: parseFloat(poc.sell_price || 0),
                             payout: parseFloat(poc.payout || 0),
-                            profit: parseFloat(poc.profit || 0)
+                            profit: parseFloat(poc.profit || 0),
+                            pocData: poc
                         };
-                        contractLogs.unshift(existingLog);
+                        contractLogs.push(existingLog); // Masukkan di paling bawah (terbaru)
                     } else {
                         existingLog.status = poc.status || existingLog.status;
                         existingLog.sell_price = parseFloat(poc.sell_price || existingLog.sell_price);
                         existingLog.profit = parseFloat(poc.profit || existingLog.profit);
+                        existingLog.pocData = poc;
+                    }
+
+                    // Update rincian panel kanan jika log yang aktif sedang dipilih
+                    if (selectedLogContractId === cId || !selectedLogContractId) {
+                        selectedLogContractId = cId;
+                        updateRightPanelPortfolio(poc, existingLog.level);
                     }
 
                     renderContractTable();
+
+                    // Auto-scroll ke paling bawah agar selalu menampung transaksi terbaru
+                    const scrollContainer = document.getElementById('contract-table-scroll-container');
+                    if (scrollContainer) scrollContainer.scrollTop = scrollContainer.scrollHeight;
 
                     // Jika Kontrak Selesai (is_sold === 1) dan Belum Dihitung ke Akumulasi
                     if (isSold === 1 && !processedContractIds.has(cId)) {
@@ -949,10 +977,9 @@
 
                         if (poc.status === 'won') {
                             winCount++;
-                            currentStrategyLevelIndex = 0; // Kembali ke Level 1 jika WIN
+                            currentStrategyLevelIndex = 0; // Reset ke Level 1 jika WIN
                         } else if (poc.status === 'lost') {
                             lossCount++;
-                            // Naik ke Level berikutnya jika LOSS
                             if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) {
                                 currentStrategyLevelIndex++;
                             } else {
@@ -979,7 +1006,6 @@
                             alert(`⚠️ STOP LOSS TERCAPAI! Kerugian Sesi: $${totalSessionProfit.toFixed(2)}. Bot Dihentikan.`);
                             logMsg(`[STOP TRADE] Stop loss tercapai ($${totalSessionProfit.toFixed(2)})`, 'ERR');
                         } else if (isBotRunning) {
-                            // Eksekusi transaksi selanjutnya jika bot masih running
                             setTimeout(() => executeNextStrategyStep(), 1500);
                         }
                     }
@@ -1145,6 +1171,7 @@
             ws.send(JSON.stringify(proposalReq));
         }
 
+        // RENDER LOG CONTRACT TABLE DENGAN BADGE WIN / LOSS & KLIK DETAIL
         function renderContractTable() {
             const tbody = document.getElementById('contract-table-body');
             const badge = document.getElementById('log-count-badge');
@@ -1155,7 +1182,7 @@
             if (contractLogs.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="8" class="p-3 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
+                        <td colspan="10" class="p-3 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
                     </tr>
                 `;
                 return;
@@ -1164,27 +1191,40 @@
             tbody.innerHTML = '';
             contractLogs.forEach((item, index) => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-100 transition border-b border-slate-200 text-xs";
+                const isSelected = (selectedLogContractId === item.contract_id);
+                tr.className = `hover:bg-teal-50 cursor-pointer transition border-b border-slate-200 text-xs ${isSelected ? 'bg-teal-100/70 font-semibold' : ''}`;
 
-                let statusBadge = '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold text-[10px] uppercase">OPEN</span>';
+                let statusBadge = '<span class="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold text-[10px] uppercase">OPEN</span>';
                 if (item.status === 'won') {
-                    statusBadge = '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold text-[10px] uppercase">WIN</span>';
+                    statusBadge = '<span class="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold text-[10px] uppercase">WIN</span>';
                 } else if (item.status === 'lost') {
-                    statusBadge = '<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-bold text-[10px] uppercase">LOSS</span>';
+                    statusBadge = '<span class="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold text-[10px] uppercase">LOSS</span>';
                 }
 
                 const profitClass = item.profit > 0 ? 'text-emerald-600 font-bold' : (item.profit < 0 ? 'text-rose-600 font-bold' : 'text-slate-600');
 
                 tr.innerHTML = `
-                    <td class="text-center font-bold text-slate-500 bg-slate-50">${contractLogs.length - index}</td>
+                    <td class="text-center font-bold text-slate-500 bg-slate-50/50">${index + 1}</td>
                     <td class="text-center">${statusBadge}</td>
                     <td class="text-center font-bold text-slate-700">L${item.level}</td>
-                    <td class="font-semibold text-slate-800">${item.purchase_type}</td>
+                    <td class="text-slate-800">${item.contract_type}</td>
+                    <td class="text-slate-800 font-medium">${item.submarket}</td>
+                    <td class="font-bold text-slate-900">${item.purchase_type}</td>
                     <td class="font-mono text-slate-600">$${item.buy_price.toFixed(2)}</td>
                     <td class="font-mono text-slate-600">$${item.sell_price.toFixed(2)}</td>
                     <td class="font-mono text-slate-600">$${item.payout.toFixed(2)}</td>
                     <td class="text-right font-mono ${profitClass}">${item.profit >= 0 ? '+' : ''}$${item.profit.toFixed(2)}</td>
                 `;
+
+                // Event Klik untuk Menampilkan Rincian di Trading Running
+                tr.onclick = () => {
+                    selectedLogContractId = item.contract_id;
+                    renderContractTable();
+                    if (item.pocData) {
+                        updateRightPanelPortfolio(item.pocData, item.level);
+                    }
+                };
+
                 tbody.appendChild(tr);
             });
         }
@@ -1592,13 +1632,13 @@
                 lossCount = 0;
                 contractLogs = [];
                 processedContractIds.clear();
+                selectedLogContractId = null;
                 
                 renderContractTable();
                 renderSummaryFooters();
                 updateBotStatusUi('RUNNING');
                 logMsg("=== BOT DIMULAI (RUN BOT) ===", 'INFO');
 
-                // Eksekusi langkah strategi pertama
                 executeNextStrategyStep();
             } else if (actionType === 'stop_trade') {
                 isBotRunning = false;
