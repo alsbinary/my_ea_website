@@ -157,7 +157,13 @@
                             <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+) [Menunggu Akun]</button>
                             <button type="button" onclick="deleteLastRow()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Delete Last</button>
                             <button type="button" onclick="clearStrategy()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Clear</button>
-                            <button type="button" onclick="saveStrategyToLocal()" class="bg-teal-700 hover:bg-teal-800 text-white px-2.5 py-1 rounded text-[11px] font-semibold cursor-pointer shadow-sm">Save Strategy</button>
+                            
+                            <!-- TOMBOL EXPORT & IMPORT STRATEGY -->
+                            <button type="button" onclick="exportStrategyJson()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-semibold shadow-sm cursor-pointer text-[11px]">Export Strategy</button>
+                            <label class="px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded font-semibold shadow-sm cursor-pointer text-[11px] inline-block">
+                                Import Strategy
+                                <input type="file" id="import-file-input" accept=".json" onchange="importStrategyJson(event)" class="hidden">
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -193,10 +199,9 @@
 
             </main>
 
-            <!-- PANEL KANAN: STATUS KONEKSI & JAM GMT DIATAS RUNNING TRADE -->
+            <!-- PANEL KANAN -->
             <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs">
                 
-                <!-- STATUS KONEKSI & JAM GMT (DIPINDAHKAN KE ATAS RUN BOT) -->
                 <div class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg flex justify-between items-center text-[11px] text-slate-600 shadow-sm">
                     <span id="conn-status-indicator" class="flex items-center font-medium">
                         <span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Menunggu Akun
@@ -204,7 +209,6 @@
                     <span class="font-mono font-semibold text-slate-700"><span id="gmt-time">-</span></span>
                 </div>
 
-                <!-- TOMBOL KONTROL AKSI -->
                 <div class="space-y-1.5 pb-2 border-b border-slate-200">
                     <div class="grid grid-cols-2 gap-1.5">
                         <button type="button" onclick="botAction('run_bot')" class="py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm">RUN BOT</button>
@@ -215,7 +219,6 @@
                     <button type="button" onclick="botAction('stop_trade')" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow-sm text-xs cursor-pointer">STOP TRADE</button>
                 </div>
 
-                <!-- PANEL TRADING RUNNING -->
                 <div id="panel-portfolio" class="space-y-2 flex flex-col flex-1">
                     <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase rounded">
                         TRADING RUNNING
@@ -1106,6 +1109,9 @@
 
             defaultStrategyData.push(newItem);
             renderStrategyTable(defaultStrategyData);
+            
+            // Simpan strategi otomatis ke localStorage setelah ditambah
+            autoSaveStrategy();
             closeAddModal();
         }
 
@@ -1136,18 +1142,57 @@
             });
         }
 
-        function saveStrategyToLocal() {
+        // Fungsi Penyimpanan Otomatis
+        function autoSaveStrategy() {
             localStorage.setItem('saved_trading_strategy', JSON.stringify(defaultStrategyData));
-            alert("Strategi berhasil disimpan ke penyimpanan lokal (LocalStorage)!");
         }
 
         function loadSavedStrategy() {
             const saved = localStorage.getItem('saved_trading_strategy');
             if (saved) {
                 try {
-                    defaultStrategyData = JSON.parse(saved);
+                    const parsed = JSON.parse(saved);
+                    if(Array.isArray(parsed) && parsed.length > 0) {
+                        defaultStrategyData = parsed;
+                    }
                 } catch(e) {}
             }
+        }
+
+        // Fitur Export Strategy ke file JSON
+        function exportStrategyJson() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(defaultStrategyData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "trading_strategy_" + new Date().toISOString().slice(0,10) + ".json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        // Fitur Import Strategy dari file JSON
+        function importStrategyJson(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData)) {
+                        defaultStrategyData = importedData;
+                        renderStrategyTable(defaultStrategyData);
+                        autoSaveStrategy();
+                        alert("Strategi berhasil diimpor!");
+                    } else {
+                        alert("Format file JSON tidak valid.");
+                    }
+                } catch(err) {
+                    alert("Gagal membaca file JSON: " + err.message);
+                }
+                event.target.value = ""; // Reset input file
+            };
+            reader.readAsText(file);
         }
 
         function botAction(actionType) {
@@ -1158,12 +1203,14 @@
             if (defaultStrategyData.length > 0) {
                 defaultStrategyData.pop();
                 renderStrategyTable(defaultStrategyData);
+                autoSaveStrategy(); // Simpan otomatis setelah hapus baris
             }
         }
 
         function clearStrategy() {
             defaultStrategyData = [];
             renderStrategyTable(defaultStrategyData);
+            autoSaveStrategy(); // Simpan otomatis setelah dikosongkan
         }
     </script>
 </body>
