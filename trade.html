@@ -158,7 +158,6 @@
                             <button type="button" onclick="deleteLastRow()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Delete Last</button>
                             <button type="button" onclick="clearStrategy()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Clear</button>
                             
-                            <!-- TOMBOL EXPORT & IMPORT STRATEGY -->
                             <button type="button" onclick="exportStrategyJson()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-semibold shadow-sm cursor-pointer text-[11px]">Export Strategy</button>
                             <label class="px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded font-semibold shadow-sm cursor-pointer text-[11px] inline-block">
                                 Import Strategy
@@ -169,12 +168,12 @@
                 </div>
 
                 <!-- CONTRACT TABLE -->
-                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col flex-1">
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col min-h-[140px]">
                     <div class="bg-slate-200 text-slate-800 font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase border-b border-slate-300">
                         CONTRACT TABLE
                     </div>
 
-                    <div class="flex-1 overflow-x-auto min-h-[140px] bg-slate-300">
+                    <div class="flex-1 overflow-x-auto min-h-[100px] bg-slate-300">
                         <table class="w-full text-left border-collapse text-xs bg-white">
                             <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300 text-[11px]">
                                 <tr>
@@ -194,6 +193,20 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- LIVE LOG MONITOR TRANSMISI DATA API & SISTEM (SEMENTARA DI BAWAH CONTRACT TABLE) -->
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col p-2.5 space-y-1.5">
+                    <div class="flex justify-between items-center text-[11px] border-b border-slate-200 pb-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></span>
+                            <span class="font-bold text-slate-700 uppercase tracking-wider text-[10px]">Monitor Transmisi Data API & Log Sistem (Live)</span>
+                        </div>
+                        <button type="button" onclick="clearDashboardConsole()" class="text-slate-400 hover:text-slate-600 underline text-[10px] cursor-pointer">Clear Log</button>
+                    </div>
+                    <div id="main-log-console" class="bg-slate-950 text-slate-200 p-2.5 rounded-lg h-36 overflow-y-auto font-mono text-[11px] space-y-1 border border-slate-800 leading-tight">
+                        <div class="text-slate-500">[System] Menunggu transmisi data dan respon API Deriv...</div>
                     </div>
                 </div>
 
@@ -342,7 +355,7 @@
 
                 <div class="pt-2 border-t border-slate-200 space-y-1">
                     <div class="flex justify-between items-center text-[10px]">
-                        <span class="font-bold text-slate-600">Monitor Transmisi Data API (Live Log)</span>
+                        <span class="font-bold text-slate-600">Monitor Transmisi Data API (Modal Log)</span>
                         <button type="button" onclick="clearDebugConsole()" class="text-slate-400 hover:text-slate-600 underline text-[10px] cursor-pointer">Clear</button>
                     </div>
                     <div id="debug-log-console" class="bg-slate-900 text-slate-200 p-2 rounded h-20 overflow-y-auto font-mono text-[10px] space-y-1 border border-slate-800 leading-tight">
@@ -420,33 +433,46 @@
             }
         }
 
+        // FUNGSI UNTUK MENCETAK LOG KE MODAL DAN MAIN DASHBOARD CONSOLE (DIBAWAH CONTRACT TABLE)
         function logMsg(msg, type='INFO') {
-            const consoleBox = document.getElementById('debug-log-console');
-            if (!consoleBox) return;
-            const item = document.createElement('div');
             const timeStr = new Date().toLocaleTimeString();
+            
+            // Log target 1: Modal Log Console
+            const modalConsole = document.getElementById('debug-log-console');
+            // Log target 2: Main Dashboard Live Console (Di bawah Contract Table)
+            const mainConsole = document.getElementById('main-log-console');
 
-            if (type === 'SEND') {
-                item.className = 'text-cyan-400';
-                item.innerText = `[${timeStr}] 📤 SEND -> ${msg}`;
-            } else if (type === 'RECV') {
-                item.className = 'text-emerald-400';
-                item.innerText = `[${timeStr}] 📥 RECV <- ${msg}`;
-            } else if (type === 'ERR') {
-                item.className = 'text-rose-400 font-bold';
-                item.innerText = `[${timeStr}] ⚠️ ERR  <- ${msg}`;
-            } else {
-                item.className = 'text-slate-400';
-                item.innerText = `[${timeStr}] ℹ️ INFO -> ${msg}`;
-            }
+            [modalConsole, mainConsole].forEach(box => {
+                if (!box) return;
+                const item = document.createElement('div');
+                
+                if (type === 'SEND') {
+                    item.className = 'text-cyan-400 font-semibold';
+                    item.innerText = `[${timeStr}] 📤 SEND -> ${msg}`;
+                } else if (type === 'RECV') {
+                    item.className = 'text-emerald-400';
+                    item.innerText = `[${timeStr}] 📥 RECV <- ${msg}`;
+                } else if (type === 'ERR') {
+                    item.className = 'text-rose-400 font-bold';
+                    item.innerText = `[${timeStr}] ⚠️ ERR  <- ${msg}`;
+                } else {
+                    item.className = 'text-slate-400';
+                    item.innerText = `[${timeStr}] ℹ️ INFO -> ${msg}`;
+                }
 
-            consoleBox.appendChild(item);
-            consoleBox.scrollTop = consoleBox.scrollHeight;
+                box.appendChild(item);
+                box.scrollTop = box.scrollHeight;
+            });
         }
 
         function clearDebugConsole() {
             const consoleBox = document.getElementById('debug-log-console');
-            if (consoleBox) consoleBox.innerHTML = '<div class="text-slate-500">[System] Log dibersihkan.</div>';
+            if (consoleBox) consoleBox.innerHTML = '<div class="text-slate-500">[System] Modal Log dibersihkan.</div>';
+        }
+
+        function clearDashboardConsole() {
+            const mainBox = document.getElementById('main-log-console');
+            if (mainBox) mainBox.innerHTML = '<div class="text-slate-500">[System] Dashboard Log dibersihkan.</div>';
         }
 
         function toggleAccountDropdown(event) {
@@ -1110,7 +1136,6 @@
             defaultStrategyData.push(newItem);
             renderStrategyTable(defaultStrategyData);
             
-            // Simpan strategi otomatis ke localStorage setelah ditambah
             autoSaveStrategy();
             closeAddModal();
         }
@@ -1142,7 +1167,6 @@
             });
         }
 
-        // Fungsi Penyimpanan Otomatis
         function autoSaveStrategy() {
             localStorage.setItem('saved_trading_strategy', JSON.stringify(defaultStrategyData));
         }
@@ -1159,7 +1183,6 @@
             }
         }
 
-        // Fitur Export Strategy ke file JSON
         function exportStrategyJson() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(defaultStrategyData, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -1170,7 +1193,6 @@
             downloadAnchor.remove();
         }
 
-        // Fitur Import Strategy dari file JSON
         function importStrategyJson(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1190,7 +1212,7 @@
                 } catch(err) {
                     alert("Gagal membaca file JSON: " + err.message);
                 }
-                event.target.value = ""; // Reset input file
+                event.target.value = "";
             };
             reader.readAsText(file);
         }
@@ -1203,14 +1225,14 @@
             if (defaultStrategyData.length > 0) {
                 defaultStrategyData.pop();
                 renderStrategyTable(defaultStrategyData);
-                autoSaveStrategy(); // Simpan otomatis setelah hapus baris
+                autoSaveStrategy();
             }
         }
 
         function clearStrategy() {
             defaultStrategyData = [];
             renderStrategyTable(defaultStrategyData);
-            autoSaveStrategy(); // Simpan otomatis setelah dikosongkan
+            autoSaveStrategy();
         }
     </script>
 </body>
