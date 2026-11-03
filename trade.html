@@ -67,21 +67,12 @@
                 <span class="text-xs md:text-sm font-bold text-slate-800 tracking-wide">ALS Pro Automated Strategy Engine</span>
             </div>
 
-            <!-- STATUS KONEKSI & GMT DI HEADER -->
-            <div class="flex items-center space-x-4 text-[11px] text-slate-500 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
-                <span id="conn-status-indicator" class="flex items-center font-medium"><span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Menunggu Akun</span>
-                <span class="text-slate-300">|</span>
-                <span>GMT: <span id="gmt-time" class="font-mono font-semibold text-slate-700">-</span></span>
-            </div>
-
             <div class="flex items-center space-x-3">
-                <!-- TOMBOL GO TO DERIV PAGE -->
                 <a href="https://t.deriv.link?t=REXB5ZQKPMGE" target="_blank" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold px-3 py-1.5 rounded-lg text-xs shadow flex items-center space-x-1 transition cursor-pointer">
                     <span>Go to Deriv Page</span>
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                 </a>
 
-                <!-- TOMBOL DEPOSIT -->
                 <a href="https://t.deriv.link?t=REXB5ZQKPMGE" target="_blank" class="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-3.5 py-1.5 rounded-lg text-xs shadow transition cursor-pointer">
                     Deposit
                 </a>
@@ -202,9 +193,18 @@
 
             </main>
 
-            <!-- PANEL KANAN: TOMBOL AKSI DIATAS RUNNING TRADE -->
+            <!-- PANEL KANAN: STATUS KONEKSI & JAM GMT DIATAS RUNNING TRADE -->
             <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs">
                 
+                <!-- STATUS KONEKSI & JAM GMT (DIPINDAHKAN KE ATAS RUN BOT) -->
+                <div class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg flex justify-between items-center text-[11px] text-slate-600 shadow-sm">
+                    <span id="conn-status-indicator" class="flex items-center font-medium">
+                        <span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Menunggu Akun
+                    </span>
+                    <span class="font-mono font-semibold text-slate-700"><span id="gmt-time">-</span></span>
+                </div>
+
+                <!-- TOMBOL KONTROL AKSI -->
                 <div class="space-y-1.5 pb-2 border-b border-slate-200">
                     <div class="grid grid-cols-2 gap-1.5">
                         <button type="button" onclick="botAction('run_bot')" class="py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm">RUN BOT</button>
@@ -215,6 +215,7 @@
                     <button type="button" onclick="botAction('stop_trade')" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow-sm text-xs cursor-pointer">STOP TRADE</button>
                 </div>
 
+                <!-- PANEL TRADING RUNNING -->
                 <div id="panel-portfolio" class="space-y-2 flex flex-col flex-1">
                     <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase rounded">
                         TRADING RUNNING
@@ -630,7 +631,6 @@
                 const div = document.createElement('div');
                 div.className = "p-2.5 hover:bg-slate-50 cursor-pointer rounded flex justify-between items-center border-b border-slate-100";
                 
-                // Menampilkan ID, Tipe Akun, serta Balance & Currency masing-masing akun
                 const balanceDisplay = acc.balance !== undefined ? `${parseFloat(acc.balance).toFixed(2)} ${acc.currency || 'USD'}` : '--- USD';
                 
                 div.innerHTML = `
@@ -708,7 +708,6 @@
                     const cur = data.balance.currency || 'USD';
                     updateAccountUiLabel(currentActiveAccountId, `${bal} ${cur}`);
                     
-                    // Update balance juga di dalam daftar dropdown akun aktif
                     const matchedAcc = accountsList.find(a => a.account_id === currentActiveAccountId);
                     if(matchedAcc) {
                         matchedAcc.balance = data.balance.balance;
