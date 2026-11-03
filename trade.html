@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALS Pro - Automated Strategy Engine</title>
+    <title>DXBot - Automated Strategy Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .strategy-table input, .strategy-table select {
@@ -46,20 +46,92 @@
 </head>
 <body class="bg-slate-100 text-slate-800 h-screen flex flex-col font-sans text-xs overflow-hidden">
 
-    <!-- VIEW 1: LOGIN PAGE -->
-    <div id="login-view" class="flex-1 flex items-center justify-center p-4 bg-slate-950 text-slate-100">
+    <!-- VIEW 0: LANDING PAGE (HALAMAN AWAL) -->
+    <div id="landing-view" class="flex-1 flex flex-col justify-between p-6 bg-slate-950 text-slate-100 overflow-y-auto">
+        <header class="flex justify-between items-center max-w-5xl w-full mx-auto py-2">
+            <div class="flex items-center space-x-2">
+                <div class="bg-teal-600 text-white font-black px-3 py-1 rounded text-sm tracking-wider shadow-lg shadow-teal-500/20">DX</div>
+                <span class="text-base font-bold text-white tracking-wide">DXBot Engine</span>
+            </div>
+            <a href="https://t.deriv.link?t=REXB5ZQKPMGE" target="_blank" class="text-xs text-slate-400 hover:text-teal-400 transition flex items-center space-x-1">
+                <span>Deriv Platform</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            </a>
+        </header>
+
+        <main class="max-w-4xl w-full mx-auto my-auto py-8 text-center space-y-8">
+            <div class="inline-flex items-center space-x-2 bg-teal-500/10 text-teal-400 font-semibold px-4 py-1.5 rounded-full text-xs border border-teal-500/20">
+                <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+                <span>Next-Gen Automated Trading Engine</span>
+            </div>
+
+            <div class="space-y-4">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                    Smart Automated Execution for <span class="text-teal-400">Deriv Options</span>
+                </h1>
+                <p class="text-slate-400 max-w-2xl mx-auto text-xs md:text-sm leading-relaxed">
+                    DXBot is an advanced strategy engine built with real-time WebSocket architecture, multi-tier risk control, dynamic barrier management, and automated level progression.
+                </p>
+            </div>
+
+            <!-- FEATURE HIGHLIGHTS -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left max-w-3xl mx-auto pt-4">
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-2">
+                    <div class="w-8 h-8 rounded-lg bg-teal-600/20 text-teal-400 flex items-center justify-center font-bold text-sm">01</div>
+                    <h3 class="font-bold text-white text-xs">Multi-Level Strategies</h3>
+                    <p class="text-slate-400 text-[11px] leading-normal">Configure sequential trading rules across multiple submarkets, duration units, and contract types.</p>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-2">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold text-sm">02</div>
+                    <h3 class="font-bold text-white text-xs">Automated Risk Control</h3>
+                    <p class="text-slate-400 text-[11px] leading-normal">Built-in Target Profit & Stop Loss tracking calibrated against real-time session net P/L.</p>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-2">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-sm">03</div>
+                    <h3 class="font-bold text-white text-xs">OAuth PKCE Security</h3>
+                    <p class="text-slate-400 text-[11px] leading-normal">Direct encrypted authentication via Deriv official OAuth PKCE gateway without storing API tokens.</p>
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button type="button" onclick="goToLoginView()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-extrabold px-8 py-3.5 rounded-xl shadow-xl shadow-teal-500/20 text-sm tracking-wider transition transform hover:-translate-y-0.5 cursor-pointer">
+                    <span>START DXBOT</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                </button>
+            </div>
+        </main>
+
+        <footer class="text-center text-slate-600 text-[11px] py-2 border-t border-slate-900">
+            DXBot Engine &copy; 2026. Automated Trading Software for Deriv Platform.
+        </footer>
+    </div>
+
+    <!-- VIEW 1: LOGIN PAGE (OAUTH GATEWAY) -->
+    <div id="login-view" class="flex-1 flex items-center justify-center p-4 bg-slate-950 text-slate-100 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
-                <div class="inline-block bg-blue-600/20 text-blue-400 font-semibold px-3 py-1 rounded-full text-xs border border-blue-500/30">OAuth 2.0 PKCE Gateway</div>
-                <h2 class="text-base font-bold text-white">Sign In to Bot Dashboard</h2>
-                <p class="text-xs text-slate-400">Enter your OAuth Client ID / App ID.</p>
+                <div class="inline-block bg-teal-600/20 text-teal-400 font-semibold px-3 py-1 rounded-full text-xs border border-teal-500/30">OAuth 2.0 PKCE Gateway</div>
+                <h2 class="text-base font-bold text-white">Sign In to DXBot Engine</h2>
+                <p class="text-xs text-slate-400">Authenticate securely using your Deriv Account credentials.</p>
             </div>
-            <div class="space-y-4 text-xs">
-                <div>
-                    <label class="block font-medium text-slate-400 mb-1">OAuth Client ID / App ID</label>
-                    <input type="text" id="client_id" value="34M4TGKofeTRkLOlcJ9zO" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500 text-xs">
-                </div>
-                <button type="button" onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs cursor-pointer">LOGIN VIA DERIV (OAUTH PKCE)</button>
+
+            <!-- STATUS MESSAGE BOX FOR CONNECTING & SUCCESS STATES -->
+            <div id="login-status-box" class="hidden p-3 rounded-xl text-center space-y-1.5 border text-xs">
+                <div id="login-status-spinner" class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                <div id="login-status-text" class="font-bold">Connecting...</div>
+                <div id="login-status-subtext" class="text-[10px] opacity-80">Please wait while we redirect to OAuth portal...</div>
+            </div>
+
+            <div class="space-y-4 text-xs" id="login-action-container">
+                <button type="button" onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs cursor-pointer flex items-center justify-center space-x-2">
+                    <span>CONNECT DERIV ACCOUNT</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+                <button type="button" onclick="goToLandingView()" class="w-full text-slate-400 hover:text-white text-[11px] underline text-center cursor-pointer">
+                    &larr; Back to DXBot Overview
+                </button>
             </div>
         </div>
     </div>
@@ -70,8 +142,8 @@
         <!-- HEADER -->
         <header class="bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center shadow-sm shrink-0">
             <div class="flex items-center space-x-3">
-                <div class="bg-teal-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">ALS</div>
-                <span class="text-xs md:text-sm font-bold text-slate-800 tracking-wide">ALS Pro Automated Strategy Engine</span>
+                <div class="bg-teal-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">DX</div>
+                <span class="text-xs md:text-sm font-bold text-slate-800 tracking-wide">DXBot Automated Strategy Engine</span>
             </div>
 
             <div class="flex items-center space-x-3">
@@ -125,10 +197,10 @@
                 </div>
             </aside>
 
-            <!-- CENTER AREA (H-FULL PROPORSIONAL 40% / 60%) -->
+            <!-- CENTER AREA -->
             <main class="flex-1 bg-slate-50 p-3 flex flex-col space-y-3 overflow-hidden text-xs h-full">
                 
-                <!-- STRATEGY MANAGEMENT PANEL (TINGGI 40%) -->
+                <!-- STRATEGY MANAGEMENT PANEL (40% HEIGHT) -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col h-[40%] overflow-hidden">
                     <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase flex justify-between items-center shrink-0">
                         <span>STRATEGY MANAGEMENT PANEL</span>
@@ -183,7 +255,7 @@
                     </div>
                 </div>
 
-                <!-- CONTRACT TABLE (LOG TRADE) (TINGGI 60%) -->
+                <!-- CONTRACT TABLE (LOG TRADE) (60% HEIGHT) -->
                 <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col h-[60%] overflow-hidden">
                     <div class="bg-slate-200 text-slate-800 font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase border-b border-slate-300 flex justify-between items-center shrink-0">
                         <div class="flex items-center space-x-3">
@@ -259,7 +331,7 @@
             </main>
 
             <!-- RIGHT PANEL -->
-            <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs shrink-0 overflow-y-auto">
+            <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs shrink-0 overflow-y-auto h-full">
                 
                 <!-- CONNECTION STATUS & GMT CLOCK -->
                 <div class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg flex justify-between items-center text-[11px] text-slate-600 shadow-sm shrink-0">
@@ -286,14 +358,14 @@
                     </div>
                 </div>
 
-                <!-- TRADING RUNNING PANEL -->
-                <div id="panel-portfolio" class="space-y-2 flex flex-col flex-1 overflow-hidden">
+                <!-- TRADING RUNNING PANEL (SCROLLABLE) -->
+                <div id="panel-portfolio" class="space-y-2 flex flex-col">
                     <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase rounded flex justify-between items-center shrink-0 h-9">
                         <span>TRADING RUNNING</span>
                         <span id="active-contract-id-badge" class="text-[9px] bg-teal-800 text-teal-100 px-1.5 py-0.5 rounded font-mono hidden">#---</span>
                     </div>
 
-                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-y-auto text-xs flex-1 no-scrollbar">
+                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-y-auto max-h-[400px] text-xs">
                         <table class="w-full border-collapse table-fixed">
                             <thead>
                                 <tr>
@@ -331,10 +403,10 @@
                 <button type="button" onclick="closeUsageModal()" class="text-white hover:text-slate-200 font-bold text-base cursor-pointer">&times;</button>
             </div>
             <div class="p-4 space-y-3 bg-slate-50 text-slate-700 leading-relaxed max-h-[70vh] overflow-y-auto">
-                <p><strong>1. Account Sign In:</strong> Enter your Deriv OAuth Client ID and log in to authenticate via OAuth PKCE.</p>
-                <p><strong>2. Select Trading Account:</strong> Choose your preferred Demo or Real account from the account dropdown menu located on the top right header.</p>
+                <p><strong>1. Account Sign In:</strong> Click "CONNECT DERIV ACCOUNT" to authenticate via OAuth PKCE using your Deriv credentials.</p>
+                <p><strong>2. Select Trading Account:</strong> Choose your preferred Demo or Real account from the dropdown menu located on the top right header.</p>
                 <p><strong>3. Strategy Management:</strong> Configure, add (+), delete, or clear strategy levels on the Strategy Management Panel according to your trading preferences.</p>
-                <p><strong>4. Target Profit & Stop Loss:</strong> Set your desired Target Profit and Stop Loss limits (Stop Loss automatically accumulates from all strategy level amounts by default).</p>
+                <p><strong>4. Target Profit & Stop Loss:</strong> Set your desired Target Profit and Stop Loss limits (Stop Loss tracks against accumulated net P/L in the log table).</p>
                 <p><strong>5. Execute Trading Bot:</strong> Click the <strong>RUN BOT</strong> button to initiate automated execution based on your strategy sequence.</p>
             </div>
             <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-end">
@@ -476,6 +548,9 @@
 
     <!-- MAIN SCRIPT -->
     <script>
+        // HARDCODED DERIV APP ID
+        const DEFAULT_APP_ID = "34M4TGKofeTRkLOlcJ9zO";
+
         let ws = null;
         let publicWs = null;
         let activeSymbolsList = [];
@@ -501,6 +576,45 @@
         let defaultStrategyData = [
             { level: 1, contract_type: "Touch/No Touch", market: "Derived", submarket: "Volatility 100 (1s) Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 1, duration_unit: "ticks", amount: 2.00, payout: 3.35 }
         ];
+
+        // VIEW ROUTER FUNCTIONS
+        function goToLandingView() {
+            document.getElementById('landing-view').classList.remove('hidden');
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.add('hidden');
+        }
+
+        function goToLoginView() {
+            document.getElementById('landing-view').classList.add('hidden');
+            document.getElementById('login-view').classList.remove('hidden');
+            document.getElementById('dashboard-view').classList.add('hidden');
+            
+            // Reset status box inside login
+            const statusBox = document.getElementById('login-status-box');
+            if (statusBox) statusBox.classList.add('hidden');
+            document.getElementById('login-action-container').classList.remove('hidden');
+        }
+
+        function showLoginConnectingStatus(statusText, subtext, isSuccess = false) {
+            const statusBox = document.getElementById('login-status-box');
+            const spinner = document.getElementById('login-status-spinner');
+            const textEl = document.getElementById('login-status-text');
+            const subtextEl = document.getElementById('login-status-subtext');
+
+            if (!statusBox || !textEl || !subtextEl) return;
+
+            statusBox.classList.remove('hidden');
+            textEl.innerText = statusText;
+            subtextEl.innerText = subtext;
+
+            if (isSuccess) {
+                statusBox.className = "p-3 rounded-xl text-center space-y-1.5 border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs";
+                if (spinner) spinner.classList.add('hidden');
+            } else {
+                statusBox.className = "p-3 rounded-xl text-center space-y-1.5 border border-teal-500/30 bg-teal-500/10 text-teal-400 text-xs";
+                if (spinner) spinner.classList.remove('hidden');
+            }
+        }
 
         function formatDurationUnit(unitCode, amount) {
             const num = parseInt(amount) || 1;
@@ -546,53 +660,52 @@
         }
 
         function updateBotStatusUi(statusState) {
-    const dot = document.getElementById('bot-status-dot');
-    const label = document.getElementById('bot-status-label');
-    const subtext = document.getElementById('bot-status-subtext');
-    const btnRunBot = document.getElementById('btn-run-bot'); // Ambil elemen tombol RUN BOT
+            const dot = document.getElementById('bot-status-dot');
+            const label = document.getElementById('bot-status-label');
+            const subtext = document.getElementById('bot-status-subtext');
+            const btnRunBot = document.getElementById('btn-run-bot');
 
-    if (!dot || !label || !subtext) return;
+            if (!dot || !label || !subtext) return;
 
-    if (statusState === 'RUNNING') {
-        dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block";
-        label.innerText = "RUNNING";
-        label.className = "font-bold text-[11px] tracking-wide text-emerald-400";
-        subtext.innerText = "Executing Strategy";
+            if (statusState === 'RUNNING') {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block";
+                label.innerText = "RUNNING";
+                label.className = "font-bold text-[11px] tracking-wide text-emerald-400";
+                subtext.innerText = "Executing Strategy";
 
-        // DISABLE TOMBOL KETIKA RUNNING
-        if (btnRunBot) {
-            btnRunBot.disabled = true;
-            btnRunBot.className = "py-2.5 bg-slate-300 text-slate-500 font-bold rounded text-xs cursor-not-allowed shadow-sm transition";
+                if (btnRunBot) {
+                    btnRunBot.disabled = true;
+                    btnRunBot.className = "py-2.5 bg-slate-300 text-slate-500 font-bold rounded text-xs cursor-not-allowed shadow-sm transition";
+                }
+
+                setStrategyControlsLocked(true);
+            } else if (statusState === 'PAUSED') {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 inline-block";
+                label.innerText = "PAUSED";
+                label.className = "font-bold text-[11px] tracking-wide text-amber-400";
+                subtext.innerText = "Waiting Next";
+
+                if (btnRunBot) {
+                    btnRunBot.disabled = true;
+                    btnRunBot.className = "py-2.5 bg-slate-300 text-slate-500 font-bold rounded text-xs cursor-not-allowed shadow-sm transition";
+                }
+
+                setStrategyControlsLocked(true);
+            } else {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 inline-block";
+                label.innerText = "STOPPED";
+                label.className = "font-bold text-[11px] tracking-wide text-rose-400";
+                subtext.innerText = "Idle";
+
+                if (btnRunBot) {
+                    btnRunBot.disabled = false;
+                    btnRunBot.className = "py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm transition";
+                }
+
+                setStrategyControlsLocked(false);
+            }
         }
 
-        setStrategyControlsLocked(true);
-    } else if (statusState === 'PAUSED') {
-        dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 inline-block";
-        label.innerText = "PAUSED";
-        label.className = "font-bold text-[11px] tracking-wide text-amber-400";
-        subtext.innerText = "Waiting Next";
-
-        if (btnRunBot) {
-            btnRunBot.disabled = true;
-            btnRunBot.className = "py-2.5 bg-slate-300 text-slate-500 font-bold rounded text-xs cursor-not-allowed shadow-sm transition";
-        }
-
-        setStrategyControlsLocked(true);
-    } else {
-        dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 inline-block";
-        label.innerText = "STOPPED";
-        label.className = "font-bold text-[11px] tracking-wide text-rose-400";
-        subtext.innerText = "Idle";
-
-        // ENABLE KEMBALI TOMBOL KETIKA STOPPED
-        if (btnRunBot) {
-            btnRunBot.disabled = false;
-            btnRunBot.className = "py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm transition";
-        }
-
-        setStrategyControlsLocked(false);
-    }
-}
         function setStrategyControlsLocked(isLocked) {
             const btnAdd = document.getElementById('btn-open-modal');
             const btnDelete = document.getElementById('btn-delete-last');
@@ -756,12 +869,11 @@
         });
 
         function loginWithDerivOAuthPKCE() {
-            const clientId = document.getElementById('client_id').value.trim();
-            if (!clientId) {
-                alert('OAuth Client ID is required!');
-                return;
-            }
+            const clientId = DEFAULT_APP_ID;
             localStorage.setItem('deriv_client_id', clientId);
+
+            // Show UI Connecting Status State
+            showLoginConnectingStatus("Connecting to OAuth Gateway...", "Establishing secure handshake with Deriv...");
 
             const array = crypto.getRandomValues(new Uint8Array(64));
             const codeVerifier = Array.from(array)
@@ -793,7 +905,12 @@
                     code_challenge_method: 'S256'
                 });
 
-                window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
+                setTimeout(() => {
+                    showLoginConnectingStatus("Login Successful!", "Redirecting to DXBot Engine...", true);
+                    setTimeout(() => {
+                        window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
+                    }, 800);
+                }, 600);
             });
         }
 
@@ -819,20 +936,17 @@
             }
 
             accessToken = localStorage.getItem('deriv_access_token');
-            const savedClientId = localStorage.getItem('deriv_client_id') || "34M4TGKofeTRkLOlcJ9zO";
-            if (document.getElementById('client_id')) document.getElementById('client_id').value = savedClientId;
-
             initPublicWebSocket();
 
             if (accessToken) {
+                document.getElementById('landing-view').classList.add('hidden');
                 document.getElementById('login-view').classList.add('hidden');
                 document.getElementById('dashboard-view').classList.remove('hidden');
                 renderStrategyTable(defaultStrategyData);
                 renderContractTable();
                 await fetchAccountsAndSetup(accessToken);
             } else {
-                document.getElementById('login-view').classList.remove('hidden');
-                document.getElementById('dashboard-view').classList.add('hidden');
+                goToLandingView();
             }
         };
 
@@ -1114,54 +1228,44 @@
                     if (scrollContainer) scrollContainer.scrollTop = scrollContainer.scrollHeight;
 
                     if (isSold === 1 && !processedContractIds.has(cId)) {
-    processedContractIds.add(cId);
-    const profitVal = parseFloat(poc.profit || 0);
-    
-    // Akumulasi Profit/Loss kumulasi dari seluruh log trade
-    totalSessionProfit += profitVal;
+                        processedContractIds.add(cId);
+                        const profitVal = parseFloat(poc.profit || 0);
+                        totalSessionProfit += profitVal;
 
-    if (poc.status === 'won') {
-        winCount++;
-        currentStrategyLevelIndex = 0; // Reset ke Level 1 jika WIN
-    } else if (poc.status === 'lost') {
-        lossCount++;
-        if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) {
-            currentStrategyLevelIndex++; // Naik ke level berikutnya jika LOSS
-        } else {
-            logMsg(`[MAX LEVEL REACHED] Strategy reached highest level (${defaultStrategyData.length}). Returning to Level 1.`, 'ERR');
-            currentStrategyLevelIndex = 0;
-        }
-    }
+                        if (poc.status === 'won') {
+                            winCount++;
+                            currentStrategyLevelIndex = 0;
+                            totalAccumulatedAmount = 0; 
+                        } else if (poc.status === 'lost') {
+                            lossCount++;
+                            if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) {
+                                currentStrategyLevelIndex++;
+                            } else {
+                                logMsg(`[MAX LEVEL REACHED] Strategy reached highest level (${defaultStrategyData.length}). Returning to Level 1.`, 'ERR');
+                                currentStrategyLevelIndex = 0;
+                            }
+                        }
 
-    // Perbarui footer tabel log (Wins, Losses, Win Rate, Total P/L)
-    renderSummaryFooters();
-    logMsg(`Contract ${cId} Finished: ${poc.status.toUpperCase()} | Profit: $${profitVal.toFixed(2)} | Net Session P/L: $${totalSessionProfit.toFixed(2)}`, 'INFO');
+                        renderSummaryFooters();
+                        logMsg(`Contract ${cId} Finished: ${poc.status.toUpperCase()} | Profit: $${profitVal.toFixed(2)} | Session Total: $${totalSessionProfit.toFixed(2)}`, 'INFO');
 
-    // Ambil batas Target Profit dan Stop Loss dari input di UI
-    const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
-    // Ambil nilai Stop Loss dari input (diambil nilainya secara positif, misal: 4.00)
-const stopLossLimit = Math.abs(parseFloat(document.getElementById('input-stop-loss').value) || 2.00);
+                        const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
+                        const stopLossLimit = Math.abs(parseFloat(document.getElementById('input-stop-loss').value) || 2.00);
 
-// --- LOGIKA PENGECEKAN STOP TRADE ---
-
-if (totalSessionProfit >= targetProfitLimit) {
-    isBotRunning = false;
-    updateBotStatusUi('STOPPED');
-    alert(`🎉 TARGET PROFIT REACHED! Session Profit: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
-    logMsg(`[STOP TRADE] Target profit reached ($${totalSessionProfit.toFixed(2)})`, 'ERR');
-
-// PERBAIKAN DI SINI:
-// Bot berhenti jika totalSessionProfit berupa minus (rugi) dan nilai mutlaknya >= stopLossLimit
-} else if (totalSessionProfit <= -stopLossLimit) {
-    isBotRunning = false;
-    updateBotStatusUi('STOPPED');
-    alert(`⚠️ STOP LOSS REACHED! Total Net Loss: $${Math.abs(totalSessionProfit).toFixed(2)} (Limit: $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
-    logMsg(`[STOP TRADE] Stop loss reached based on net session loss ($${totalSessionProfit.toFixed(2)})`, 'ERR');
-
-} else if (isBotRunning) {
-    setTimeout(() => executeNextStrategyStep(), 1500);
-}
-}
+                        if (totalSessionProfit >= targetProfitLimit) {
+                            isBotRunning = false;
+                            updateBotStatusUi('STOPPED');
+                            alert(`🎉 TARGET PROFIT REACHED! Session Profit: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
+                            logMsg(`[STOP TRADE] Target profit reached ($${totalSessionProfit.toFixed(2)})`, 'ERR');
+                        } else if (totalSessionProfit <= -stopLossLimit) {
+                            isBotRunning = false;
+                            updateBotStatusUi('STOPPED');
+                            alert(`⚠️ STOP LOSS REACHED! Total Net Loss: $${Math.abs(totalSessionProfit).toFixed(2)} (Limit: $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
+                            logMsg(`[STOP TRADE] Stop loss reached based on net session loss ($${totalSessionProfit.toFixed(2)})`, 'ERR');
+                        } else if (isBotRunning) {
+                            setTimeout(() => executeNextStrategyStep(), 1500);
+                        }
+                    }
                 }
 
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
