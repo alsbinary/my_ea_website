@@ -35,13 +35,7 @@
             color: #ffffff !important;
             border-color: #0f172a !important;
         }
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 h-screen flex flex-col font-sans text-xs overflow-hidden">
@@ -259,7 +253,7 @@
             </main>
 
             <!-- RIGHT PANEL -->
-            <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs shrink-0 overflow-y-auto">
+            <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs shrink-0 overflow-y-auto h-full">
                 
                 <!-- CONNECTION STATUS & GMT CLOCK -->
                 <div class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg flex justify-between items-center text-[11px] text-slate-600 shadow-sm shrink-0">
@@ -286,39 +280,19 @@
                     </div>
                 </div>
 
-                <!-- TRADING RUNNING PANEL (NO SCROLLBAR) -->
-                <div id="panel-portfolio" class="space-y-2 flex flex-col flex-1 overflow-hidden">
-                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase rounded flex justify-between items-center shrink-0 h-9">
-                        <span>TRADING RUNNING</span>
-                        <span id="active-contract-id-badge" class="text-[9px] bg-teal-800 text-teal-100 px-1.5 py-0.5 rounded font-mono hidden">#---</span>
-                    </div>
+                <!-- TRADING RUNNING PANEL (DENGAN SCROLL) -->
+<div id="panel-portfolio" class="space-y-2 flex flex-col">
+    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase rounded flex justify-between items-center shrink-0 h-9">
+        <span>TRADING RUNNING</span>
+        <span id="active-contract-id-badge" class="text-[9px] bg-teal-800 text-teal-100 px-1.5 py-0.5 rounded font-mono hidden">#---</span>
+    </div>
 
-                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-hidden text-xs flex-1 no-scrollbar">
-                        <table class="w-full border-collapse table-fixed">
-                            <thead>
-                                <tr>
-                                    <th class="w-36"></th>
-                                    <th class="w-auto"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="portfolio-table-body">
-                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Level</td><td id="pf-level" class="p-1.5 font-bold text-slate-800 truncate">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Market</td><td id="pf-market" class="p-1.5 text-slate-700 truncate">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Contract Type</td><td id="pf-contract" class="p-1.5 text-slate-700 truncate">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Start Time</td><td id="pf-starttime" class="p-1.5 font-mono text-slate-600 truncate">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">End Time</td><td id="pf-endtime" class="p-1.5 font-mono text-slate-600 truncate">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Remaining Time</td><td id="pf-remain" class="p-1.5 font-mono text-amber-600 font-bold truncate">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Entry Spot</td><td id="pf-entry" class="p-1.5 font-mono text-slate-700 truncate">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Target</td><td id="pf-target" class="p-1.5 text-slate-700 truncate">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Barrier</td><td id="pf-barrier" class="p-1.5 text-slate-700 truncate">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Current Spot</td><td id="pf-spot" class="p-1.5 font-mono text-cyan-600 font-bold truncate">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Potential Payout</td><td id="pf-payout" class="p-1.5 text-emerald-600 font-bold truncate">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Purchase Price</td><td id="pf-purchase" class="p-1.5 text-slate-700 truncate">-</td></tr>
-                                <tr><td class="p-1.5 font-bold text-slate-800 bg-slate-200 border-r border-slate-200 w-36">Profit/Loss</td><td id="pf-profit" class="p-1.5 font-bold text-slate-800 truncate">-</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-y-auto max-h-[400px] text-xs">
+        <table class="w-full border-collapse table-fixed">
+            <!-- ... -->
+        </table>
+    </div>
+</div>
             </aside>
         </div>
     </div>
