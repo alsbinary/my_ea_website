@@ -556,7 +556,50 @@
 
             requestProposalUpdate();
         }
+function loginWithDerivOAuthPKCE() {
+    const clientId = DEFAULT_APP_ID || "34M4TGKofeTRkLOlcJ9zO";
+    localStorage.setItem('deriv_client_id', clientId);
 
+    showLoginConnectingStatus("Connecting to OAuth Gateway...", "Establishing secure handshake with Deriv...");
+
+    const array = crypto.getRandomValues(new Uint8Array(64));
+    const codeVerifier = Array.from(array)
+        .map(v => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[v % 66])
+        .join('');
+
+    const encoder = new TextEncoder();
+    const data = encoder.encode(codeVerifier);
+
+    crypto.subtle.digest('SHA-256', data).then(digest => {
+        const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, '');
+
+        const state = crypto.randomUUID();
+        localStorage.setItem('pkce_code_verifier', codeVerifier);
+        localStorage.setItem('oauth_state', state);
+
+        const redirectUri = "https://tradelib.net/trade-callback"; 
+
+        const params = new URLSearchParams({
+            client_id: clientId,
+            redirect_uri: redirectUri,
+            response_type: 'code',
+            scope: 'trade',
+            state: state,
+            code_challenge: codeChallenge,
+            code_challenge_method: 'S256'
+        });
+
+        setTimeout(() => {
+            showLoginConnectingStatus("Login Successful!", "Redirecting to DXBot Engine...", true);
+            setTimeout(() => {
+                window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
+            }, 800);
+        }, 600);
+    });
+}
         function connectAuthenticatedWebSocket(url, accountId) {
             if (ws) ws.close();
             ws = new WebSocket(url);
