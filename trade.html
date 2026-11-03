@@ -44,7 +44,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans text-xs">
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col font-sans text-xs overflow-hidden">
 
     <!-- VIEW 1: LOGIN PAGE -->
     <div id="login-view" class="flex-1 flex items-center justify-center p-4 bg-slate-950 text-slate-100">
@@ -65,10 +65,10 @@
     </div>
 
     <!-- VIEW 2: MAIN DASHBOARD -->
-    <div id="dashboard-view" class="flex-1 flex flex-col hidden relative">
+    <div id="dashboard-view" class="flex-1 flex flex-col hidden relative overflow-hidden h-full">
         
         <!-- HEADER -->
-        <header class="bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center shadow-sm">
+        <header class="bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center shadow-sm shrink-0">
             <div class="flex items-center space-x-3">
                 <div class="bg-teal-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">ALS</div>
                 <span class="text-xs md:text-sm font-bold text-slate-800 tracking-wide">ALS Pro Automated Strategy Engine</span>
@@ -109,14 +109,14 @@
         <div class="flex-1 flex overflow-hidden">
             
             <!-- LEFT SIDEBAR -->
-            <aside class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 space-y-6 text-[11px] text-slate-500">
+            <aside class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 space-y-6 text-[11px] text-slate-500 shrink-0">
                 <a href="https://t.deriv.link?t=REXB5ZQKPMGE" target="_blank" class="flex flex-col items-center cursor-pointer hover:text-teal-600">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     Home
                 </a>
                 <div onclick="openUsageModal()" class="flex flex-col items-center cursor-pointer hover:text-teal-600">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Panduan
+                    Guide
                 </div>
                 <div class="flex-1"></div>
                 <div onclick="handleLogout()" class="flex flex-col items-center cursor-pointer hover:text-rose-600 pb-2">
@@ -125,18 +125,18 @@
                 </div>
             </aside>
 
-            <!-- CENTER AREA -->
-            <main class="flex-1 bg-slate-50 p-3 flex flex-col space-y-3 overflow-y-auto text-xs">
+            <!-- CENTER AREA (H-FULL PROPORSIONAL 40% / 60%) -->
+            <main class="flex-1 bg-slate-50 p-3 flex flex-col space-y-3 overflow-hidden text-xs h-full">
                 
-                <!-- STRATEGY MANAGEMENT PANEL -->
-                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col">
-                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase flex justify-between items-center">
+                <!-- STRATEGY MANAGEMENT PANEL (TINGGI 40%) -->
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col h-[40%] overflow-hidden">
+                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase flex justify-between items-center shrink-0">
                         <span>STRATEGY MANAGEMENT PANEL</span>
                     </div>
 
-                    <div class="overflow-x-auto max-h-36">
+                    <div class="overflow-x-auto flex-1 bg-white">
                         <table class="w-full text-left border-collapse strategy-table text-xs">
-                            <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b border-slate-300 shadow-sm text-[11px]">
+                            <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b border-slate-300 shadow-sm text-[11px] z-10">
                                 <tr>
                                     <th class="p-1.5 border-r border-slate-300 text-center w-10">Level</th>
                                     <th class="p-1.5 border-r border-slate-300 w-28">Contract Type</th>
@@ -156,7 +156,7 @@
                     </div>
 
                     <!-- STRATEGY CONTROLS & TARGET PROFIT / STOP LOSS -->
-                    <div class="p-2 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="p-2 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
                         <div class="flex items-center space-x-1.5 flex-wrap">
                             <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+)</button>
                             <button type="button" id="btn-delete-last" onclick="deleteLastRow()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Delete Last</button>
@@ -183,9 +183,9 @@
                     </div>
                 </div>
 
-                <!-- CONTRACT TABLE (LOG TRADE) -->
-                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col min-h-[180px]">
-                    <div class="bg-slate-200 text-slate-800 font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase border-b border-slate-300 flex justify-between items-center">
+                <!-- CONTRACT TABLE (LOG TRADE) (TINGGI 60%) -->
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col h-[60%] overflow-hidden">
+                    <div class="bg-slate-200 text-slate-800 font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase border-b border-slate-300 flex justify-between items-center shrink-0">
                         <div class="flex items-center space-x-3">
                             <span>CONTRACT TABLE (LOG TRADE)</span>
                             <span class="text-[10px] text-slate-500 italic font-normal">(Double-click any row to view complete details)</span>
@@ -194,7 +194,7 @@
                         <span id="log-count-badge" class="bg-slate-300 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Contracts</span>
                     </div>
 
-                    <div id="contract-table-scroll-container" class="flex-1 overflow-x-auto overflow-y-auto min-h-[120px] max-h-56 bg-slate-50">
+                    <div id="contract-table-scroll-container" class="flex-1 overflow-x-auto overflow-y-auto bg-slate-50">
                         <table class="w-full text-left border-collapse text-xs bg-white">
                             <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300 text-[11px] sticky top-0 z-10 shadow-sm">
                                 <tr>
@@ -220,7 +220,7 @@
                     </div>
 
                     <!-- SUMMARY FOOTERS -->
-                    <div class="bg-slate-100 border-t border-slate-300 p-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
+                    <div class="bg-slate-100 border-t border-slate-300 p-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold shrink-0">
                         <div class="flex items-center space-x-4">
                             <div class="flex items-center space-x-1">
                                 <span class="text-slate-500">Wins:</span>
@@ -259,10 +259,10 @@
             </main>
 
             <!-- RIGHT PANEL -->
-            <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs">
+            <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs shrink-0 overflow-y-auto">
                 
                 <!-- CONNECTION STATUS & GMT CLOCK -->
-                <div class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg flex justify-between items-center text-[11px] text-slate-600 shadow-sm">
+                <div class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg flex justify-between items-center text-[11px] text-slate-600 shadow-sm shrink-0">
                     <span id="conn-status-indicator" class="flex items-center font-medium">
                         <span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Waiting for Account
                     </span>
@@ -270,7 +270,7 @@
                 </div>
 
                 <!-- BOT STATUS -->
-                <div class="bg-slate-900 text-white p-2.5 rounded-lg shadow-sm flex items-center justify-between">
+                <div class="bg-slate-900 text-white p-2.5 rounded-lg shadow-sm flex items-center justify-between shrink-0">
                     <div class="flex items-center space-x-2">
                         <span id="bot-status-dot" class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
                         <span class="font-bold text-[11px] tracking-wide uppercase" id="bot-status-label">STOPPED</span>
@@ -279,7 +279,7 @@
                 </div>
 
                 <!-- CONTROL BUTTONS -->
-                <div class="space-y-1.5 pb-2 border-b border-slate-200">
+                <div class="space-y-1.5 pb-2 border-b border-slate-200 shrink-0">
                     <div class="grid grid-cols-1 gap-1.5">
                         <button type="button" onclick="botAction('run_bot')" class="py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm">RUN BOT</button>
                         <button type="button" onclick="botAction('stop_trade')" class="py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow-sm text-xs cursor-pointer">STOP TRADE</button>
@@ -287,13 +287,13 @@
                 </div>
 
                 <!-- TRADING RUNNING PANEL -->
-                <div id="panel-portfolio" class="space-y-2 flex flex-col">
+                <div id="panel-portfolio" class="space-y-2 flex flex-col flex-1 overflow-hidden">
                     <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase rounded flex justify-between items-center shrink-0 h-9">
                         <span>TRADING RUNNING</span>
                         <span id="active-contract-id-badge" class="text-[9px] bg-teal-800 text-teal-100 px-1.5 py-0.5 rounded font-mono hidden">#---</span>
                     </div>
 
-                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-hidden text-xs flex-1 no-scrollbar">
+                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-y-auto text-xs flex-1 no-scrollbar">
                         <table class="w-full border-collapse table-fixed">
                             <thead>
                                 <tr>
@@ -323,22 +323,22 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: CARA PENGGUNAAN (PANDUAN) -->
+    <!-- MODAL POPUP: CARA PENGGUNAAN (PANDUAN - ENGLISH) -->
     <div id="usage-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3">
         <div class="bg-white border border-slate-200 rounded-xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col text-xs">
             <div class="bg-teal-600 text-white px-4 py-2.5 flex justify-between items-center">
-                <h3 class="font-bold text-xs tracking-wide">Cara Penggunaan Bot ALS Pro</h3>
+                <h3 class="font-bold text-xs tracking-wide">User Guide & Instructions</h3>
                 <button type="button" onclick="closeUsageModal()" class="text-white hover:text-slate-200 font-bold text-base cursor-pointer">&times;</button>
             </div>
             <div class="p-4 space-y-3 bg-slate-50 text-slate-700 leading-relaxed max-h-[70vh] overflow-y-auto">
-                <p><strong>1. Login Akun:</strong> Masukkan Client ID Deriv Anda lalu klik login untuk menghubungkan OAuth PKCE.</p>
-                <p><strong>2. Pilih Akun:</strong> Pilih akun Demo atau Real melalui tombol pilihan akun di kanan atas header.</p>
-                <p><strong>3. Manajemen Strategi:</strong> Tambah, hapus, atau atur level trading strategi Anda pada tabel panel strategi.</p>
-                <p><strong>4. Target & Stop Loss:</strong> Tentukan Target Profit dan Stop Loss (Stop Loss otomatis terakumulasi dari total amount strategi).</p>
-                <p><strong>5. Jalankan Bot:</strong> Klik tombol <strong>RUN BOT</strong> untuk mulai trading otomatis sesuai konfigurasi.</p>
+                <p><strong>1. Account Sign In:</strong> Enter your Deriv OAuth Client ID and log in to authenticate via OAuth PKCE.</p>
+                <p><strong>2. Select Trading Account:</strong> Choose your preferred Demo or Real account from the account dropdown menu located on the top right header.</p>
+                <p><strong>3. Strategy Management:</strong> Configure, add (+), delete, or clear strategy levels on the Strategy Management Panel according to your trading preferences.</p>
+                <p><strong>4. Target Profit & Stop Loss:</strong> Set your desired Target Profit and Stop Loss limits (Stop Loss automatically accumulates from all strategy level amounts by default).</p>
+                <p><strong>5. Execute Trading Bot:</strong> Click the <strong>RUN BOT</strong> button to initiate automated execution based on your strategy sequence.</p>
             </div>
             <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-end">
-                <button type="button" onclick="closeUsageModal()" class="px-4 py-1.5 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Mengerti</button>
+                <button type="button" onclick="closeUsageModal()" class="px-4 py-1.5 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Understood</button>
             </div>
         </div>
     </div>
