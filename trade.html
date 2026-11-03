@@ -1114,44 +1114,54 @@
                     if (scrollContainer) scrollContainer.scrollTop = scrollContainer.scrollHeight;
 
                     if (isSold === 1 && !processedContractIds.has(cId)) {
-                        processedContractIds.add(cId);
-                        const profitVal = parseFloat(poc.profit || 0);
-                        totalSessionProfit += profitVal;
+    processedContractIds.add(cId);
+    const profitVal = parseFloat(poc.profit || 0);
+    
+    // Akumulasi Profit/Loss kumulasi dari seluruh log trade
+    totalSessionProfit += profitVal;
 
-                        if (poc.status === 'won') {
-                            winCount++;
-                            currentStrategyLevelIndex = 0;
-                            totalAccumulatedAmount = 0; 
-                        } else if (poc.status === 'lost') {
-                            lossCount++;
-                            if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) {
-                                currentStrategyLevelIndex++;
-                            } else {
-                                logMsg(`[MAX LEVEL REACHED] Strategy reached highest level (${defaultStrategyData.length}). Returning to Level 1.`, 'ERR');
-                                currentStrategyLevelIndex = 0;
-                            }
-                        }
+    if (poc.status === 'won') {
+        winCount++;
+        currentStrategyLevelIndex = 0; // Reset ke Level 1 jika WIN
+    } else if (poc.status === 'lost') {
+        lossCount++;
+        if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) {
+            currentStrategyLevelIndex++; // Naik ke level berikutnya jika LOSS
+        } else {
+            logMsg(`[MAX LEVEL REACHED] Strategy reached highest level (${defaultStrategyData.length}). Returning to Level 1.`, 'ERR');
+            currentStrategyLevelIndex = 0;
+        }
+    }
 
-                        renderSummaryFooters();
-                        logMsg(`Contract ${cId} Finished: ${poc.status.toUpperCase()} | Profit: $${profitVal.toFixed(2)} | Session Total: $${totalSessionProfit.toFixed(2)} | Accumulated Amount: $${totalAccumulatedAmount.toFixed(2)}`, 'INFO');
+    // Perbarui footer tabel log (Wins, Losses, Win Rate, Total P/L)
+    renderSummaryFooters();
+    logMsg(`Contract ${cId} Finished: ${poc.status.toUpperCase()} | Profit: $${profitVal.toFixed(2)} | Net Session P/L: $${totalSessionProfit.toFixed(2)}`, 'INFO');
 
-                        const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
-                        const stopLossLimit = parseFloat(document.getElementById('input-stop-loss').value) || 10.00;
+    // Ambil batas Target Profit dan Stop Loss dari input di UI
+    const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
+    const stopLossLimit = parseFloat(document.getElementById('input-stop-loss').value) || 2.00;
 
-                        if (totalSessionProfit >= targetProfitLimit) {
-                            isBotRunning = false;
-                            updateBotStatusUi('STOPPED');
-                            alert(`🎉 TARGET PROFIT REACHED! Session Profit: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
-                            logMsg(`[STOP TRADE] Target profit reached ($${totalSessionProfit.toFixed(2)})`, 'ERR');
-                        } else if (totalAccumulatedAmount >= Math.abs(stopLossLimit)) {
-                            isBotRunning = false;
-                            updateBotStatusUi('STOPPED');
-                            alert(`⚠️ STOP LOSS REACHED! Accumulated Amount: $${totalAccumulatedAmount.toFixed(2)} (Limit: $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
-                            logMsg(`[STOP TRADE] Stop loss reached due to accumulated amount ($${totalAccumulatedAmount.toFixed(2)})`, 'ERR');
-                        } else if (isBotRunning) {
-                            setTimeout(() => executeNextStrategyStep(), 1500);
-                        }
-                    }
+    // --- LOGIKA PENGECEKAN STOP TRADE ---
+    
+    // 1. Cek Target Profit (Jika akumulasi profit >= Target Profit)
+    if (totalSessionProfit >= targetProfitLimit) {
+        isBotRunning = false;
+        updateBotStatusUi('STOPPED');
+        alert(`🎉 TARGET PROFIT REACHED! Total Net Profit: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
+        logMsg(`[STOP TRADE] Target profit reached ($${totalSessionProfit.toFixed(2)})`, 'ERR');
+
+    // 2. Cek Stop Loss (HANYA BERHENTI jika total akumulasi rugi bersih <= -Stop Loss)
+    } else if (totalSessionProfit <= -Math.abs(stopLossLimit)) {
+        isBotRunning = false;
+        updateBotStatusUi('STOPPED');
+        alert(`⚠️ STOP LOSS REACHED! Total Net Loss: $${Math.abs(totalSessionProfit).toFixed(2)} (Limit: $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
+        logMsg(`[STOP TRADE] Stop loss reached based on net session loss ($${totalSessionProfit.toFixed(2)})`, 'ERR');
+
+    // 3. Jika belum menyentuh Stop Loss / Target Profit, lanjutkan ke trade berikutnya
+    } else if (isBotRunning) {
+        setTimeout(() => executeNextStrategyStep(), 1500);
+    }
+}
                 }
 
                 if (data.msg_type === 'contracts_for' && data.contracts_for) {
