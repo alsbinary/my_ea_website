@@ -104,7 +104,7 @@
             <!-- SIDEBAR KIRI -->
             <aside class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 space-y-6 text-[11px] text-slate-500">
                 <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     Home
                 </div>
                 <div class="flex flex-col items-center cursor-pointer hover:text-teal-600">
@@ -152,19 +152,29 @@
                         </table>
                     </div>
 
-                    <!-- TOMBOL KONTROL TABEL STRATEGI (IMPORT RATA KANAN) -->
+                    <!-- BARIS FOOTER KONTROL STRATEGI & TARGET PROFIT / STOP LOSS DI POJOK KANAN -->
                     <div class="p-2 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <div class="flex items-center space-x-2">
-                            <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+) [Menunggu Akun]</button>
+                        <div class="flex items-center space-x-1.5 flex-wrap">
+                            <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+)</button>
                             <button type="button" onclick="deleteLastRow()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Delete Last</button>
                             <button type="button" onclick="clearStrategy()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Clear</button>
-                        </div>
-                        <div class="flex items-center space-x-2 ml-auto">
-                            <button type="button" onclick="exportStrategyJson()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-semibold shadow-sm cursor-pointer text-[11px]">Export Strategy</button>
-                            <label class="px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded font-semibold shadow-sm cursor-pointer text-[11px] inline-block">
+                            <button type="button" onclick="exportStrategyJson()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px]">Export Strategy</button>
+                            <label class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px] inline-block">
                                 Import Strategy
                                 <input type="file" id="import-file-input" accept=".json" onchange="importStrategyJson(event)" class="hidden">
                             </label>
+                        </div>
+
+                        <!-- TARGET PROFIT & STOP LOSS DIPINDAHKAN KE POJOK KANAN TABEL STRATEGI -->
+                        <div class="flex items-center space-x-2 ml-auto">
+                            <div class="flex items-center space-x-1">
+                                <label class="font-bold text-emerald-700 text-[10px] uppercase">Target Profit ($):</label>
+                                <input type="number" step="1.00" id="input-target-profit" value="10.00" class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 font-bold text-emerald-700 text-xs text-center">
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <label class="font-bold text-rose-700 text-[10px] uppercase">Stop Loss ($):</label>
+                                <input type="number" step="1.00" id="input-stop-loss" value="10.00" class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 font-bold text-rose-700 text-xs text-center">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -230,7 +240,7 @@
                         </div>
                         <button type="button" onclick="clearDashboardConsole()" class="text-slate-400 hover:text-slate-600 underline text-[10px] cursor-pointer">Clear Log</button>
                     </div>
-                    <div id="main-log-console" class="bg-slate-950 text-slate-200 p-2.5 rounded-lg h-36 overflow-y-auto font-mono text-[11px] space-y-1 border border-slate-800 leading-tight">
+                    <div id="main-log-console" class="bg-slate-950 text-slate-200 p-2.5 rounded-lg h-44 overflow-y-auto font-mono text-[11px] space-y-1 border border-slate-800 leading-tight">
                         <div class="text-slate-500">[System] Menunggu transmisi data dan respon API Deriv...</div>
                     </div>
                 </div>
@@ -248,27 +258,13 @@
                     <span class="font-mono font-semibold text-slate-700"><span id="gmt-time">-</span></span>
                 </div>
 
-                <!-- STATUS BOT (RUNNING / STOPPED) DI PANEL KANAN -->
+                <!-- STATUS BOT (RUNNING / STOPPED) -->
                 <div class="bg-slate-900 text-white p-2.5 rounded-lg shadow-sm flex items-center justify-between">
                     <div class="flex items-center space-x-2">
                         <span id="bot-status-dot" class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
                         <span class="font-bold text-[11px] tracking-wide uppercase" id="bot-status-label">STOPPED</span>
                     </div>
                     <span id="bot-status-subtext" class="text-[10px] text-slate-400 font-mono">Idle</span>
-                </div>
-
-                <!-- TARGET PROFIT & STOP LOSS INPUTS -->
-                <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-lg space-y-2 shadow-sm">
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block font-semibold text-emerald-700 text-[10px] uppercase mb-1">Target Profit ($)</label>
-                            <input type="number" step="1.00" id="input-target-profit" value="10.00" class="w-full bg-white border border-slate-300 rounded px-2 py-1 font-bold text-emerald-700 text-xs">
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-rose-700 text-[10px] uppercase mb-1">Stop Loss ($)</label>
-                            <input type="number" step="1.00" id="input-stop-loss" value="10.00" class="w-full bg-white border border-slate-300 rounded px-2 py-1 font-bold text-rose-700 text-xs">
-                        </div>
-                    </div>
                 </div>
 
                 <!-- TOMBOL KONTROL AKSI -->
@@ -282,7 +278,7 @@
                     <button type="button" onclick="botAction('stop_trade')" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow-sm text-xs cursor-pointer">STOP TRADE</button>
                 </div>
 
-                <!-- PANEL TRADING RUNNING -->
+                <!-- PANEL TRADING RUNNING (DEFAULT KOSONG TANPA DATA SEBELUM ADA KONTRAK AKTIF) -->
                 <div id="panel-portfolio" class="space-y-2 flex flex-col flex-1">
                     <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase rounded">
                         TRADING RUNNING
@@ -290,20 +286,20 @@
 
                     <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-hidden text-xs flex-1">
                         <table class="w-full border-collapse">
-                            <tbody>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-2 font-bold text-slate-800">Level 1</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">Volatility 100 Index</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">Touch / No Touch</td></tr>
+                            <tbody id="portfolio-table-body">
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-2 font-bold text-slate-800">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start time</td><td id="pf-starttime" class="p-2 font-mono text-slate-600">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-2 font-mono text-slate-600">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">0s</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Entry spot</td><td id="pf-entry" class="p-2 font-mono text-slate-700">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">10.00</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">+0.676</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-emerald-600 font-bold">$3.35</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">$2.00</td></tr>
-                                <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">0.00</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-emerald-600 font-bold">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">-</td></tr>
+                                <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">-</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -437,13 +433,15 @@
         let currentActiveAccountId = "";
         let lastWsUrl = "";
 
-        // VARIABEL MANAJEMEN SESI TRADING & LOG KONTRAK
+        // VARIABEL SESI RUNNING & LOG
         let isBotRunning = false;
+        let currentStrategyLevelIndex = 0; // Menunjuk baris strategi yang berjalan (0 = Level 1)
+        let activeContractId = null;
         let totalSessionProfit = 0;
         let winCount = 0;
         let lossCount = 0;
-        let contractLogs = []; // Menampung objek log setiap transaksi
-        let processedContractIds = new Set(); // Mencegah duplikasi hitung hasil final
+        let contractLogs = [];
+        let processedContractIds = new Set();
 
         let defaultStrategyData = [
             { level: 1, contract_type: "Touch / No Touch", market: "Derived", submarket: "Volatility 100 Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 1, duration_unit: "ticks", amount: 2.00, payout: 3.35 }
@@ -515,6 +513,43 @@
                 label.className = "font-bold text-[11px] tracking-wide text-rose-400";
                 subtext.innerText = "Idle";
             }
+        }
+
+        function resetRightPanelPortfolio() {
+            document.getElementById('pf-level').innerText = "-";
+            document.getElementById('pf-market').innerText = "-";
+            document.getElementById('pf-contract').innerText = "-";
+            document.getElementById('pf-starttime').innerText = "-";
+            document.getElementById('pf-endtime').innerText = "-";
+            document.getElementById('pf-remain').innerText = "-";
+            document.getElementById('pf-entry').innerText = "-";
+            document.getElementById('pf-target').innerText = "-";
+            document.getElementById('pf-barrier').innerText = "-";
+            document.getElementById('pf-spot').innerText = "-";
+            document.getElementById('pf-payout').innerText = "-";
+            document.getElementById('pf-purchase').innerText = "-";
+            document.getElementById('pf-profit').innerText = "-";
+        }
+
+        function updateRightPanelPortfolio(pocData, levelNum) {
+            if (!pocData) return;
+            document.getElementById('pf-level').innerText = `Level ${levelNum}`;
+            document.getElementById('pf-market').innerText = pocData.display_name || "Derived Market";
+            document.getElementById('pf-contract').innerText = pocData.contract_type || "-";
+            document.getElementById('pf-starttime').innerText = pocData.date_expiry ? new Date(pocData.date_start * 1000).toLocaleTimeString() : "-";
+            document.getElementById('pf-endtime').innerText = pocData.date_expiry ? new Date(pocData.date_expiry * 1000).toLocaleTimeString() : "-";
+            document.getElementById('pf-remain').innerText = pocData.tick_count ? `${pocData.tick_count} ticks` : "Active";
+            document.getElementById('pf-entry').innerText = pocData.entry_spot || "-";
+            document.getElementById('pf-target').innerText = pocData.barrier || "-";
+            document.getElementById('pf-barrier').innerText = pocData.barrier || "-";
+            document.getElementById('pf-spot').innerText = pocData.current_spot || "-";
+            document.getElementById('pf-payout').innerText = `$${parseFloat(pocData.payout || 0).toFixed(2)}`;
+            document.getElementById('pf-purchase').innerText = `$${parseFloat(pocData.buy_price || 0).toFixed(2)}`;
+            
+            const prof = parseFloat(pocData.profit || 0);
+            const profEl = document.getElementById('pf-profit');
+            profEl.innerText = `${prof >= 0 ? '+' : ''}$${prof.toFixed(2)}`;
+            profEl.className = `p-2 font-bold ${prof >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
         }
 
         function logMsg(msg, type='INFO') {
@@ -621,6 +656,7 @@
             startGMTClock();
             startAutoReconnectWatcher();
             loadSavedStrategy();
+            resetRightPanelPortfolio();
             
             const urlParams = new URLSearchParams(window.location.search);
             let code = urlParams.get('code');
@@ -684,13 +720,13 @@
             publicWs.onopen = () => {
                 logMsg("Public WebSocket Terhubung. Meminta active symbols...");
                 const req = { active_symbols: "brief", req_id: 1 };
-                logMsg(`SEND -> ${JSON.stringify(req)}`, 'SEND');
+                logMsg(JSON.stringify(req), 'SEND');
                 publicWs.send(JSON.stringify(req));
             };
 
             publicWs.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
-                logMsg(`RECV <- ${JSON.stringify(data)}`, 'RECV');
+                logMsg(JSON.stringify(data), 'RECV');
 
                 if (data.msg_type === 'active_symbols' && data.active_symbols) {
                     activeSymbolsList = data.active_symbols;
@@ -806,7 +842,7 @@
                 logMsg(`WebSocket Akun ${accountId} Terhubung! Meminta langganan saldo...`);
                 
                 const balanceReq = { balance: 1, subscribe: 1, req_id: 3 };
-                logMsg(`SEND -> ${JSON.stringify(balanceReq)}`, 'SEND');
+                logMsg(JSON.stringify(balanceReq), 'SEND');
                 ws.send(JSON.stringify(balanceReq));
 
                 isAccountConnected = true;
@@ -821,7 +857,7 @@
 
             ws.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
-                logMsg(`RECV <- ${JSON.stringify(data)}`, 'RECV');
+                logMsg(JSON.stringify(data), 'RECV');
                 
                 if (data.msg_type === 'balance') {
                     const bal = parseFloat(data.balance.balance).toFixed(2);
@@ -836,11 +872,52 @@
                     }
                 }
 
+                // RESPONS PROPOSAL EXECUTION BOT (REQ_ID 105)
+                if (data.msg_type === 'proposal' && data.req_id === 105 && isBotRunning) {
+                    if (data.proposal && data.proposal.id) {
+                        const propId = data.proposal.id;
+                        const askPrice = data.proposal.ask_price;
+                        logMsg(`[BOT STRATEGI] Proposal Valid diterima: ID ${propId} | Harga: $${askPrice}. Mengirim BUY...`, 'INFO');
+                        
+                        const buyReq = {
+                            buy: propId,
+                            price: askPrice,
+                            req_id: 106
+                        };
+                        logMsg(JSON.stringify(buyReq), 'SEND');
+                        ws.send(JSON.stringify(buyReq));
+                    } else if (data.error) {
+                        logMsg(`[BOT STRATEGI] Gagal meminta proposal: ${data.error.message}`, 'ERR');
+                    }
+                }
+
+                // RESPONS BUY EXECUTION BOT (REQ_ID 106)
+                if (data.msg_type === 'buy' && data.req_id === 106 && isBotRunning) {
+                    if (data.buy && data.buy.contract_id) {
+                        activeContractId = data.buy.contract_id;
+                        logMsg(`[BOT STRATEGI] BUY Berhasil! Contract ID: ${activeContractId}. Memulai pemantauan...`, 'INFO');
+
+                        const subscribeReq = {
+                            proposal_open_contract: 1,
+                            contract_id: activeContractId,
+                            subscribe: 1,
+                            req_id: 107
+                        };
+                        logMsg(JSON.stringify(subscribeReq), 'SEND');
+                        ws.send(JSON.stringify(subscribeReq));
+                    } else if (data.error) {
+                        logMsg(`[BOT STRATEGI] Gagal melakukan BUY: ${data.error.message}`, 'ERR');
+                    }
+                }
+
                 // PEMANTAUAN KONTRAK & UPDATE LOG CONTRACT TABLE REAL-TIME
                 if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract) {
                     const poc = data.proposal_open_contract;
                     const cId = poc.contract_id;
                     const isSold = poc.is_sold; // 0 = Open, 1 = Closed/Final
+
+                    // Update Panel Kanan "TRADING RUNNING" secara dinamis ketika ada kontrak aktif
+                    updateRightPanelPortfolio(poc, currentStrategyLevelIndex + 1);
 
                     let existingLog = contractLogs.find(l => l.contract_id === cId);
                     if (!existingLog) {
@@ -848,21 +925,20 @@
                             id: contractLogs.length + 1,
                             contract_id: cId,
                             status: poc.status || 'open',
-                            level: 1,
-                            purchase_type: poc.display_name || 'Touch/No Touch',
+                            level: currentStrategyLevelIndex + 1,
+                            purchase_type: poc.display_name || 'Contract',
                             buy_price: parseFloat(poc.buy_price || 0),
                             sell_price: parseFloat(poc.sell_price || 0),
                             payout: parseFloat(poc.payout || 0),
                             profit: parseFloat(poc.profit || 0)
                         };
-                        contractLogs.unshift(existingLog); // Masukkan transaksi terbaru di paling atas
+                        contractLogs.unshift(existingLog);
                     } else {
                         existingLog.status = poc.status || existingLog.status;
                         existingLog.sell_price = parseFloat(poc.sell_price || existingLog.sell_price);
                         existingLog.profit = parseFloat(poc.profit || existingLog.profit);
                     }
 
-                    // Render ulang Contract Table
                     renderContractTable();
 
                     // Jika Kontrak Selesai (is_sold === 1) dan Belum Dihitung ke Akumulasi
@@ -873,13 +949,20 @@
 
                         if (poc.status === 'won') {
                             winCount++;
+                            currentStrategyLevelIndex = 0; // Kembali ke Level 1 jika WIN
                         } else if (poc.status === 'lost') {
                             lossCount++;
+                            // Naik ke Level berikutnya jika LOSS
+                            if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) {
+                                currentStrategyLevelIndex++;
+                            } else {
+                                logMsg(`[MAX LEVEL REACHED] Strategi telah mencapai level tertinggi (${defaultStrategyData.length}). Kembali ke Level 1.`, 'ERR');
+                                currentStrategyLevelIndex = 0;
+                            }
                         }
 
                         renderSummaryFooters();
-
-                        logMsg(`Kontrak ${cId} Final: ${poc.status.toUpperCase()} | Profit: $${profitVal.toFixed(2)} | Akumulasi: $${totalSessionProfit.toFixed(2)}`, 'INFO');
+                        logMsg(`Kontrak ${cId} Selesai: ${poc.status.toUpperCase()} | Profit: $${profitVal.toFixed(2)} | Total Sesi: $${totalSessionProfit.toFixed(2)}`, 'INFO');
 
                         // Evaluasi Target Profit & Stop Loss
                         const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
@@ -895,6 +978,9 @@
                             updateBotStatusUi('STOPPED');
                             alert(`⚠️ STOP LOSS TERCAPAI! Kerugian Sesi: $${totalSessionProfit.toFixed(2)}. Bot Dihentikan.`);
                             logMsg(`[STOP TRADE] Stop loss tercapai ($${totalSessionProfit.toFixed(2)})`, 'ERR');
+                        } else if (isBotRunning) {
+                            // Eksekusi transaksi selanjutnya jika bot masih running
+                            setTimeout(() => executeNextStrategyStep(), 1500);
                         }
                     }
                 }
@@ -1003,7 +1089,62 @@
             };
         }
 
-        // RENDER LOG CONTRACT TABLE DENGAN BADGE WIN / LOSS
+        // FUNGSI EKSEKUSI TAHAP PROPOSAL DARI TABEL STRATEGI
+        function executeNextStrategyStep() {
+            if (!isBotRunning || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+            if (defaultStrategyData.length === 0) {
+                alert("Tabel strategi kosong! Harap tambahkan konfigurasi strategi.");
+                isBotRunning = false;
+                updateBotStatusUi('STOPPED');
+                return;
+            }
+
+            const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
+            logMsg(`[BOT EXECUTION] Menjalankan Level ${currentConfig.level} | Market: ${currentConfig.submarket} | Purchase: ${currentConfig.purchase_type}`, 'INFO');
+
+            let contractTypeApi = "NOTOUCH";
+            const pType = currentConfig.purchase_type;
+            const cType = currentConfig.contract_type;
+
+            if (cType === 'Touch/No Touch') contractTypeApi = (pType === 'Touch') ? "ONETOUCH" : "NOTOUCH";
+            else if (cType === 'Rise/Fall') contractTypeApi = (pType === 'Rise') ? "CALL" : "PUT";
+            else if (cType === 'Higher/Lower') contractTypeApi = (pType === 'Higher') ? "HIGHER" : "LOWER";
+            else if (cType === 'Matches/Differs') contractTypeApi = (pType === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
+            else if (cType === 'Over/Under') contractTypeApi = (pType === 'Over') ? "DIGITOVER" : "DIGITUNDER";
+            else if (cType === 'Even/Odd') contractTypeApi = (pType === 'Even') ? "DIGITEVEN" : "DIGITODD";
+
+            let underlyingSymbol = "1HZ100V";
+            if (activeSymbolsList && activeSymbolsList.length > 0) {
+                const foundSymbol = activeSymbolsList.find(s => s.display_name === currentConfig.submarket || s.underlying_symbol_name === currentConfig.submarket);
+                if (foundSymbol) underlyingSymbol = foundSymbol.underlying_symbol || foundSymbol.symbol;
+            }
+
+            let durUnit = 't';
+            const unitLower = (currentConfig.duration_unit || 't').toLowerCase();
+            if (unitLower.startsWith('sec')) durUnit = 's';
+            else if (unitLower.startsWith('min')) durUnit = 'm';
+            else if (unitLower.startsWith('hour')) durUnit = 'h';
+
+            const proposalReq = {
+                proposal: 1,
+                amount: parseFloat(currentConfig.amount) || 2.00,
+                basis: "stake",
+                currency: "USD",
+                underlying_symbol: underlyingSymbol,
+                contract_type: contractTypeApi,
+                duration: parseInt(currentConfig.duration_amount) || 1,
+                duration_unit: durUnit,
+                req_id: 105
+            };
+
+            if (currentConfig.barrier) proposalReq.barrier = currentConfig.barrier;
+            if (currentConfig.last_digit !== undefined && currentConfig.last_digit !== "") proposalReq.barrier = currentConfig.last_digit.toString();
+
+            logMsg(JSON.stringify(proposalReq), 'SEND');
+            ws.send(JSON.stringify(proposalReq));
+        }
+
         function renderContractTable() {
             const tbody = document.getElementById('contract-table-body');
             const badge = document.getElementById('log-count-badge');
@@ -1048,7 +1189,6 @@
             });
         }
 
-        // RENDER AKUMULASI WIN/LOSS DI BAWAH CONTRACT TABLE
         function renderSummaryFooters() {
             const winEl = document.getElementById('summary-win-count');
             const lossEl = document.getElementById('summary-loss-count');
@@ -1135,7 +1275,7 @@
                 if (targetWs && targetWs.readyState === WebSocket.OPEN) {
                     setApiPendingStatus("Mengirim request contracts_for...");
                     const contractsReq = { contracts_for: symbol, req_id: 2 };
-                    logMsg(`SEND -> ${JSON.stringify(contractsReq)}`, 'SEND');
+                    logMsg(JSON.stringify(contractsReq), 'SEND');
                     targetWs.send(JSON.stringify(contractsReq));
                 }
             }
@@ -1197,7 +1337,7 @@
                     req.barrier = selectedDigit.toString();
                 }
 
-                logMsg(`SEND proposal (req_id: 4) -> underlying_symbol: ${underlyingSymbol} | contract_type: ${contractTypeApi} | barrier: ${req.barrier || 'none'}`, 'SEND');
+                logMsg(JSON.stringify(req), 'SEND');
                 targetWs.send(JSON.stringify(req));
             }
         }
@@ -1446,6 +1586,7 @@
                     return;
                 }
                 isBotRunning = true;
+                currentStrategyLevelIndex = 0;
                 totalSessionProfit = 0;
                 winCount = 0;
                 lossCount = 0;
@@ -1456,6 +1597,9 @@
                 renderSummaryFooters();
                 updateBotStatusUi('RUNNING');
                 logMsg("=== BOT DIMULAI (RUN BOT) ===", 'INFO');
+
+                // Eksekusi langkah strategi pertama
+                executeNextStrategyStep();
             } else if (actionType === 'stop_trade') {
                 isBotRunning = false;
                 updateBotStatusUi('STOPPED');
