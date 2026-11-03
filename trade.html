@@ -125,7 +125,7 @@
                 </div>
             </aside>
 
-            <!-- CENTER AREA (H-FULL PROPORSIONAL 40% / 60%) -->
+            <!-- CENTER AREA (40% / 60% PROPORTIONAL HEIGHT) -->
             <main class="flex-1 bg-slate-50 p-3 flex flex-col space-y-3 overflow-hidden text-xs h-full">
                 
                 <!-- STRATEGY MANAGEMENT PANEL (TINGGI 40%) -->
@@ -278,22 +278,22 @@
                     <span id="bot-status-subtext" class="text-[10px] text-slate-400 font-mono">Idle</span>
                 </div>
 
-                <!-- CONTROL BUTTONS -->
+                <!-- CONTROL BUTTONS (RUN BOT & STOP TRADE ONLY) -->
                 <div class="space-y-1.5 pb-2 border-b border-slate-200 shrink-0">
                     <div class="grid grid-cols-1 gap-1.5">
-                        <button type="button" onclick="botAction('run_bot')" class="py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm">RUN BOT</button>
+                        <button type="button" id="btn-run-bot" onclick="botAction('run_bot')" class="py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm transition">RUN BOT</button>
                         <button type="button" onclick="botAction('stop_trade')" class="py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded shadow-sm text-xs cursor-pointer">STOP TRADE</button>
                     </div>
                 </div>
 
-                <!-- TRADING RUNNING PANEL -->
+                <!-- TRADING RUNNING PANEL (NO SCROLLBAR) -->
                 <div id="panel-portfolio" class="space-y-2 flex flex-col flex-1 overflow-hidden">
                     <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase rounded flex justify-between items-center shrink-0 h-9">
                         <span>TRADING RUNNING</span>
                         <span id="active-contract-id-badge" class="text-[9px] bg-teal-800 text-teal-100 px-1.5 py-0.5 rounded font-mono hidden">#---</span>
                     </div>
 
-                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-y-auto text-xs flex-1 no-scrollbar">
+                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-hidden text-xs flex-1 no-scrollbar">
                         <table class="w-full border-collapse table-fixed">
                             <thead>
                                 <tr>
@@ -549,6 +549,7 @@
             const dot = document.getElementById('bot-status-dot');
             const label = document.getElementById('bot-status-label');
             const subtext = document.getElementById('bot-status-subtext');
+            const btnRunBot = document.getElementById('btn-run-bot');
 
             if (!dot || !label || !subtext) return;
 
@@ -557,18 +558,38 @@
                 label.innerText = "RUNNING";
                 label.className = "font-bold text-[11px] tracking-wide text-emerald-400";
                 subtext.innerText = "Executing Strategy";
+                
+                // DISABLE RUN BOT BUTTON WHEN RUNNING
+                if (btnRunBot) {
+                    btnRunBot.disabled = true;
+                    btnRunBot.className = "py-2.5 bg-slate-300 text-slate-500 font-bold rounded text-xs cursor-not-allowed shadow-sm transition";
+                }
+
                 setStrategyControlsLocked(true);
             } else if (statusState === 'PAUSED') {
                 dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 inline-block";
                 label.innerText = "PAUSED";
                 label.className = "font-bold text-[11px] tracking-wide text-amber-400";
                 subtext.innerText = "Waiting Next";
+                
+                if (btnRunBot) {
+                    btnRunBot.disabled = true;
+                    btnRunBot.className = "py-2.5 bg-slate-300 text-slate-500 font-bold rounded text-xs cursor-not-allowed shadow-sm transition";
+                }
+
                 setStrategyControlsLocked(true);
             } else {
                 dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 inline-block";
                 label.innerText = "STOPPED";
                 label.className = "font-bold text-[11px] tracking-wide text-rose-400";
                 subtext.innerText = "Idle";
+                
+                // ENABLE RUN BOT BUTTON WHEN STOPPED
+                if (btnRunBot) {
+                    btnRunBot.disabled = false;
+                    btnRunBot.className = "py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm transition";
+                }
+
                 setStrategyControlsLocked(false);
             }
         }
