@@ -463,7 +463,7 @@
         </div>
     </div>
 
-    <!-- MAIN SCRIPT -->
+    <!-- MAIN SCRIPT UTUH -->
     <script>
         const DEFAULT_APP_ID = "34M4TGKofeTRkLOlcJ9zO";
 
@@ -477,6 +477,91 @@
             { level: 1, contract_type: "Touch/No Touch", market: "Derived", submarket: "Volatility 100 (1s) Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 5, duration_unit: "ticks", amount: 2.00, payout: 3.35 }
         ];
 
+        // --- FUNGSI NAVIGASI TAMPILAN ---
+        function goToLandingView() {
+            document.getElementById('landing-view').classList.remove('hidden');
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.add('hidden');
+        }
+
+        function goToLoginView() {
+            document.getElementById('landing-view').classList.add('hidden');
+            document.getElementById('login-view').classList.remove('hidden');
+            document.getElementById('dashboard-view').classList.add('hidden');
+            
+            const statusBox = document.getElementById('login-status-box');
+            if (statusBox) statusBox.classList.add('hidden');
+            const actionContainer = document.getElementById('login-action-container');
+            if (actionContainer) actionContainer.classList.remove('hidden');
+        }
+
+        function showLoginConnectingStatus(statusText, subtext, isSuccess = false) {
+            const statusBox = document.getElementById('login-status-box');
+            const spinner = document.getElementById('login-status-spinner');
+            const textEl = document.getElementById('login-status-text');
+            const subtextEl = document.getElementById('login-status-subtext');
+
+            if (!statusBox || !textEl || !subtextEl) return;
+
+            statusBox.classList.remove('hidden');
+            textEl.innerText = statusText;
+            subtextEl.innerText = subtext;
+
+            if (isSuccess) {
+                statusBox.className = "p-3 rounded-xl text-center space-y-1.5 border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs";
+                if (spinner) spinner.classList.add('hidden');
+            } else {
+                statusBox.className = "p-3 rounded-xl text-center space-y-1.5 border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs";
+                if (spinner) spinner.classList.remove('hidden');
+            }
+        }
+
+        function loginWithDerivOAuthPKCE() {
+            const clientId = DEFAULT_APP_ID;
+            localStorage.setItem('deriv_client_id', clientId);
+
+            showLoginConnectingStatus("Connecting to OAuth Gateway...", "Establishing secure handshake with Deriv...");
+
+            const array = crypto.getRandomValues(new Uint8Array(64));
+            const codeVerifier = Array.from(array)
+                .map(v => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[v % 66])
+                .join('');
+
+            const encoder = new TextEncoder();
+            const data = encoder.encode(codeVerifier);
+
+            crypto.subtle.digest('SHA-256', data).then(digest => {
+                const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+                    .replace(/\+/g, '-')
+                    .replace(/\//g, '_')
+                    .replace(/=+$/, '');
+
+                const state = crypto.randomUUID();
+                localStorage.setItem('pkce_code_verifier', codeVerifier);
+                localStorage.setItem('oauth_state', state);
+
+                const redirectUri = "https://tradelib.net/trade-callback"; 
+
+                const params = new URLSearchParams({
+                    client_id: clientId,
+                    redirect_uri: redirectUri,
+                    response_type: 'code',
+                    scope: 'trade',
+                    state: state,
+                    code_challenge: codeChallenge,
+                    code_challenge_method: 'S256'
+                });
+
+                setTimeout(() => {
+                    showLoginConnectingStatus("Login Successful!", "Redirecting to DXBot Engine...", true);
+                    setTimeout(() => {
+                        window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
+                    }, 800);
+                }, 600);
+            });
+        }
+
+        // --- FUNGSI DURA-O-FILL CONTRACTS_FOR ---
         function onDurationUnitChange() {
             processContractsForAndAutoFill();
         }
@@ -492,7 +577,6 @@
 
             const matchedContract = cachedContractsForList.find(c => {
                 const cType = c.contract_type || "";
-                
                 let matchesExpiry = false;
                 if (durationUnitVal === 't') {
                     matchesExpiry = (c.expiry_type === 'tick');
@@ -501,11 +585,10 @@
                 } else {
                     matchesExpiry = true;
                 }
-                
                 if (!matchesExpiry) return false;
 
                 if (activeTradeType === 'Touch/No Touch') {
-                    return (selectedChoice === 'Touch') ? (cType === 'ONETOUCH' || cType.includes('TOUCH') && !cType.includes('NOTOUCH')) : cType.includes('NOTOUCH');
+                    return (selectedChoice === 'Touch') ? (cType === 'ONETOUCH' || (cType.includes('TOUCH') && !cType.includes('NOTOUCH'))) : cType.includes('NOTOUCH');
                 }
                 if (activeTradeType === 'Higher/Lower') {
                     return (selectedChoice === 'Higher') ? (cType === 'HIGHER' || cType === 'CALL') : (cType === 'LOWER' || cType === 'PUT');
@@ -556,50 +639,8 @@
 
             requestProposalUpdate();
         }
-function loginWithDerivOAuthPKCE() {
-    const clientId = DEFAULT_APP_ID || "34M4TGKofeTRkLOlcJ9zO";
-    localStorage.setItem('deriv_client_id', clientId);
 
-    showLoginConnectingStatus("Connecting to OAuth Gateway...", "Establishing secure handshake with Deriv...");
-
-    const array = crypto.getRandomValues(new Uint8Array(64));
-    const codeVerifier = Array.from(array)
-        .map(v => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[v % 66])
-        .join('');
-
-    const encoder = new TextEncoder();
-    const data = encoder.encode(codeVerifier);
-
-    crypto.subtle.digest('SHA-256', data).then(digest => {
-        const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
-            .replace(/\+/g, '-')
-            .replace(/\//g, '_')
-            .replace(/=+$/, '');
-
-        const state = crypto.randomUUID();
-        localStorage.setItem('pkce_code_verifier', codeVerifier);
-        localStorage.setItem('oauth_state', state);
-
-        const redirectUri = "https://tradelib.net/trade-callback"; 
-
-        const params = new URLSearchParams({
-            client_id: clientId,
-            redirect_uri: redirectUri,
-            response_type: 'code',
-            scope: 'trade',
-            state: state,
-            code_challenge: codeChallenge,
-            code_challenge_method: 'S256'
-        });
-
-        setTimeout(() => {
-            showLoginConnectingStatus("Login Successful!", "Redirecting to DXBot Engine...", true);
-            setTimeout(() => {
-                window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
-            }, 800);
-        }, 600);
-    });
-}
+        // --- WEBSOCKET & CORE ENGINE ---
         function connectAuthenticatedWebSocket(url, accountId) {
             if (ws) ws.close();
             ws = new WebSocket(url);
@@ -662,32 +703,7 @@ function loginWithDerivOAuthPKCE() {
                 }
             };
         }
-// Function Navigasi Tampilan
-function goToLoginView() {
-    const landingView = document.getElementById('landing-view');
-    const loginView = document.getElementById('login-view');
-    const dashboardView = document.getElementById('dashboard-view');
 
-    if (landingView) landingView.classList.add('hidden');
-    if (loginView) loginView.classList.remove('hidden');
-    if (dashboardView) dashboardView.classList.add('hidden');
-
-    const statusBox = document.getElementById('login-status-box');
-    if (statusBox) statusBox.classList.add('hidden');
-    
-    const actionContainer = document.getElementById('login-action-container');
-    if (actionContainer) actionContainer.classList.remove('hidden');
-}
-
-function goToLandingView() {
-    const landingView = document.getElementById('landing-view');
-    const loginView = document.getElementById('login-view');
-    const dashboardView = document.getElementById('dashboard-view');
-
-    if (landingView) landingView.classList.remove('hidden');
-    if (loginView) loginView.classList.add('hidden');
-    if (dashboardView) dashboardView.classList.add('hidden');
-}
         function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
             if (!subMarketSelect || !subMarketSelect.value) return;
@@ -730,6 +746,121 @@ function goToLandingView() {
                 targetWs.send(JSON.stringify(req));
             }
         }
+
+        function setApiPendingStatus(message) {
+            const banner = document.getElementById('api-status-banner');
+            if(!banner) return;
+            banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
+            document.getElementById('api-status-text').innerText = message;
+            const badge = document.getElementById('api-status-badge');
+            if(badge) {
+                badge.innerText = "PENDING";
+                badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
+            }
+        }
+
+        function formatDurationUnit(unitCode, amount) {
+            const num = parseInt(amount) || 1;
+            switch(unitCode) {
+                case 't': return num > 1 ? 'ticks' : 'tick';
+                case 's': return num > 1 ? 'seconds' : 'second';
+                case 'm': return num > 1 ? 'minutes' : 'minute';
+                case 'h': return num > 1 ? 'hours' : 'hour';
+                default: return unitCode;
+            }
+        }
+
+        function checkIsDemoAccount(accountId) {
+            if (!accountId) return true;
+            const upperId = accountId.toString().trim().toUpperCase();
+            return upperId.startsWith('D') || upperId.startsWith('VR');
+        }
+
+        function updateAccountUiLabel(accountId, balanceStr = "") {
+            const isDemo = checkIsDemoAccount(accountId);
+            const typeLabel = document.getElementById('account-type-label');
+            const idLabel = document.getElementById('account-id-label');
+            const balLabel = document.getElementById('account-balance-label');
+
+            if (idLabel) idLabel.innerText = accountId;
+            if (balLabel && balanceStr) balLabel.innerText = balanceStr;
+
+            if (typeLabel) {
+                if (isDemo) {
+                    typeLabel.innerText = "Demo account";
+                    typeLabel.className = "text-amber-600 text-[11px] font-semibold";
+                } else {
+                    typeLabel.innerText = "Real account";
+                    typeLabel.className = "text-slate-500 text-[11px] font-semibold";
+                }
+            }
+        }
+
+        function updateModalButtonState() {
+            if (isBotRunning) return;
+            const btn = document.getElementById('btn-open-modal');
+            if (!btn) return;
+            if (isAccountConnected) {
+                btn.disabled = false;
+                btn.className = "px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-semibold shadow-sm cursor-pointer transition text-[11px]";
+                btn.innerText = "Add Level (+)";
+            } else {
+                btn.disabled = true;
+                btn.className = "px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]";
+                btn.innerText = "Add Level (+) [Waiting Account]";
+            }
+        }
+
+        function handleLogout() {
+            localStorage.clear();
+            sessionStorage.clear();
+            location.reload();
+        }
+
+        function startGMTClock() {
+            setInterval(() => {
+                const now = new Date();
+                const el = document.getElementById('gmt-time');
+                if (el) el.innerText = now.toUTCString().split(' ')[4] + ' GMT';
+            }, 1000);
+        }
+
+        function startAutoReconnectWatcher() {
+            setInterval(() => {
+                if (isAccountConnected && currentActiveAccountId && accessToken) {
+                    if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+                        const statusEl = document.getElementById('conn-status-indicator');
+                        if (statusEl) {
+                            statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
+                        }
+                        if (lastWsUrl) {
+                            connectAuthenticatedWebSocket(lastWsUrl, currentActiveAccountId);
+                        }
+                    }
+                }
+            }, 3000);
+        }
+
+        window.onload = function() {
+            startGMTClock();
+            startAutoReconnectWatcher();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            let code = urlParams.get('code');
+            if (code) {
+                localStorage.setItem('deriv_access_token', code);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            accessToken = localStorage.getItem('deriv_access_token');
+            if (accessToken) {
+                document.getElementById('landing-view').classList.add('hidden');
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+            } else {
+                goToLandingView();
+            }
+        };
     </script>
 </body>
 </html>
