@@ -680,171 +680,185 @@
         }
 
         async function selectAndConnectAccount(accountId, token) {
-            try {
-                isAccountConnected = false;
-                currentActiveAccountId = accountId;
-                updateModalButtonState();
-                updateAccountUiLabel(accountId);
+    try {
+        isAccountConnected = false;
+        currentActiveAccountId = accountId;
+        updateModalButtonState();
+        updateAccountUiLabel(accountId);
 
-                const statusEl = document.getElementById('conn-status-indicator');
-                if (statusEl) {
-                    statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Menyambungkan...';
-                }
+        const statusEl = document.getElementById('conn-status-indicator');
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Menyambungkan...';
+        }
 
-                logMsg(`Meminta OTP WebSocket untuk akun ${accountId}...`);
-                const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${accountId}/otp`, {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                const otpData = await otpRes.json();
-                
-                if (otpData.data && otpData.data.url) {
-                    lastWsUrl = otpData.data.url;
-                    connectAuthenticatedWebSocket(lastWsUrl, accountId);
-                } else {
-                    logMsg("Gagal mendapatkan OTP URL.", 'ERR');
-                }
-            } catch(e) {
-                logMsg("Error OTP Request: " + e.message, 'ERR');
+        logMsg(`Meminta OTP WebSocket untuk akun ${accountId}...`);
+        const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${accountId}/otp`, {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const otpData = await otpRes.json();
+        
+        if (otpData.data && otpData.data.url) {
+            lastWsUrl = otpData.data.url;
+            connectAuthenticatedWebSocket(lastWsUrl, accountId);
+        } else {
+            logMsg("Gagal mendapatkan OTP URL.", 'ERR');
+            if (statusEl) {
+                statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1.5"></span> Gagal Koneksi OTP';
+            }
+        }
+    } catch(e) {
+        logMsg("Error OTP Request: " + e.message, 'ERR');
+        const statusEl = document.getElementById('conn-status-indicator');
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1.5"></span> Error Koneksi';
+        }
+    }
+}
+
+function connectAuthenticatedWebSocket(url, accountId) {
+    if (ws) ws.close();
+    logMsg(`Menghubungkan ke WebSocket Akun Terautentikasi...`);
+    ws = new WebSocket(url);
+
+    ws.onopen = () => {
+        logMsg(`WebSocket Akun ${accountId} Terhubung! Meminta langganan saldo...`);
+        
+        const balanceReq = { balance: 1, subscribe: 1, req_id: 3 };
+        logMsg(`SEND -> ${JSON.stringify(balanceReq)}`, 'SEND');
+        ws.send(JSON.stringify(balanceReq));
+
+        isAccountConnected = true;
+        updateModalButtonState();
+        updateAccountUiLabel(accountId);
+        
+        // Memastikan indikator status di UI berubah menjadi Hijau dan "Terhubung"
+        const statusEl = document.getElementById('conn-status-indicator');
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span> Terhubung';
+        }
+    };
+
+    ws.onmessage = (msg) => {
+        const data = JSON.parse(msg.data);
+        logMsg(`RECV <- ${JSON.stringify(data)}`, 'RECV');
+        
+        if (data.msg_type === 'balance') {
+            const bal = parseFloat(data.balance.balance).toFixed(2);
+            const cur = data.balance.currency || 'USD';
+            updateAccountUiLabel(currentActiveAccountId, `${bal} ${cur}`);
+            
+            const matchedAcc = accountsList.find(a => a.account_id === currentActiveAccountId);
+            if(matchedAcc) {
+                matchedAcc.balance = data.balance.balance;
+                matchedAcc.currency = cur;
+                renderAccountsDropdown(accountsList);
             }
         }
 
-        function connectAuthenticatedWebSocket(url, accountId) {
-            if (ws) ws.close();
-            logMsg(`Menghubungkan ke WebSocket Akun Terautentikasi...`);
-            ws = new WebSocket(url);
+        if (data.msg_type === 'contracts_for' && data.contracts_for) {
+            let contractsArray = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
+            if (contractsArray.length > 0) {
+                const activeTradeType = document.getElementById('modal-trade-type').value;
+                const durationUnitVal = document.getElementById('modal-duration-unit').value;
 
-            ws.onopen = () => {
-                logMsg(`WebSocket Akun ${accountId} Terhubung! Meminta langganan saldo...`);
-                
-                const balanceReq = { balance: 1, subscribe: 1, req_id: 3 };
-                logMsg(`SEND -> ${JSON.stringify(balanceReq)}`, 'SEND');
-                ws.send(JSON.stringify(balanceReq));
+                const matchedContract = contractsArray.find(c => {
+                    const cType = c.contract_type || "";
+                    const matchesExpiry = (durationUnitVal === 't') ? (c.expiry_type === 'tick') : true;
+                    if (!matchesExpiry) return false;
 
-                isAccountConnected = true;
-                updateModalButtonState();
-                updateAccountUiLabel(accountId);
-                
-                document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span> Terhubung';
-            };
+                    if (activeTradeType === 'Touch/No Touch') {
+                        return (selectedChoice === 'Touch') ? cType.includes('TOUCH') && !cType.includes('NOTOUCH') : cType.includes('NOTOUCH');
+                    }
+                    if (activeTradeType === 'Higher/Lower') {
+                        return (selectedChoice === 'Higher') ? cType.includes('HIGHER') || cType.includes('LONG') : cType.includes('LOWER') || cType.includes('SHORT');
+                    }
+                    if (activeTradeType === 'Rise/Fall') {
+                        return (selectedChoice === 'Rise') ? cType === 'CALL' : cType === 'PUT';
+                    }
+                    if (activeTradeType === 'Matches/Differs') {
+                        return (selectedChoice === 'Matches') ? cType === 'DIGITMATCH' : cType === 'DIGITDIFF';
+                    }
+                    if (activeTradeType === 'Over/Under') {
+                        return (selectedChoice === 'Over') ? cType === 'DIGITOVER' : cType === 'DIGITUNDER';
+                    }
+                    if (activeTradeType === 'Even/Odd') {
+                        return (selectedChoice === 'Even') ? cType === 'DIGITEVEN' : cType === 'DIGITODD';
+                    }
+                    return true;
+                });
 
-            ws.onmessage = (msg) => {
-                const data = JSON.parse(msg.data);
-                logMsg(`RECV <- ${JSON.stringify(data)}`, 'RECV');
-                
-                if (data.msg_type === 'balance') {
-                    const bal = parseFloat(data.balance.balance).toFixed(2);
-                    const cur = data.balance.currency || 'USD';
-                    updateAccountUiLabel(currentActiveAccountId, `${bal} ${cur}`);
-                    
-                    const matchedAcc = accountsList.find(a => a.account_id === currentActiveAccountId);
-                    if(matchedAcc) {
-                        matchedAcc.balance = data.balance.balance;
-                        matchedAcc.currency = cur;
-                        renderAccountsDropdown(accountsList);
+                const barrierInput = document.getElementById('modal-barrier');
+                const durationInput = document.getElementById('modal-duration');
+                const amountInput = document.getElementById('modal-amount');
+                const minDurationLabel = document.getElementById('duration-min-label');
+                const minAmountLabel = document.getElementById('amount-min-label');
+
+                if (matchedContract) {
+                    if (matchedContract.min_contract_duration) {
+                        const minDurStr = matchedContract.min_contract_duration;
+                        const minDurVal = parseInt(minDurStr) || 1;
+                        
+                        durationInput.value = minDurVal;
+                        durationInput.min = minDurVal;
+                        if (minDurationLabel) minDurationLabel.innerText = `Min: ${minDurStr}`;
+                    }
+
+                    const defaultStakeVal = matchedContract.default_stake !== undefined ? parseFloat(matchedContract.default_stake) : 2.00;
+                    const minStakeVal = matchedContract.min_stake !== undefined ? parseFloat(matchedContract.min_stake) : 0.35;
+
+                    amountInput.value = defaultStakeVal.toFixed(2);
+                    amountInput.min = minStakeVal.toFixed(2);
+
+                    if (minAmountLabel) {
+                        minAmountLabel.innerText = `Min: $${minStakeVal.toFixed(2)}`;
+                    }
+
+                    if (['Higher/Lower', 'Touch/No Touch'].includes(activeTradeType)) {
+                        barrierInput.value = matchedContract.barrier || '';
+                    } else {
+                        barrierInput.value = '';
                     }
                 }
+            }
 
-                if (data.msg_type === 'contracts_for' && data.contracts_for) {
-                    let contractsArray = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
-                    if (contractsArray.length > 0) {
-                        const activeTradeType = document.getElementById('modal-trade-type').value;
-                        const durationUnitVal = document.getElementById('modal-duration-unit').value;
-
-                        const matchedContract = contractsArray.find(c => {
-                            const cType = c.contract_type || "";
-                            const matchesExpiry = (durationUnitVal === 't') ? (c.expiry_type === 'tick') : true;
-                            if (!matchesExpiry) return false;
-
-                            if (activeTradeType === 'Touch/No Touch') {
-                                return (selectedChoice === 'Touch') ? cType.includes('TOUCH') && !cType.includes('NOTOUCH') : cType.includes('NOTOUCH');
-                            }
-                            if (activeTradeType === 'Higher/Lower') {
-                                return (selectedChoice === 'Higher') ? cType.includes('HIGHER') || cType.includes('LONG') : cType.includes('LOWER') || cType.includes('SHORT');
-                            }
-                            if (activeTradeType === 'Rise/Fall') {
-                                return (selectedChoice === 'Rise') ? cType === 'CALL' : cType === 'PUT';
-                            }
-                            if (activeTradeType === 'Matches/Differs') {
-                                return (selectedChoice === 'Matches') ? cType === 'DIGITMATCH' : cType === 'DIGITDIFF';
-                            }
-                            if (activeTradeType === 'Over/Under') {
-                                return (selectedChoice === 'Over') ? cType === 'DIGITOVER' : cType === 'DIGITUNDER';
-                            }
-                            if (activeTradeType === 'Even/Odd') {
-                                return (selectedChoice === 'Even') ? cType === 'DIGITEVEN' : cType === 'DIGITODD';
-                            }
-                            return true;
-                        });
-
-                        const barrierInput = document.getElementById('modal-barrier');
-                        const durationInput = document.getElementById('modal-duration');
-                        const amountInput = document.getElementById('modal-amount');
-                        const minDurationLabel = document.getElementById('duration-min-label');
-                        const minAmountLabel = document.getElementById('amount-min-label');
-
-                        if (matchedContract) {
-                            if (matchedContract.min_contract_duration) {
-                                const minDurStr = matchedContract.min_contract_duration;
-                                const minDurVal = parseInt(minDurStr) || 1;
-                                
-                                durationInput.value = minDurVal;
-                                durationInput.min = minDurVal;
-                                if (minDurationLabel) minDurationLabel.innerText = `Min: ${minDurStr}`;
-                            }
-
-                            const defaultStakeVal = matchedContract.default_stake !== undefined ? parseFloat(matchedContract.default_stake) : 2.00;
-                            const minStakeVal = matchedContract.min_stake !== undefined ? parseFloat(matchedContract.min_stake) : 0.35;
-
-                            amountInput.value = defaultStakeVal.toFixed(2);
-                            amountInput.min = minStakeVal.toFixed(2);
-
-                            if (minAmountLabel) {
-                                minAmountLabel.innerText = `Min: $${minStakeVal.toFixed(2)}`;
-                            }
-
-                            if (['Higher/Lower', 'Touch/No Touch'].includes(activeTradeType)) {
-                                barrierInput.value = matchedContract.barrier || '';
-                            } else {
-                                barrierInput.value = '';
-                            }
-                        }
-                    }
-
-                    requestProposalUpdate();
-                }
-
-                if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
-                    const banner = document.getElementById('api-status-banner');
-                    currentEstimatedPayout = parseFloat(data.proposal.payout);
-                    document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
-                    
-                    if(banner) {
-                        banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
-                        document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
-                        document.getElementById('api-status-badge').innerText = "VERIFIED";
-                        document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
-                    }
-                } else if (data.msg_type === 'proposal' && data.error && data.req_id === 4) {
-                    const banner = document.getElementById('api-status-banner');
-                    document.getElementById('payout').innerText = "Error";
-                    
-                    if(banner) {
-                        banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
-                        document.getElementById('api-status-text').innerText = data.error.message;
-                        document.getElementById('api-status-badge').innerText = "ERROR";
-                        document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded uppercase";
-                    }
-                }
-            };
-
-            ws.onclose = () => {
-                isAccountConnected = false;
-                updateModalButtonState();
-                logMsg("WebSocket akun terputus.", 'ERR');
-                document.getElementById('conn-status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Menyambungkan ulang...';
-            };
+            requestProposalUpdate();
         }
+
+        if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
+            const banner = document.getElementById('api-status-banner');
+            currentEstimatedPayout = parseFloat(data.proposal.payout);
+            document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
+            
+            if(banner) {
+                banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
+                document.getElementById('api-status-text').innerText = "Berhasil memperbarui data proposal & payout dari API.";
+                document.getElementById('api-status-badge').innerText = "VERIFIED";
+                document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
+            }
+        } else if (data.msg_type === 'proposal' && data.error && data.req_id === 4) {
+            const banner = document.getElementById('api-status-banner');
+            document.getElementById('payout').innerText = "Error";
+            
+            if(banner) {
+                banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
+                document.getElementById('api-status-text').innerText = data.error.message;
+                document.getElementById('api-status-badge').innerText = "ERROR";
+                document.getElementById('api-status-badge').className = "font-bold text-[10px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded uppercase";
+            }
+        }
+    };
+
+    ws.onclose = () => {
+        isAccountConnected = false;
+        updateModalButtonState();
+        logMsg("WebSocket akun terputus.", 'ERR');
+        const statusEl = document.getElementById('conn-status-indicator');
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Menyambungkan ulang...';
+        }
+    };
+}
 
         function updateModalButtonState() {
             const btn = document.getElementById('btn-open-modal');
