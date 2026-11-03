@@ -152,7 +152,7 @@
                         </table>
                     </div>
 
-                    <!-- TOMBOL KONTROL TABEL STRATEGI (IMPORT RATAN KANAN) -->
+                    <!-- TOMBOL KONTROL TABEL STRATEGI (IMPORT RATA KANAN) -->
                     <div class="p-2 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
                         <div class="flex items-center space-x-2">
                             <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+) [Menunggu Akun]</button>
@@ -169,24 +169,25 @@
                     </div>
                 </div>
 
-                <!-- CONTRACT TABLE -->
-                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col min-h-[140px]">
-                    <div class="bg-slate-200 text-slate-800 font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase border-b border-slate-300">
-                        CONTRACT TABLE
+                <!-- CONTRACT TABLE DENGAN LOG TRADE & STATUS WIN/LOSS -->
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col min-h-[160px]">
+                    <div class="bg-slate-200 text-slate-800 font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase border-b border-slate-300 flex justify-between items-center">
+                        <span>CONTRACT TABLE (LOG TRADE)</span>
+                        <span id="log-count-badge" class="bg-slate-300 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Kontrak</span>
                     </div>
 
-                    <div class="flex-1 overflow-x-auto min-h-[100px] bg-slate-300">
+                    <div class="flex-1 overflow-x-auto min-h-[100px] max-h-56 bg-slate-50">
                         <table class="w-full text-left border-collapse text-xs bg-white">
-                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300 text-[11px]">
+                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300 text-[11px] sticky top-0">
                                 <tr>
                                     <th class="p-1.5 border-r border-slate-300 text-center w-10">#</th>
-                                    <th class="p-1.5 border-r border-slate-300">Status</th>
-                                    <th class="p-1.5 border-r border-slate-300">Level</th>
-                                    <th class="p-1.5 border-r border-slate-300">Purchase Type</th>
-                                    <th class="p-1.5 border-r border-slate-300">Payout</th>
-                                    <th class="p-1.5 border-r border-slate-300">Buy Price</th>
-                                    <th class="p-1.5 border-r border-slate-300">Sell Price</th>
-                                    <th class="p-1.5 text-right">Profit</th>
+                                    <th class="p-1.5 border-r border-slate-300 text-center w-20">Status</th>
+                                    <th class="p-1.5 border-r border-slate-300 text-center w-16">Level</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-28">Purchase Type</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-24">Buy Price</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-24">Sell Price</th>
+                                    <th class="p-1.5 border-r border-slate-300 w-24">Payout</th>
+                                    <th class="p-1.5 text-right w-24">Profit / Loss</th>
                                 </tr>
                             </thead>
                             <tbody id="contract-table-body" class="divide-y divide-slate-200 text-slate-600">
@@ -195,6 +196,28 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- RINGKASAN AKUMULASI WIN / LOSS DI BAWAH CONTRACT TABLE -->
+                    <div class="bg-slate-100 border-t border-slate-300 p-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-1">
+                                <span class="text-slate-500">Wins:</span>
+                                <span id="summary-win-count" class="font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">0</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <span class="text-slate-500">Losses:</span>
+                                <span id="summary-loss-count" class="font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded">0</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <span class="text-slate-500">Win Rate:</span>
+                                <span id="summary-win-rate" class="font-bold text-slate-800">0.0%</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="text-slate-600 uppercase text-[10px] tracking-wider">Total Profit/Loss:</span>
+                            <span id="summary-total-profit" class="font-black text-sm text-slate-800 font-mono">$0.00</span>
+                        </div>
                     </div>
                 </div>
 
@@ -223,6 +246,15 @@
                         <span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Menunggu Akun
                     </span>
                     <span class="font-mono font-semibold text-slate-700"><span id="gmt-time">-</span></span>
+                </div>
+
+                <!-- STATUS BOT (RUNNING / STOPPED) DI PANEL KANAN -->
+                <div class="bg-slate-900 text-white p-2.5 rounded-lg shadow-sm flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span id="bot-status-dot" class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
+                        <span class="font-bold text-[11px] tracking-wide uppercase" id="bot-status-label">STOPPED</span>
+                    </div>
+                    <span id="bot-status-subtext" class="text-[10px] text-slate-400 font-mono">Idle</span>
                 </div>
 
                 <!-- TARGET PROFIT & STOP LOSS INPUTS -->
@@ -405,9 +437,12 @@
         let currentActiveAccountId = "";
         let lastWsUrl = "";
 
-        // Variabel Manajemen Sesi Trading & Risiko
+        // VARIABEL MANAJEMEN SESI TRADING & LOG KONTRAK
         let isBotRunning = false;
         let totalSessionProfit = 0;
+        let winCount = 0;
+        let lossCount = 0;
+        let contractLogs = []; // Menampung objek log setiap transaksi
         let processedContractIds = new Set(); // Mencegah duplikasi hitung hasil final
 
         let defaultStrategyData = [
@@ -454,6 +489,31 @@
                     typeLabel.innerText = "Real account";
                     typeLabel.className = "text-slate-500 text-[11px] font-semibold";
                 }
+            }
+        }
+
+        function updateBotStatusUi(statusState) {
+            const dot = document.getElementById('bot-status-dot');
+            const label = document.getElementById('bot-status-label');
+            const subtext = document.getElementById('bot-status-subtext');
+
+            if (!dot || !label || !subtext) return;
+
+            if (statusState === 'RUNNING') {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block";
+                label.innerText = "RUNNING";
+                label.className = "font-bold text-[11px] tracking-wide text-emerald-400";
+                subtext.innerText = "Executing Strategy";
+            } else if (statusState === 'PAUSED') {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 inline-block";
+                label.innerText = "PAUSED";
+                label.className = "font-bold text-[11px] tracking-wide text-amber-400";
+                subtext.innerText = "Waiting Next";
+            } else {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 inline-block";
+                label.innerText = "STOPPED";
+                label.className = "font-bold text-[11px] tracking-wide text-rose-400";
+                subtext.innerText = "Idle";
             }
         }
 
@@ -580,6 +640,7 @@
                 document.getElementById('login-view').classList.add('hidden');
                 document.getElementById('dashboard-view').classList.remove('hidden');
                 renderStrategyTable(defaultStrategyData);
+                renderContractTable();
                 await fetchAccountsAndSetup(accessToken);
             } else {
                 document.getElementById('login-view').classList.remove('hidden');
@@ -775,19 +836,50 @@
                     }
                 }
 
-                // Penanganan Pemantauan Kontrak Berjalan & Evaluasi Target Profit / Stop Loss (Tahap 9 & 10)
+                // PEMANTAUAN KONTRAK & UPDATE LOG CONTRACT TABLE REAL-TIME
                 if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract) {
                     const poc = data.proposal_open_contract;
                     const cId = poc.contract_id;
-                    const isSold = poc.is_sold; // 0 = open, 1 = closed/final
+                    const isSold = poc.is_sold; // 0 = Open, 1 = Closed/Final
 
-                    // Jika kontrak sudah final (is_sold === 1) dan belum diproses
+                    let existingLog = contractLogs.find(l => l.contract_id === cId);
+                    if (!existingLog) {
+                        existingLog = {
+                            id: contractLogs.length + 1,
+                            contract_id: cId,
+                            status: poc.status || 'open',
+                            level: 1,
+                            purchase_type: poc.display_name || 'Touch/No Touch',
+                            buy_price: parseFloat(poc.buy_price || 0),
+                            sell_price: parseFloat(poc.sell_price || 0),
+                            payout: parseFloat(poc.payout || 0),
+                            profit: parseFloat(poc.profit || 0)
+                        };
+                        contractLogs.unshift(existingLog); // Masukkan transaksi terbaru di paling atas
+                    } else {
+                        existingLog.status = poc.status || existingLog.status;
+                        existingLog.sell_price = parseFloat(poc.sell_price || existingLog.sell_price);
+                        existingLog.profit = parseFloat(poc.profit || existingLog.profit);
+                    }
+
+                    // Render ulang Contract Table
+                    renderContractTable();
+
+                    // Jika Kontrak Selesai (is_sold === 1) dan Belum Dihitung ke Akumulasi
                     if (isSold === 1 && !processedContractIds.has(cId)) {
                         processedContractIds.add(cId);
                         const profitVal = parseFloat(poc.profit || 0);
                         totalSessionProfit += profitVal;
 
-                        logMsg(`Kontrak ${cId} Selesai. Status: ${poc.status.toUpperCase()} | Profit: $${profitVal.toFixed(2)} | Total Sesi: $${totalSessionProfit.toFixed(2)}`, 'INFO');
+                        if (poc.status === 'won') {
+                            winCount++;
+                        } else if (poc.status === 'lost') {
+                            lossCount++;
+                        }
+
+                        renderSummaryFooters();
+
+                        logMsg(`Kontrak ${cId} Final: ${poc.status.toUpperCase()} | Profit: $${profitVal.toFixed(2)} | Akumulasi: $${totalSessionProfit.toFixed(2)}`, 'INFO');
 
                         // Evaluasi Target Profit & Stop Loss
                         const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
@@ -795,12 +887,14 @@
 
                         if (totalSessionProfit >= targetProfitLimit) {
                             isBotRunning = false;
-                            alert(`🎉 TARGET PROFIT TERCAPAI! Sesi profit: $${totalSessionProfit.toFixed(2)}. Bot dihentikan otomatis.`);
-                            logMsg(`[STOP TRADE] Target profit tercapai ($${totalSessionProfit.toFixed(2)} >= $${targetProfitLimit.toFixed(2)})`, 'ERR');
+                            updateBotStatusUi('STOPPED');
+                            alert(`🎉 TARGET PROFIT TERCAPAI! Profit Sesi: $${totalSessionProfit.toFixed(2)}. Bot Dihentikan.`);
+                            logMsg(`[STOP TRADE] Target profit tercapai ($${totalSessionProfit.toFixed(2)})`, 'ERR');
                         } else if (totalSessionProfit <= -Math.abs(stopLossLimit)) {
                             isBotRunning = false;
-                            alert(`⚠️ STOP LOSS TERCAPAI! Kerugian sesi: $${totalSessionProfit.toFixed(2)}. Bot dihentikan otomatis.`);
-                            logMsg(`[STOP TRADE] Stop loss tercapai ($${totalSessionProfit.toFixed(2)} <= -$${Math.abs(stopLossLimit).toFixed(2)})`, 'ERR');
+                            updateBotStatusUi('STOPPED');
+                            alert(`⚠️ STOP LOSS TERCAPAI! Kerugian Sesi: $${totalSessionProfit.toFixed(2)}. Bot Dihentikan.`);
+                            logMsg(`[STOP TRADE] Stop loss tercapai ($${totalSessionProfit.toFixed(2)})`, 'ERR');
                         }
                     }
                 }
@@ -907,6 +1001,71 @@
                     statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Menyambungkan ulang...';
                 }
             };
+        }
+
+        // RENDER LOG CONTRACT TABLE DENGAN BADGE WIN / LOSS
+        function renderContractTable() {
+            const tbody = document.getElementById('contract-table-body');
+            const badge = document.getElementById('log-count-badge');
+            if(!tbody) return;
+
+            if (badge) badge.innerText = `${contractLogs.length} Kontrak`;
+
+            if (contractLogs.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="p-3 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak (Menunggu bot berjalan...)</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            contractLogs.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-100 transition border-b border-slate-200 text-xs";
+
+                let statusBadge = '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold text-[10px] uppercase">OPEN</span>';
+                if (item.status === 'won') {
+                    statusBadge = '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold text-[10px] uppercase">WIN</span>';
+                } else if (item.status === 'lost') {
+                    statusBadge = '<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-bold text-[10px] uppercase">LOSS</span>';
+                }
+
+                const profitClass = item.profit > 0 ? 'text-emerald-600 font-bold' : (item.profit < 0 ? 'text-rose-600 font-bold' : 'text-slate-600');
+
+                tr.innerHTML = `
+                    <td class="text-center font-bold text-slate-500 bg-slate-50">${contractLogs.length - index}</td>
+                    <td class="text-center">${statusBadge}</td>
+                    <td class="text-center font-bold text-slate-700">L${item.level}</td>
+                    <td class="font-semibold text-slate-800">${item.purchase_type}</td>
+                    <td class="font-mono text-slate-600">$${item.buy_price.toFixed(2)}</td>
+                    <td class="font-mono text-slate-600">$${item.sell_price.toFixed(2)}</td>
+                    <td class="font-mono text-slate-600">$${item.payout.toFixed(2)}</td>
+                    <td class="text-right font-mono ${profitClass}">${item.profit >= 0 ? '+' : ''}$${item.profit.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // RENDER AKUMULASI WIN/LOSS DI BAWAH CONTRACT TABLE
+        function renderSummaryFooters() {
+            const winEl = document.getElementById('summary-win-count');
+            const lossEl = document.getElementById('summary-loss-count');
+            const rateEl = document.getElementById('summary-win-rate');
+            const totalEl = document.getElementById('summary-total-profit');
+
+            if (winEl) winEl.innerText = winCount;
+            if (lossEl) lossEl.innerText = lossCount;
+
+            const totalTrades = winCount + lossCount;
+            const winRateVal = totalTrades > 0 ? ((winCount / totalTrades) * 100).toFixed(1) : "0.0";
+            if (rateEl) rateEl.innerText = `${winRateVal}%`;
+
+            if (totalEl) {
+                totalEl.innerText = `${totalSessionProfit >= 0 ? '+' : ''}$${totalSessionProfit.toFixed(2)}`;
+                totalEl.className = `font-black text-sm font-mono ${totalSessionProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+            }
         }
 
         function updateModalButtonState() {
@@ -1288,10 +1447,18 @@
                 }
                 isBotRunning = true;
                 totalSessionProfit = 0;
+                winCount = 0;
+                lossCount = 0;
+                contractLogs = [];
                 processedContractIds.clear();
+                
+                renderContractTable();
+                renderSummaryFooters();
+                updateBotStatusUi('RUNNING');
                 logMsg("=== BOT DIMULAI (RUN BOT) ===", 'INFO');
             } else if (actionType === 'stop_trade') {
                 isBotRunning = false;
+                updateBotStatusUi('STOPPED');
                 logMsg("=== BOT DIHENTIKAN (STOP TRADE) ===", 'ERR');
                 alert("Perdagangan dihentikan secara manual.");
             } else {
