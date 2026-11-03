@@ -1139,28 +1139,28 @@
 
     // Ambil batas Target Profit dan Stop Loss dari input di UI
     const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
-    const stopLossLimit = parseFloat(document.getElementById('input-stop-loss').value) || 2.00;
+    // Ambil nilai Stop Loss dari input (diambil nilainya secara positif, misal: 4.00)
+const stopLossLimit = Math.abs(parseFloat(document.getElementById('input-stop-loss').value) || 2.00);
 
-    // --- LOGIKA PENGECEKAN STOP TRADE ---
-    
-    // 1. Cek Target Profit (Jika akumulasi profit >= Target Profit)
-    if (totalSessionProfit >= targetProfitLimit) {
-        isBotRunning = false;
-        updateBotStatusUi('STOPPED');
-        alert(`🎉 TARGET PROFIT REACHED! Total Net Profit: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
-        logMsg(`[STOP TRADE] Target profit reached ($${totalSessionProfit.toFixed(2)})`, 'ERR');
+// --- LOGIKA PENGECEKAN STOP TRADE ---
 
-    // 2. Cek Stop Loss (HANYA BERHENTI jika total akumulasi rugi bersih <= -Stop Loss)
-    } else if (totalSessionProfit <= -Math.abs(stopLossLimit)) {
-        isBotRunning = false;
-        updateBotStatusUi('STOPPED');
-        alert(`⚠️ STOP LOSS REACHED! Total Net Loss: $${Math.abs(totalSessionProfit).toFixed(2)} (Limit: $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
-        logMsg(`[STOP TRADE] Stop loss reached based on net session loss ($${totalSessionProfit.toFixed(2)})`, 'ERR');
+if (totalSessionProfit >= targetProfitLimit) {
+    isBotRunning = false;
+    updateBotStatusUi('STOPPED');
+    alert(`🎉 TARGET PROFIT REACHED! Session Profit: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
+    logMsg(`[STOP TRADE] Target profit reached ($${totalSessionProfit.toFixed(2)})`, 'ERR');
 
-    // 3. Jika belum menyentuh Stop Loss / Target Profit, lanjutkan ke trade berikutnya
-    } else if (isBotRunning) {
-        setTimeout(() => executeNextStrategyStep(), 1500);
-    }
+// PERBAIKAN DI SINI:
+// Bot berhenti jika totalSessionProfit berupa minus (rugi) dan nilai mutlaknya >= stopLossLimit
+} else if (totalSessionProfit <= -stopLossLimit) {
+    isBotRunning = false;
+    updateBotStatusUi('STOPPED');
+    alert(`⚠️ STOP LOSS REACHED! Total Net Loss: $${Math.abs(totalSessionProfit).toFixed(2)} (Limit: $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
+    logMsg(`[STOP TRADE] Stop loss reached based on net session loss ($${totalSessionProfit.toFixed(2)})`, 'ERR');
+
+} else if (isBotRunning) {
+    setTimeout(() => executeNextStrategyStep(), 1500);
+}
 }
                 }
 
