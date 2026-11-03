@@ -1037,6 +1037,15 @@
                         badge.innerText = "VERIFIED";
                         badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
                     }
+                } else if (data.error && data.msg_type === 'proposal') {
+                    const banner = document.getElementById('api-status-banner');
+                    if(banner) {
+                        banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
+                        document.getElementById('api-status-text').innerText = data.error.message || "API Error occurred.";
+                        const badge = document.getElementById('api-status-badge');
+                        badge.innerText = "ERROR";
+                        badge.className = "font-bold text-[10px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded uppercase";
+                    }
                 }
             };
             ws.onclose = () => {
@@ -1058,10 +1067,13 @@
                 const expiryType = (c.expiry_type || "").toLowerCase();
                 
                 let matchesExpiry = false;
-                if (durationUnitVal === 't') matchesExpiry = (expiryType === 'tick');
-                else if (durationUnitVal === 's') matchesExpiry = (expiryType === 'second' || expiryType === 'seconds');
-                else if (durationUnitVal === 'm') matchesExpiry = (expiryType === 'minute' || expiryType === 'minutes');
-                else if (durationUnitVal === 'h') matchesExpiry = (expiryType === 'hour' || expiryType === 'hours');
+                if (durationUnitVal === 't') {
+                    matchesExpiry = (expiryType === 'tick');
+                } else if (['s', 'm', 'h'].includes(durationUnitVal)) {
+                    matchesExpiry = (expiryType === 'intraday' || expiryType === 'daily');
+                } else {
+                    matchesExpiry = (expiryType === durationUnitVal);
+                }
 
                 if (!matchesExpiry) return false;
 
@@ -1069,7 +1081,7 @@
                     return (selectedChoice === 'Touch') ? cType.includes('TOUCH') && !cType.includes('NOTOUCH') : cType.includes('NOTOUCH');
                 }
                 if (activeTradeType === 'Higher/Lower') {
-                    return (selectedChoice === 'Higher') ? cType.includes('HIGHER') || cType.includes('LONG') : cType.includes('LOWER') || cType.includes('SHORT');
+                    return (selectedChoice === 'Higher') ? cType.includes('HIGHER') || cType.includes('CALL') : cType.includes('LOWER') || cType.includes('PUT');
                 }
                 if (activeTradeType === 'Rise/Fall') {
                     return (selectedChoice === 'Rise') ? cType === 'CALL' : cType === 'PUT';
@@ -1094,14 +1106,19 @@
 
             if (matchedContract) {
                 if (matchedContract.min_contract_duration) {
-                    const minDurVal = parseInt(matchedContract.min_contract_duration) || 1;
+                    const minStr = matchedContract.min_contract_duration;
+                    const matchNum = minStr.match(/\d+/);
+                    const minDurVal = matchNum ? parseInt(matchNum[0]) : 1;
+                    
                     durationInput.value = minDurVal;
                     durationInput.min = minDurVal;
-                    if (minDurationLabel) minDurationLabel.innerText = `Min: ${matchedContract.min_contract_duration}`;
+                    if (minDurationLabel) minDurationLabel.innerText = `Min: ${minStr}`;
                 }
 
                 if (matchedContract.max_contract_duration) {
-                    durationInput.max = parseInt(matchedContract.max_contract_duration) || 9999;
+                    const maxStr = matchedContract.max_contract_duration;
+                    const matchNumMax = maxStr.match(/\d+/);
+                    if (matchNumMax) durationInput.max = parseInt(matchNumMax[0]);
                 }
 
                 const defaultStakeVal = matchedContract.default_stake !== undefined ? parseFloat(matchedContract.default_stake) : 2.00;
@@ -1119,7 +1136,7 @@
             } else {
                 if (minDurationLabel) minDurationLabel.innerText = `Min: 1`;
                 durationInput.min = 1;
-                durationInput.value = 5;
+                durationInput.value = 1;
             }
 
             requestProposalUpdate();
