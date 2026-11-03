@@ -35,6 +35,14 @@
             color: #ffffff !important;
             border-color: #0f172a !important;
         }
+        /* Custom scrollbar hide for Trading Running to prevent scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans text-xs">
@@ -156,13 +164,14 @@
                     <div class="p-2 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
                         <div class="flex items-center space-x-1.5 flex-wrap">
                             <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+)</button>
-                            <button type="button" onclick="deleteLastRow()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Delete Last</button>
-                            <button type="button" onclick="clearStrategy()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Clear</button>
-                            <button type="button" onclick="exportStrategyJson()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px]">Export Strategy</button>
-                            <label class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px] inline-block">
+                            <button type="button" id="btn-delete-last" onclick="deleteLastRow()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Delete Last</button>
+                            <button type="button" id="btn-clear-strategy" onclick="clearStrategy()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Clear</button>
+                            <button type="button" id="btn-export-strategy" onclick="exportStrategyJson()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px]">Export Strategy</button>
+                            <label id="label-import-strategy" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px] inline-block">
                                 Import Strategy
                                 <input type="file" id="import-file-input" accept=".json" onchange="importStrategyJson(event)" class="hidden">
                             </label>
+                            <span id="strategy-locked-warning" class="text-[10px] text-amber-600 font-bold hidden">⚠️ Strategy controls are locked while bot is running.</span>
                         </div>
 
                         <!-- TARGET PROFIT & STOP LOSS -->
@@ -282,29 +291,29 @@
                     </div>
                 </div>
 
-                <!-- TRADING RUNNING PANEL (FIXED HEIGHT / STABLE SIZE) -->
+                <!-- TRADING RUNNING PANEL (FIXED SIZE, NO SCROLLBAR, SHOWS ALL ROWS) -->
                 <div id="panel-portfolio" class="space-y-2 flex flex-col h-[350px]">
                     <div class="bg-teal-600 text-white font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase rounded flex justify-between items-center shrink-0">
                         <span>TRADING RUNNING</span>
                         <span id="active-contract-id-badge" class="text-[9px] bg-teal-800 text-teal-100 px-1.5 py-0.5 rounded font-mono hidden">#---</span>
                     </div>
 
-                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-y-auto text-xs flex-1">
+                    <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-hidden text-xs flex-1 no-scrollbar">
                         <table class="w-full border-collapse">
                             <tbody id="portfolio-table-body">
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-2 font-bold text-slate-800">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-2 text-slate-700">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-2 text-slate-700">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start Time</td><td id="pf-starttime" class="p-2 font-mono text-slate-600">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-2 font-mono text-slate-600">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-2 font-mono text-amber-600 font-bold">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Entry Spot</td><td id="pf-entry" class="p-2 font-mono text-slate-700">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-2 text-slate-700">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-2 text-slate-700">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-2 font-mono text-cyan-600 font-bold">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-2 text-emerald-600 font-bold">-</td></tr>
-                                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-2 text-slate-700">-</td></tr>
-                                <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-2 font-bold text-slate-800">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level</td><td id="pf-level" class="p-1.5 font-bold text-slate-800">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market</td><td id="pf-market" class="p-1.5 text-slate-700">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td id="pf-contract" class="p-1.5 text-slate-700">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start Time</td><td id="pf-starttime" class="p-1.5 font-mono text-slate-600">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td id="pf-endtime" class="p-1.5 font-mono text-slate-600">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Remaining Time</td><td id="pf-remain" class="p-1.5 font-mono text-amber-600 font-bold">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Entry Spot</td><td id="pf-entry" class="p-1.5 font-mono text-slate-700">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Target</td><td id="pf-target" class="p-1.5 text-slate-700">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier</td><td id="pf-barrier" class="p-1.5 text-slate-700">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Current Spot</td><td id="pf-spot" class="p-1.5 font-mono text-cyan-600 font-bold">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Potential Payout</td><td id="pf-payout" class="p-1.5 text-emerald-600 font-bold">-</td></tr>
+                                <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td id="pf-purchase" class="p-1.5 text-slate-700">-</td></tr>
+                                <tr><td class="p-1.5 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit/Loss</td><td id="pf-profit" class="p-1.5 font-bold text-slate-800">-</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -465,7 +474,7 @@
         let currentStrategyLevelIndex = 0;
         let activeContractId = null;
         let totalSessionProfit = 0;
-        let totalAccumulatedAmount = 0; // Akumulasi amount seluruh level yang telah dikeluarkan
+        let totalAccumulatedAmount = 0; 
         let winCount = 0;
         let lossCount = 0;
         let contractLogs = []; 
@@ -530,16 +539,74 @@
                 label.innerText = "RUNNING";
                 label.className = "font-bold text-[11px] tracking-wide text-emerald-400";
                 subtext.innerText = "Executing Strategy";
+                setStrategyControlsLocked(true);
             } else if (statusState === 'PAUSED') {
                 dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 inline-block";
                 label.innerText = "PAUSED";
                 label.className = "font-bold text-[11px] tracking-wide text-amber-400";
                 subtext.innerText = "Waiting Next";
+                setStrategyControlsLocked(true);
             } else {
                 dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 inline-block";
                 label.innerText = "STOPPED";
                 label.className = "font-bold text-[11px] tracking-wide text-rose-400";
                 subtext.innerText = "Idle";
+                setStrategyControlsLocked(false);
+            }
+        }
+
+        // FUNGSI PENGUNCIAN TOMBOL STRATEGI KETIKA BOT RUNNING
+        function setStrategyControlsLocked(isLocked) {
+            const btnAdd = document.getElementById('btn-open-modal');
+            const btnDelete = document.getElementById('btn-delete-last');
+            const btnClear = document.getElementById('btn-clear-strategy');
+            const btnExport = document.getElementById('btn-export-strategy');
+            const labelImport = document.getElementById('label-import-strategy');
+            const warningSpan = document.getElementById('strategy-locked-warning');
+
+            if (isLocked) {
+                if (btnAdd) {
+                    btnAdd.disabled = true;
+                    btnAdd.className = "px-2.5 py-1 bg-slate-300 text-slate-400 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]";
+                }
+                if (btnDelete) {
+                    btnDelete.disabled = true;
+                    btnDelete.className = "px-2.5 py-1 bg-slate-200 text-slate-400 border border-slate-300 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]";
+                }
+                if (btnClear) {
+                    btnClear.disabled = true;
+                    btnClear.className = "px-2.5 py-1 bg-slate-200 text-slate-400 border border-slate-300 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]";
+                }
+                if (btnExport) {
+                    btnExport.disabled = true;
+                    btnExport.className = "px-2.5 py-1 bg-slate-200 text-slate-400 border border-slate-300 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]";
+                }
+                if (labelImport) {
+                    labelImport.classList.add('opacity-50', 'pointer-events-none');
+                }
+                if (warningSpan) {
+                    warningSpan.classList.remove('hidden');
+                }
+            } else {
+                updateModalButtonState();
+                if (btnDelete) {
+                    btnDelete.disabled = false;
+                    btnDelete.className = "px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]";
+                }
+                if (btnClear) {
+                    btnClear.disabled = false;
+                    btnClear.className = "px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]";
+                }
+                if (btnExport) {
+                    btnExport.disabled = false;
+                    btnExport.className = "px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px]";
+                }
+                if (labelImport) {
+                    labelImport.classList.remove('opacity-50', 'pointer-events-none');
+                }
+                if (warningSpan) {
+                    warningSpan.classList.add('hidden');
+                }
             }
         }
 
@@ -590,7 +657,7 @@
             const prof = parseFloat(pocData.profit || 0);
             const profEl = document.getElementById('pf-profit');
             profEl.innerText = `${prof >= 0 ? '+' : ''}$${prof.toFixed(2)}`;
-            profEl.className = `p-2 font-bold ${prof >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+            profEl.className = `p-1.5 font-bold ${prof >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
         }
 
         function logMsg(msg, type='INFO') {
@@ -942,7 +1009,6 @@
                     if (data.buy && data.buy.contract_id) {
                         activeContractId = data.buy.contract_id;
                         
-                        // Akumulasikan amount dari level strategi yang sedang dieksekusi
                         const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
                         const executedAmount = parseFloat(currentConfig.amount) || parseFloat(data.buy.buy_price) || 0.00;
                         totalAccumulatedAmount += executedAmount;
@@ -1008,7 +1074,6 @@
                     const scrollContainer = document.getElementById('contract-table-scroll-container');
                     if (scrollContainer) scrollContainer.scrollTop = scrollContainer.scrollHeight;
 
-                    // If Contract is Finished (is_sold === 1) and Not Yet Calculated
                     if (isSold === 1 && !processedContractIds.has(cId)) {
                         processedContractIds.add(cId);
                         const profitVal = parseFloat(poc.profit || 0);
@@ -1017,7 +1082,7 @@
                         if (poc.status === 'won') {
                             winCount++;
                             currentStrategyLevelIndex = 0;
-                            totalAccumulatedAmount = 0; // Reset akumulasi amount saat win
+                            totalAccumulatedAmount = 0; 
                         } else if (poc.status === 'lost') {
                             lossCount++;
                             if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) {
@@ -1031,7 +1096,6 @@
                         renderSummaryFooters();
                         logMsg(`Contract ${cId} Finished: ${poc.status.toUpperCase()} | Profit: $${profitVal.toFixed(2)} | Session Total: $${totalSessionProfit.toFixed(2)} | Accumulated Amount: $${totalAccumulatedAmount.toFixed(2)}`, 'INFO');
 
-                        // Target Profit & Stop Loss Evaluation (Stop Loss berdasarkan akumulasi amount seluruh level)
                         const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
                         const stopLossLimit = parseFloat(document.getElementById('input-stop-loss').value) || 10.00;
 
@@ -1155,7 +1219,6 @@
             };
         }
 
-        // PER-ACCOUNT STORAGE LOG FUNCTIONS
         function loadLogsFromStorage(accountId) {
             if (!accountId) {
                 contractLogs = [];
@@ -1358,6 +1421,7 @@
         }
 
         function updateModalButtonState() {
+            if (isBotRunning) return; // Jangan ubah jika bot sedang berjalan
             const btn = document.getElementById('btn-open-modal');
             if (!btn) return;
             if (isAccountConnected) {
@@ -1603,6 +1667,10 @@
         }
 
         function openAddModal() {
+            if (isBotRunning) {
+                alert("Strategy controls are locked while the bot is running.");
+                return;
+            }
             if (!isAccountConnected) {
                 alert("Account not connected! Please wait until account connection is established.");
                 return;
@@ -1695,6 +1763,10 @@
         }
 
         function exportStrategyJson() {
+            if (isBotRunning) {
+                alert("Strategy controls are locked while the bot is running.");
+                return;
+            }
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(defaultStrategyData, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
@@ -1705,6 +1777,11 @@
         }
 
         function importStrategyJson(event) {
+            if (isBotRunning) {
+                alert("Strategy controls are locked while the bot is running.");
+                event.target.value = "";
+                return;
+            }
             const file = event.target.files[0];
             if (!file) return;
 
@@ -1735,7 +1812,6 @@
                     return;
                 }
 
-                // AUTOMATICALLY CLEAR LOGS FOR THIS ACCOUNT ON RUN BOT
                 if (currentActiveAccountId) {
                     contractLogs = contractLogs.filter(l => l.account_id !== currentActiveAccountId);
                     localStorage.removeItem(`contract_logs_${currentActiveAccountId}`);
@@ -1767,6 +1843,10 @@
         }
 
         function deleteLastRow() {
+            if (isBotRunning) {
+                alert("Strategy controls are locked while the bot is running.");
+                return;
+            }
             if (defaultStrategyData.length > 0) {
                 defaultStrategyData.pop();
                 renderStrategyTable(defaultStrategyData);
@@ -1775,6 +1855,10 @@
         }
 
         function clearStrategy() {
+            if (isBotRunning) {
+                alert("Strategy controls are locked while the bot is running.");
+                return;
+            }
             defaultStrategyData = [];
             renderStrategyTable(defaultStrategyData);
             autoSaveStrategy();
