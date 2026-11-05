@@ -233,14 +233,24 @@
                             <span id="strategy-locked-warning" class="text-[10px] text-amber-600 font-bold hidden">⚠️ Strategy controls are locked while bot is running.</span>
                         </div>
 
-                        <div class="flex items-center space-x-2 ml-auto">
+                        <div class="flex items-center space-x-2 ml-auto flex-wrap">
                             <div class="flex items-center space-x-1">
                                 <label class="font-bold text-emerald-700 text-[10px] uppercase">Target Profit ($):</label>
-                                <input type="number" step="1.00" id="input-target-profit" value="10.00" class="w-24 bg-white border border-slate-300 rounded px-2 py-0.5 font-bold text-emerald-700 text-xs text-center">
+                                <input type="number" step="1.00" id="input-target-profit" value="10.00" class="w-20 bg-white border border-slate-300 rounded px-2 py-0.5 font-bold text-emerald-700 text-xs text-center">
                             </div>
+                            
+                            <!-- DROPDOWN MODE STOP LOSS -->
                             <div class="flex items-center space-x-1">
-                                <label class="font-bold text-rose-700 text-[10px] uppercase">Stop Loss ($):</label>
-                                <input type="number" step="1.00" id="input-stop-loss" value="2.00" class="w-24 bg-white border border-slate-300 rounded px-2 py-0.5 font-bold text-rose-700 text-xs text-center">
+                                <label class="font-bold text-rose-700 text-[10px] uppercase">Stop Loss Mode:</label>
+                                <select id="select-stop-loss-mode" onchange="toggleStopLossInput()" class="bg-white border border-slate-300 rounded px-1.5 py-0.5 font-bold text-rose-700 text-xs cursor-pointer">
+                                    <option value="amount" selected>Fixed Amount ($)</option>
+                                    <option value="until_end">Until Level Ends</option>
+                                </select>
+                            </div>
+
+                            <!-- INPUT NOMINAL STOP LOSS -->
+                            <div class="flex items-center space-x-1" id="wrapper-stop-loss-input">
+                                <input type="number" step="1.00" id="input-stop-loss" value="4.00" class="w-20 bg-white border border-slate-300 rounded px-2 py-0.5 font-bold text-rose-700 text-xs text-center">
                             </div>
                         </div>
                     </div>
@@ -570,6 +580,16 @@
             }
         }
 
+        function toggleStopLossInput() {
+            const mode = document.getElementById('select-stop-loss-mode').value;
+            const inputWrapper = document.getElementById('wrapper-stop-loss-input');
+            if (mode === 'until_end') {
+                inputWrapper.classList.add('hidden');
+            } else {
+                inputWrapper.classList.remove('hidden');
+            }
+        }
+
         function formatDurationUnit(unitCode, amount) {
             const num = parseInt(amount) || 1;
             switch(unitCode) {
@@ -676,48 +696,48 @@
                 stopLossInput.value = totalAmountSum.toFixed(2);
             }
         }
-function isContractMatchingActiveSelection(c, activeTradeType, selectedChoice, durationUnitVal) {
-    const cCat = (c.contract_category || "").toLowerCase();
-    const cType = (c.contract_type || "").toUpperCase();
-    const expiryType = (c.expiry_type || "").toLowerCase();
-    const minDurStr = (c.min_contract_duration || "").toLowerCase();
 
-    // 1. Cocokkan unit durasi
-    let matchesExpiry = false;
-    if (durationUnitVal === 't') {
-        matchesExpiry = (expiryType === 'tick' || minDurStr.endsWith('t'));
-    } else if (durationUnitVal === 's') {
-        matchesExpiry = (expiryType === 'intraday' && minDurStr.endsWith('s'));
-    } else if (durationUnitVal === 'm') {
-        matchesExpiry = (expiryType === 'intraday' && (minDurStr.endsWith('m' ) || minDurStr.endsWith('s')));
-    } else if (durationUnitVal === 'h') {
-        matchesExpiry = (expiryType === 'daily' || expiryType === 'intraday');
-    } else {
-        matchesExpiry = (expiryType === durationUnitVal || expiryType === 'daily');
-    }
-    if (!matchesExpiry) return false;
+        function isContractMatchingActiveSelection(c, activeTradeType, selectedChoice, durationUnitVal) {
+            const cCat = (c.contract_category || "").toLowerCase();
+            const cType = (c.contract_type || "").toUpperCase();
+            const expiryType = (c.expiry_type || "").toLowerCase();
+            const minDurStr = (c.min_contract_duration || "").toLowerCase();
 
-    // 2. Cocokkan Trade Type dan Category secara presisi agar tidak tertukar
-    if (activeTradeType === 'Rise/Fall') {
-        return cCat === 'callput' && (selectedChoice === 'Rise' ? cType === 'CALL' : cType === 'PUT');
-    }
-    if (activeTradeType === 'Higher/Lower') {
-        return cCat === 'higherlower' && (selectedChoice === 'Higher' ? cType === 'HIGHER' : cType === 'LOWER');
-    }
-    if (activeTradeType === 'Touch/No Touch') {
-        return cCat === 'touchnotouch' && (selectedChoice === 'Touch' ? cType === 'ONETOUCH' : cType === 'NOTOUCH');
-    }
-    if (activeTradeType === 'Matches/Differs') {
-        return cCat === 'digits' && (selectedChoice === 'Matches' ? cType === 'DIGITMATCH' : cType === 'DIGITDIFF');
-    }
-    if (activeTradeType === 'Over/Under') {
-        return cCat === 'digits' && (selectedChoice === 'Over' ? cType === 'DIGITOVER' : cType === 'DIGITUNDER');
-    }
-    if (activeTradeType === 'Even/Odd') {
-        return cCat === 'digits' && (selectedChoice === 'Even' ? cType === 'DIGITEVEN' : cType === 'DIGITODD');
-    }
-    return true;
-}
+            let matchesExpiry = false;
+            if (durationUnitVal === 't') {
+                matchesExpiry = (expiryType === 'tick' || minDurStr.endsWith('t'));
+            } else if (durationUnitVal === 's') {
+                matchesExpiry = (expiryType === 'intraday' && minDurStr.endsWith('s'));
+            } else if (durationUnitVal === 'm') {
+                matchesExpiry = (expiryType === 'intraday' && (minDurStr.endsWith('m') || minDurStr.endsWith('s')));
+            } else if (durationUnitVal === 'h') {
+                matchesExpiry = (expiryType === 'daily' || expiryType === 'intraday');
+            } else {
+                matchesExpiry = (expiryType === durationUnitVal || expiryType === 'daily');
+            }
+            if (!matchesExpiry) return false;
+
+            if (activeTradeType === 'Rise/Fall') {
+                return cCat === 'callput' && (selectedChoice === 'Rise' ? cType === 'CALL' : cType === 'PUT');
+            }
+            if (activeTradeType === 'Higher/Lower') {
+                return cCat === 'higherlower' && (selectedChoice === 'Higher' ? cType === 'HIGHER' : cType === 'LOWER');
+            }
+            if (activeTradeType === 'Touch/No Touch') {
+                return cCat === 'touchnotouch' && (selectedChoice === 'Touch' ? cType === 'ONETOUCH' : cType === 'NOTOUCH');
+            }
+            if (activeTradeType === 'Matches/Differs') {
+                return cCat === 'digits' && (selectedChoice === 'Matches' ? cType === 'DIGITMATCH' : cType === 'DIGITDIFF');
+            }
+            if (activeTradeType === 'Over/Under') {
+                return cCat === 'digits' && (selectedChoice === 'Over' ? cType === 'DIGITOVER' : cType === 'DIGITUNDER');
+            }
+            if (activeTradeType === 'Even/Odd') {
+                return cCat === 'digits' && (selectedChoice === 'Even' ? cType === 'DIGITEVEN' : cType === 'DIGITODD');
+            }
+            return true;
+        }
+
         function resetRightPanelPortfolio() {
             document.getElementById('pf-level').innerText = "-";
             document.getElementById('pf-market').innerText = "-";
@@ -832,6 +852,7 @@ function isContractMatchingActiveSelection(c, activeTradeType, selectedChoice, d
             loadSavedStrategy();
             updateDefaultStopLoss();
             resetRightPanelPortfolio();
+            toggleStopLossInput();
             
             const urlParams = new URLSearchParams(window.location.search);
             let code = urlParams.get('code');
@@ -1032,39 +1053,48 @@ function isContractMatchingActiveSelection(c, activeTradeType, selectedChoice, d
                         const profitVal = parseFloat(poc.profit || 0);
                         totalSessionProfit += profitVal;
 
+                        const stopLossMode = document.getElementById('select-stop-loss-mode').value;
+                        let shouldStopForMaxLevelLoss = false;
+
                         if (poc.status === 'won') {
                             winCount++;
                             currentStrategyLevelIndex = 0;
                             totalAccumulatedAmount = 0;
                         } else if (poc.status === 'lost') {
                             lossCount++;
-                            if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) currentStrategyLevelIndex++;
-                            else currentStrategyLevelIndex = 0;
+                            if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) {
+                                currentStrategyLevelIndex++;
+                            } else {
+                                currentStrategyLevelIndex = 0;
+                                shouldStopForMaxLevelLoss = true;
+                            }
                         }
                         renderSummaryFooters();
 
                         const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
-                        const stopLossLimit = Math.abs(parseFloat(document.getElementById('input-stop-loss').value) || 2.00);
+                        const stopLossLimit = Math.abs(parseFloat(document.getElementById('input-stop-loss').value) || 4.00);
 
                         if (totalSessionProfit >= targetProfitLimit) {
                             isBotRunning = false;
                             updateBotStatusUi('STOPPED');
                             alert(`🎉 TARGET PROFIT REACHED! Session Profit: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
-                        } else if (totalSessionProfit <= -stopLossLimit) {
+                        } else if (stopLossMode === 'until_end' && shouldStopForMaxLevelLoss) {
                             isBotRunning = false;
                             updateBotStatusUi('STOPPED');
-                            alert(`⚠️ STOP LOSS REACHED! Total Net Loss: $${Math.abs(totalSessionProfit).toFixed(2)} (Limit: $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
+                            alert(`⚠️ MAX LEVEL LOSS REACHED! Strategy cycle completed with loss. Total P/L: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
+                        } else if (stopLossMode === 'amount' && totalSessionProfit <= -stopLossLimit) {
+                            isBotRunning = false;
+                            updateBotStatusUi('STOPPED');
+                            alert(`⚠️ STOP LOSS LIMIT REACHED! Total Net Loss: $${Math.abs(totalSessionProfit).toFixed(2)} (Limit: $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
                         } else if (isBotRunning) {
                             setTimeout(() => executeNextStrategyStep(), 1500);
                         }
                     }
                 }
 
-               if (data.msg_type === 'contracts_for') {
+                if (data.msg_type === 'contracts_for') {
                     if (data.contracts_for) {
                         cachedContractsData = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
-                        
-                        // Perbarui opsi unit durasi dan batasan nilai minimumnya secara otomatis
                         updateAvailableDurationUnits();
                         updateModalDurationAndRules();
                     }
@@ -1100,111 +1130,110 @@ function isContractMatchingActiveSelection(c, activeTradeType, selectedChoice, d
             };
         }
 
-function updateModalDurationAndRules() {
-    if (!cachedContractsData || cachedContractsData.length === 0) return;
+        function updateModalDurationAndRules() {
+            if (!cachedContractsData || cachedContractsData.length === 0) return;
 
-    const activeTradeType = document.getElementById('modal-trade-type').value;
-    const durationUnitVal = document.getElementById('modal-duration-unit').value;
+            const activeTradeType = document.getElementById('modal-trade-type').value;
+            const durationUnitVal = document.getElementById('modal-duration-unit').value;
 
-    // Cari contract dengan pencocokan kategori yang akurat
-    const matchedContract = cachedContractsData.find(c => isContractMatchingActiveSelection(c, activeTradeType, selectedChoice, durationUnitVal));
+            const matchedContract = cachedContractsData.find(c => isContractMatchingActiveSelection(c, activeTradeType, selectedChoice, durationUnitVal));
 
-    const barrierInput = document.getElementById('modal-barrier');
-    const durationInput = document.getElementById('modal-duration');
-    const amountInput = document.getElementById('modal-amount');
-    const minDurationLabel = document.getElementById('duration-min-label');
-    const minAmountLabel = document.getElementById('amount-min-label');
+            const barrierInput = document.getElementById('modal-barrier');
+            const durationInput = document.getElementById('modal-duration');
+            const amountInput = document.getElementById('modal-amount');
+            const minDurationLabel = document.getElementById('duration-min-label');
+            const minAmountLabel = document.getElementById('amount-min-label');
 
-    if (matchedContract && matchedContract.min_contract_duration) {
-        const minStr = matchedContract.min_contract_duration; // contoh: "5t", "15s", "1d"
-        const matchNum = minStr.match(/\d+/);
-        let minDurVal = matchNum ? parseInt(matchNum[0]) : 1;
+            if (matchedContract && matchedContract.min_contract_duration) {
+                const minStr = matchedContract.min_contract_duration;
+                const matchNum = minStr.match(/\d+/);
+                let minDurVal = matchNum ? parseInt(matchNum[0]) : 1;
 
-        durationInput.value = minDurVal;
-        durationInput.min = minDurVal;
-        if (minDurationLabel) minDurationLabel.innerText = `Min: ${minStr}`;
+                durationInput.value = minDurVal;
+                durationInput.min = minDurVal;
+                if (minDurationLabel) minDurationLabel.innerText = `Min: ${minStr}`;
 
-        if (matchedContract.max_contract_duration) {
-            const maxStr = matchedContract.max_contract_duration;
-            const matchNumMax = maxStr.match(/\d+/);
-            if (matchNumMax) durationInput.max = parseInt(matchNumMax[0]);
+                if (matchedContract.max_contract_duration) {
+                    const maxStr = matchedContract.max_contract_duration;
+                    const matchNumMax = maxStr.match(/\d+/);
+                    if (matchNumMax) durationInput.max = parseInt(matchNumMax[0]);
+                }
+
+                const defaultStakeVal = matchedContract.default_stake !== undefined ? parseFloat(matchedContract.default_stake) : 2.00;
+                const minStakeVal = matchedContract.min_stake !== undefined ? parseFloat(matchedContract.min_stake) : 0.35;
+
+                amountInput.value = defaultStakeVal.toFixed(2);
+                amountInput.min = minStakeVal.toFixed(2);
+                if (minAmountLabel) minAmountLabel.innerText = `Min: $${minStakeVal.toFixed(2)}`;
+
+                if (['Higher/Lower', 'Touch/No Touch'].includes(activeTradeType)) {
+                    barrierInput.value = matchedContract.barrier || '';
+                } else {
+                    barrierInput.value = '';
+                }
+            } else {
+                if (minDurationLabel) minDurationLabel.innerText = `Min: 1`;
+                durationInput.min = 1;
+                durationInput.value = 1;
+            }
+
+            requestProposalUpdate();
         }
 
-        const defaultStakeVal = matchedContract.default_stake !== undefined ? parseFloat(matchedContract.default_stake) : 2.00;
-        const minStakeVal = matchedContract.min_stake !== undefined ? parseFloat(matchedContract.min_stake) : 0.35;
+        function updateAvailableDurationUnits() {
+            const unitSelect = document.getElementById('modal-duration-unit');
+            if (!unitSelect || !cachedContractsData) return;
 
-        amountInput.value = defaultStakeVal.toFixed(2);
-        amountInput.min = minStakeVal.toFixed(2);
-        if (minAmountLabel) minAmountLabel.innerText = `Min: $${minStakeVal.toFixed(2)}`;
+            const activeTradeType = document.getElementById('modal-trade-type').value;
+            
+            let hasTicks = false;
+            let hasSeconds = false;
+            let hasMinutes = false;
+            let hasHoursOrDays = false;
 
-        if (['Higher/Lower', 'Touch/No Touch'].includes(activeTradeType)) {
-            barrierInput.value = matchedContract.barrier || '';
-        } else {
-            barrierInput.value = '';
+            cachedContractsData.forEach(c => {
+                const cCat = (c.contract_category || "").toLowerCase();
+                const cType = (c.contract_type || "").toUpperCase();
+                const expiryType = (c.expiry_type || "").toLowerCase();
+                const minDur = (c.min_contract_duration || "").toLowerCase();
+
+                let isCategoryMatch = false;
+                if (activeTradeType === 'Rise/Fall') isCategoryMatch = (cCat === 'callput' && (cType === 'CALL' || cType === 'PUT'));
+                else if (activeTradeType === 'Higher/Lower') isCategoryMatch = (cCat === 'higherlower' && (cType === 'HIGHER' || cType === 'LOWER'));
+                else if (activeTradeType === 'Touch/No Touch') isCategoryMatch = (cCat === 'touchnotouch' && (cType === 'ONETOUCH' || cType === 'NOTOUCH'));
+                else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(activeTradeType)) isCategoryMatch = (cCat === 'digits');
+                else isCategoryMatch = true;
+
+                if (isCategoryMatch) {
+                    if (expiryType === 'tick' || minDur.endsWith('t')) hasTicks = true;
+                    if (expiryType === 'intraday' && minDur.endsWith('s')) hasSeconds = true;
+                    if (expiryType === 'intraday' && (minDur.endsWith('m') || minDur.endsWith('s'))) hasMinutes = true;
+                    if (expiryType === 'daily' || expiryType === 'intraday') hasHoursOrDays = true;
+                }
+            });
+
+            const currentVal = unitSelect.value;
+            unitSelect.innerHTML = '';
+
+            if (hasTicks) unitSelect.innerHTML += `<option value="t">Ticks</option>`;
+            if (hasSeconds) unitSelect.innerHTML += `<option value="s">Seconds</option>`;
+            if (hasMinutes) unitSelect.innerHTML += `<option value="m">Minutes</option>`;
+            if (hasHoursOrDays) unitSelect.innerHTML += `<option value="h">Hours / Days</option>`;
+
+            if (unitSelect.options.length === 0) {
+                unitSelect.innerHTML = `<option value="t">Ticks</option>`;
+            }
+
+            let found = false;
+            for (let i = 0; i < unitSelect.options.length; i++) {
+                if (unitSelect.options[i].value === currentVal) {
+                    unitSelect.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) unitSelect.selectedIndex = 0;
         }
-    } else {
-        if (minDurationLabel) minDurationLabel.innerText = `Min: 1`;
-        durationInput.min = 1;
-        durationInput.value = 1;
-    }
-
-    requestProposalUpdate();
-}
-
-function updateAvailableDurationUnits() {
-    const unitSelect = document.getElementById('modal-duration-unit');
-    if (!unitSelect || !cachedContractsData) return;
-
-    const activeTradeType = document.getElementById('modal-trade-type').value;
-    
-    let hasTicks = false;
-    let hasSeconds = false;
-    let hasMinutes = false;
-    let hasHoursOrDays = false;
-
-    cachedContractsData.forEach(c => {
-        const cCat = (c.contract_category || "").toLowerCase();
-        const cType = (c.contract_type || "").toUpperCase();
-        const expiryType = (c.expiry_type || "").toLowerCase();
-        const minDur = (c.min_contract_duration || "").toLowerCase();
-
-        let isCategoryMatch = false;
-        if (activeTradeType === 'Rise/Fall') isCategoryMatch = (cCat === 'callput' && (cType === 'CALL' || cType === 'PUT'));
-        else if (activeTradeType === 'Higher/Lower') isCategoryMatch = (cCat === 'higherlower' && (cType === 'HIGHER' || cType === 'LOWER'));
-        else if (activeTradeType === 'Touch/No Touch') isCategoryMatch = (cCat === 'touchnotouch' && (cType === 'ONETOUCH' || cType === 'NOTOUCH'));
-        else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(activeTradeType)) isCategoryMatch = (cCat === 'digits');
-        else isCategoryMatch = true;
-
-        if (isCategoryMatch) {
-            if (expiryType === 'tick' || minDur.endsWith('t')) hasTicks = true;
-            if (expiryType === 'intraday' && minDur.endsWith('s')) hasSeconds = true;
-            if (expiryType === 'intraday' && (minDur.endsWith('m' ) || minDur.endsWith('s'))) hasMinutes = true;
-            if (expiryType === 'daily' || expiryType === 'intraday') hasHoursOrDays = true;
-        }
-    });
-
-    const currentVal = unitSelect.value;
-    unitSelect.innerHTML = '';
-
-    if (hasTicks) unitSelect.innerHTML += `<option value="t">Ticks</option>`;
-    if (hasSeconds) unitSelect.innerHTML += `<option value="s">Seconds</option>`;
-    if (hasMinutes) unitSelect.innerHTML += `<option value="m">Minutes</option>`;
-    if (hasHoursOrDays) unitSelect.innerHTML += `<option value="h">Hours / Days</option>`;
-
-    if (unitSelect.options.length === 0) {
-        unitSelect.innerHTML = `<option value="t">Ticks</option>`;
-    }
-
-    let found = false;
-    for (let i = 0; i < unitSelect.options.length; i++) {
-        if (unitSelect.options[i].value === currentVal) {
-            unitSelect.selectedIndex = i;
-            found = true;
-            break;
-        }
-    }
-    if (!found) unitSelect.selectedIndex = 0;
-}
 
         function loadLogsFromStorage(accountId) {
             const saved = localStorage.getItem(`contract_logs_${accountId}`);
@@ -1405,18 +1434,18 @@ function updateAvailableDurationUnits() {
         }
 
         function onSubmarketChange() {
-    const subMarketSelect = document.getElementById('modal-submarket');
-    if (!subMarketSelect || !subMarketSelect.value) return;
-    const parts = subMarketSelect.value.split('|');
-    const symbol = parts[1];
-    if (symbol && symbol !== "undefined") {
-        const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
-        if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-            setApiPendingStatus("Sending contracts_for request...");
-            targetWs.send(JSON.stringify({ contracts_for: symbol, req_id: 2 }));
+            const subMarketSelect = document.getElementById('modal-submarket');
+            if (!subMarketSelect || !subMarketSelect.value) return;
+            const parts = subMarketSelect.value.split('|');
+            const symbol = parts[1];
+            if (symbol && symbol !== "undefined") {
+                const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
+                if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+                    setApiPendingStatus("Sending contracts_for request...");
+                    targetWs.send(JSON.stringify({ contracts_for: symbol, req_id: 2 }));
+                }
+            }
         }
-    }
-}
 
         function onDurationUnitChange() {
             updateModalDurationAndRules();
@@ -1463,37 +1492,35 @@ function updateAvailableDurationUnits() {
         }
 
         function onTradeTypeChange() {
-    const tradeType = document.getElementById('modal-trade-type').value;
-    const unitSelect = document.getElementById('modal-duration-unit');
-    const barrierContainer = document.getElementById('barrier-container');
-    const digitContainer = document.getElementById('digit-prediction-container');
-    const barrierInput = document.getElementById('modal-barrier');
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const unitSelect = document.getElementById('modal-duration-unit');
+            const barrierContainer = document.getElementById('barrier-container');
+            const digitContainer = document.getElementById('digit-prediction-container');
+            const barrierInput = document.getElementById('modal-barrier');
 
-    renderChoiceButtons(tradeType);
+            renderChoiceButtons(tradeType);
+            updateAvailableDurationUnits();
 
-    // Saring unit durasi berdasarkan data kontrak yang tersedia dari API
-    updateAvailableDurationUnits();
-
-    if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
-        unitSelect.disabled = false;
-        barrierContainer.classList.remove('hidden'); 
-        digitContainer.classList.add('hidden');
-    } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
-        unitSelect.value = 't'; 
-        unitSelect.disabled = true;
-        barrierContainer.classList.add('hidden'); 
-        barrierInput.value = '';
-        digitContainer.classList.remove('hidden'); 
-        renderDigitGrid();
-    } else {
-        unitSelect.disabled = false;
-        barrierContainer.classList.add('hidden'); 
-        barrierInput.value = '';
-        digitContainer.classList.add('hidden');
-    }
-    
-    updateModalDurationAndRules();
-}
+            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
+                unitSelect.disabled = false;
+                barrierContainer.classList.remove('hidden'); 
+                digitContainer.classList.add('hidden');
+            } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
+                unitSelect.value = 't'; 
+                unitSelect.disabled = true;
+                barrierContainer.classList.add('hidden'); 
+                barrierInput.value = '';
+                digitContainer.classList.remove('hidden'); 
+                renderDigitGrid();
+            } else {
+                unitSelect.disabled = false;
+                barrierContainer.classList.add('hidden'); 
+                barrierInput.value = '';
+                digitContainer.classList.add('hidden');
+            }
+            
+            updateModalDurationAndRules();
+        }
 
         function renderChoiceButtons(tradeType) {
             const container = document.getElementById('choice-buttons-grid');
