@@ -234,14 +234,14 @@
                         </div>
 
                         <div class="flex items-center space-x-2 ml-auto flex-wrap">
-    <!-- TARGET PROFIT DENGAN HOVER & LABEL ESTIMASI -->
-    <div class="flex items-center space-x-1" title="Target profit bersifat estimasi. Bot akan berhenti saat profit sesi mencapai atau melebihi nilai ini.">
+    <!-- TARGET PROFIT DENGAN HOVER BAHASA INGGRIS -->
+    <div class="flex items-center space-x-1" title="Target profit is an estimate. The bot will stop when session profit reaches or exceeds this value.">
         <label class="font-bold text-emerald-700 text-[10px] uppercase cursor-help">Est. Target Profit ($) ℹ️:</label>
         <input type="number" step="1.00" id="input-target-profit" value="10.00" class="w-20 bg-white border border-slate-300 rounded px-2 py-0.5 font-bold text-emerald-700 text-xs text-center">
     </div>
     
     <!-- DROPDOWN MODE STOP LOSS -->
-    <div class="flex items-center space-x-1" title="Pilih metode penghentian risiko: Berdasarkan estimasi batas kerugian atau menunggu tuntas hingga level terakhir gagal total.">
+    <div class="flex items-center space-x-1" title="Select risk management method: Stop based on estimated loss limit or wait until the last level fails completely.">
         <label class="font-bold text-rose-700 text-[10px] uppercase cursor-help">Stop Loss Mode ℹ️:</label>
         <select id="select-stop-loss-mode" onchange="toggleStopLossInput()" class="bg-white border border-slate-300 rounded px-1.5 py-0.5 font-bold text-rose-700 text-xs cursor-pointer">
             <option value="amount" selected>Est. Max Loss (&gt; $)</option>
@@ -249,8 +249,8 @@
         </select>
     </div>
 
-    <!-- INPUT NOMINAL STOP LOSS DENGAN HOVER -->
-    <div class="flex items-center space-x-1" id="wrapper-stop-loss-input" title="Batas estimasi kerugian maksimal. Bot akan berhenti begitu kerugian sesi menyamai atau melewati batas ini.">
+    <!-- INPUT NOMINAL STOP LOSS DENGAN HOVER BAHASA INGGRIS -->
+    <div class="flex items-center space-x-1" id="wrapper-stop-loss-input" title="Estimated maximum loss threshold. The bot will stop once session losses meet or exceed this limit.">
         <input type="number" step="1.00" id="input-stop-loss" value="4.00" class="w-20 bg-white border border-slate-300 rounded px-2 py-0.5 font-bold text-rose-700 text-xs text-center">
     </div>
 </div>
