@@ -1057,90 +1057,95 @@
         }
 
 function updateModalDurationAndRules() {
-            if (!cachedContractsData || cachedContractsData.length === 0) return;
+    if (!cachedContractsData || cachedContractsData.length === 0) return;
 
-            const activeTradeType = document.getElementById('modal-trade-type').value;
-            const durationUnitVal = document.getElementById('modal-duration-unit').value;
+    const activeTradeType = document.getElementById('modal-trade-type').value;
+    const durationUnitVal = document.getElementById('modal-duration-unit').value;
 
-            const matchedContract = cachedContractsData.find(c => {
-                const cType = c.contract_type || "";
-                const expiryType = (c.expiry_type || "").toLowerCase();
-                
-                let matchesExpiry = false;
-                if (durationUnitVal === 't') {
-                    matchesExpiry = (expiryType === 'tick');
-                } else if (['s', 'm', 'h'].includes(durationUnitVal)) {
-                    matchesExpiry = (expiryType === 'intraday' || expiryType === 'daily');
-                } else {
-                    matchesExpiry = (expiryType === durationUnitVal);
-                }
-
-                if (!matchesExpiry) return false;
-
-                if (activeTradeType === 'Touch/No Touch') {
-                    return (selectedChoice === 'Touch') ? cType.includes('TOUCH') && !cType.includes('NOTOUCH') : cType.includes('NOTOUCH');
-                }
-                if (activeTradeType === 'Higher/Lower') {
-                    return (selectedChoice === 'Higher') ? cType.includes('HIGHER') || cType.includes('CALL') : cType.includes('LOWER') || cType.includes('PUT');
-                }
-                if (activeTradeType === 'Rise/Fall') {
-                    return (selectedChoice === 'Rise') ? cType === 'CALL' : cType === 'PUT';
-                }
-                if (activeTradeType === 'Matches/Differs') {
-                    return (selectedChoice === 'Matches') ? cType === 'DIGITMATCH' : cType === 'DIGITDIFF';
-                }
-                if (activeTradeType === 'Over/Under') {
-                    return (selectedChoice === 'Over') ? cType === 'DIGITOVER' : cType === 'DIGITUNDER';
-                }
-                if (activeTradeType === 'Even/Odd') {
-                    return (selectedChoice === 'Even') ? cType === 'DIGITEVEN' : cType === 'DIGITODD';
-                }
-                return true;
-            });
-
-            const barrierInput = document.getElementById('modal-barrier');
-            const durationInput = document.getElementById('modal-duration');
-            const amountInput = document.getElementById('modal-amount');
-            const minDurationLabel = document.getElementById('duration-min-label');
-            const minAmountLabel = document.getElementById('amount-min-label');
-
-            if (matchedContract) {
-                if (matchedContract.min_contract_duration) {
-                    const minStr = matchedContract.min_contract_duration;
-                    const matchNum = minStr.match(/\d+/);
-                    const minDurVal = matchNum ? parseInt(matchNum[0]) : 1;
-                    
-                    durationInput.value = minDurVal;
-                    durationInput.min = minDurVal;
-                    if (minDurationLabel) minDurationLabel.innerText = `Min: ${minStr}`;
-                }
-
-                if (matchedContract.max_contract_duration) {
-                    const maxStr = matchedContract.max_contract_duration;
-                    const matchNumMax = maxStr.match(/\d+/);
-                    if (matchNumMax) durationInput.max = parseInt(matchNumMax[0]);
-                }
-
-                const defaultStakeVal = matchedContract.default_stake !== undefined ? parseFloat(matchedContract.default_stake) : 2.00;
-                const minStakeVal = matchedContract.min_stake !== undefined ? parseFloat(matchedContract.min_stake) : 0.35;
-
-                amountInput.value = defaultStakeVal.toFixed(2);
-                amountInput.min = minStakeVal.toFixed(2);
-                if (minAmountLabel) minAmountLabel.innerText = `Min: $${minStakeVal.toFixed(2)}`;
-
-                if (['Higher/Lower', 'Touch/No Touch'].includes(activeTradeType)) {
-                    barrierInput.value = matchedContract.barrier || '';
-                } else {
-                    barrierInput.value = '';
-                }
-            } else {
-                if (minDurationLabel) minDurationLabel.innerText = `Min: 1`;
-                durationInput.min = 1;
-                durationInput.value = 1;
-            }
-
-            requestProposalUpdate();
+    // Cari contract yang sesuai dengan trade type dan unit durasi yang dipilih
+    const matchedContract = cachedContractsData.find(c => {
+        const cType = c.contract_type || "";
+        const expiryType = (c.expiry_type || "").toLowerCase();
+        
+        let matchesExpiry = false;
+        if (durationUnitVal === 't') {
+            matchesExpiry = (expiryType === 'tick');
+        } else if (durationUnitVal === 's') {
+            matchesExpiry = (expiryType === 'intraday' && c.min_contract_duration && c.min_contract_duration.endsWith('s'));
+        } else if (durationUnitVal === 'm') {
+            matchesExpiry = (expiryType === 'intraday' && c.min_contract_duration && c.min_contract_duration.endsWith('m'));
+        } else if (durationUnitVal === 'h') {
+            matchesExpiry = (expiryType === 'intraday' && c.min_contract_duration && (c.min_contract_duration.endsWith('h') || c.min_contract_duration.endsWith('d')));
+        } else {
+            matchesExpiry = (expiryType === durationUnitVal || expiryType === 'daily');
         }
+
+        if (!matchesExpiry) return false;
+
+        // Cocokkan berdasarkan jenis trade type yang sedang dipilih di modal
+        if (activeTradeType === 'Touch/No Touch') {
+            return (selectedChoice === 'Touch') ? cType.includes('TOUCH') && !cType.includes('NOTOUCH') : cType.includes('NOTOUCH');
+        }
+        if (activeTradeType === 'Higher/Lower') {
+            return (selectedChoice === 'Higher') ? cType.includes('HIGHER') || cType.includes('CALL') : cType.includes('LOWER') || cType.includes('PUT');
+        }
+        if (activeTradeType === 'Rise/Fall') {
+            return (selectedChoice === 'Rise') ? cType === 'CALL' : cType === 'PUT';
+        }
+        if (activeTradeType === 'Matches/Differs') {
+            return (selectedChoice === 'Matches') ? cType === 'DIGITMATCH' : cType === 'DIGITDIFF';
+        }
+        if (activeTradeType === 'Over/Under') {
+            return (selectedChoice === 'Over') ? cType === 'DIGITOVER' : cType === 'DIGITUNDER';
+        }
+        if (activeTradeType === 'Even/Odd') {
+            return (selectedChoice === 'Even') ? cType === 'DIGITEVEN' : cType === 'DIGITODD';
+        }
+        return true;
+    });
+
+    const barrierInput = document.getElementById('modal-barrier');
+    const durationInput = document.getElementById('modal-duration');
+    const amountInput = document.getElementById('modal-amount');
+    const minDurationLabel = document.getElementById('duration-min-label');
+    const minAmountLabel = document.getElementById('amount-min-label');
+
+    if (matchedContract && matchedContract.min_contract_duration) {
+        const minStr = matchedContract.min_contract_duration; // contoh: "15s", "2m", "1d", "1t"
+        const matchNum = minStr.match(/\d+/);
+        const minDurVal = matchNum ? parseInt(matchNum[0]) : 1;
+        
+        // Set nilai default duration dan min attribute sesuai min_contract_duration dari API
+        durationInput.value = minDurVal;
+        durationInput.min = minDurVal;
+        if (minDurationLabel) minDurationLabel.innerText = `Min: ${minStr}`;
+
+        if (matchedContract.max_contract_duration) {
+            const maxStr = matchedContract.max_contract_duration;
+            const matchNumMax = maxStr.match(/\d+/);
+            if (matchNumMax) durationInput.max = parseInt(matchNumMax[0]);
+        }
+
+        const defaultStakeVal = matchedContract.default_stake !== undefined ? parseFloat(matchedContract.default_stake) : 2.00;
+        const minStakeVal = matchedContract.min_stake !== undefined ? parseFloat(matchedContract.min_stake) : 0.35;
+
+        amountInput.value = defaultStakeVal.toFixed(2);
+        amountInput.min = minStakeVal.toFixed(2);
+        if (minAmountLabel) minAmountLabel.innerText = `Min: $${minStakeVal.toFixed(2)}`;
+
+        if (['Higher/Lower', 'Touch/No Touch'].includes(activeTradeType)) {
+            barrierInput.value = matchedContract.barrier || '';
+        } else {
+            barrierInput.value = '';
+        }
+    } else {
+        if (minDurationLabel) minDurationLabel.innerText = `Min: 1`;
+        durationInput.min = 1;
+        durationInput.value = 1;
+    }
+
+    requestProposalUpdate();
+}
 
         function loadLogsFromStorage(accountId) {
             const saved = localStorage.getItem(`contract_logs_${accountId}`);
