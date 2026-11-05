@@ -569,7 +569,86 @@
                 if (spinner) spinner.classList.remove('hidden');
             }
         }
+function updateAvailableDurationUnits() {
+    const unitSelect = document.getElementById('modal-duration-unit');
+    if (!unitSelect || !cachedContractsData) return;
 
+    // Ambil semua expiry_type atau min_contract_duration dari cachedContractsData untuk trade type saat ini
+    const activeTradeType = document.getElementById('modal-trade-type').value;
+    
+    // Periksa apakah ada kontrak untuk trade type ini yang mendukung tick, second, minute, atau day
+    let hasTicks = false;
+    let hasSeconds = false;
+    let hasMinutes = false;
+    let hasHoursOrDays = false;
+
+    cachedContractsData.forEach(c => {
+        const cType = c.contract_type || "";
+        const expiryType = (c.expiry_type || "").toLowerCase();
+        const minDur = (c.min_contract_duration || "").toLowerCase();
+
+        // Cocokkan dengan trade type yang aktif
+        let isMatch = false;
+        if (activeTradeType === 'Touch/No Touch') {
+            isMatch = (selectedChoice === 'Touch') ? cType.includes('TOUCH') && !cType.includes('NOTOUCH') : cType.includes('NOTOUCH');
+        } else if (activeTradeType === 'Higher/Lower') {
+            isMatch = (selectedChoice === 'Higher') ? cType.includes('HIGHER') || cType.includes('CALL') : cType.includes('LOWER') || cType.includes('PUT');
+        } else if (activeTradeType === 'Rise/Fall') {
+            isMatch = (selectedChoice === 'Rise') ? cType === 'CALL' : cType === 'PUT';
+        } else if (activeTradeType === 'Matches/Differs') {
+            isMatch = (selectedChoice === 'Matches') ? cType === 'DIGITMATCH' : cType === 'DIGITDIFF';
+        } else if (activeTradeType === 'Over/Under') {
+            isMatch = (selectedChoice === 'Over') ? cType === 'DIGITOVER' : cType === 'DIGITUNDER';
+        } else if (activeTradeType === 'Even/Odd') {
+            isMatch = (selectedChoice === 'Even') ? cType === 'DIGITEVEN' : cType === 'DIGITODD';
+        } else {
+            isMatch = true;
+        }
+
+        if (isMatch) {
+            if (expiryType === 'tick' || minDur.endsWith('t')) hasTicks = true;
+            if (expiryType === 'intraday' && minDur.endsWith('s')) hasSeconds = true;
+            if (expiryType === 'intraday' && (minDur.endsWith('m') || minDur.endsWith('s'))) hasMinutes = true;
+            if (expiryType === 'daily' || expiryType === 'intraday' && (minDur.endsWith('h') || minDur.endsWith('d'))) hasHoursOrDays = true;
+        }
+    });
+
+    // Simpan pilihan saat ini
+    const currentVal = unitSelect.value;
+    unitSelect.innerHTML = '';
+
+    // Masukkan opsi ke dropdown hanya jika didukung
+    if (hasTicks) {
+        unitSelect.innerHTML += `<option value="t">Ticks</option>`;
+    }
+    if (hasSeconds) {
+        unitSelect.innerHTML += `<option value="s">Seconds</option>`;
+    }
+    if (hasMinutes) {
+        unitSelect.innerHTML += `<option value="m">Minutes</option>`;
+    }
+    if (hasHoursOrDays) {
+        unitSelect.innerHTML += `<option value="h">Hours / Days</option>`;
+    }
+
+    // Jika kosong sama sekali, berikan opsi default Ticks
+    if (unitSelect.options.length === 0) {
+        unitSelect.innerHTML = `<option value="t">Ticks</option>`;
+    }
+
+    // Kembalikan pilihan jika masih ada, jika tidak pilih yang pertama tersedia
+    let found = false;
+    for (let i = 0; i < unitSelect.options.length; i++) {
+        if (unitSelect.options[i].value === currentVal) {
+            unitSelect.selectedIndex = i;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        unitSelect.selectedIndex = 0;
+    }
+}
         function formatDurationUnit(unitCode, amount) {
             const num = parseInt(amount) || 1;
             switch(unitCode) {
@@ -1404,29 +1483,37 @@ function updateModalDurationAndRules() {
         }
 
         function onTradeTypeChange() {
-            const tradeType = document.getElementById('modal-trade-type').value;
-            const unitSelect = document.getElementById('modal-duration-unit');
-            const barrierContainer = document.getElementById('barrier-container');
-            const digitContainer = document.getElementById('digit-prediction-container');
-            const barrierInput = document.getElementById('modal-barrier');
+    const tradeType = document.getElementById('modal-trade-type').value;
+    const unitSelect = document.getElementById('modal-duration-unit');
+    const barrierContainer = document.getElementById('barrier-container');
+    const digitContainer = document.getElementById('digit-prediction-container');
+    const barrierInput = document.getElementById('modal-barrier');
 
-            renderChoiceButtons(tradeType);
+    renderChoiceButtons(tradeType);
 
-            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
-                unitSelect.disabled = false;
-                barrierContainer.classList.remove('hidden'); digitContainer.classList.add('hidden');
-            } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
-                unitSelect.value = 't'; unitSelect.disabled = true;
-                barrierContainer.classList.add('hidden'); barrierInput.value = '';
-                digitContainer.classList.remove('hidden'); renderDigitGrid();
-            } else {
-                unitSelect.disabled = false;
-                barrierContainer.classList.add('hidden'); barrierInput.value = '';
-                digitContainer.classList.add('hidden');
-            }
-            updateModalDurationAndRules();
-            onSubmarketChange();
-        }
+    // Saring unit durasi berdasarkan data kontrak yang tersedia dari API
+    updateAvailableDurationUnits();
+
+    if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
+        unitSelect.disabled = false;
+        barrierContainer.classList.remove('hidden'); 
+        digitContainer.classList.add('hidden');
+    } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
+        unitSelect.value = 't'; 
+        unitSelect.disabled = true;
+        barrierContainer.classList.add('hidden'); 
+        barrierInput.value = '';
+        digitContainer.classList.remove('hidden'); 
+        renderDigitGrid();
+    } else {
+        unitSelect.disabled = false;
+        barrierContainer.classList.add('hidden'); 
+        barrierInput.value = '';
+        digitContainer.classList.add('hidden');
+    }
+    
+    updateModalDurationAndRules();
+}
 
         function renderChoiceButtons(tradeType) {
             const container = document.getElementById('choice-buttons-grid');
