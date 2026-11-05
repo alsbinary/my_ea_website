@@ -1098,9 +1098,12 @@ function updateAvailableDurationUnits() {
                     }
                 }
 
-                if (data.msg_type === 'contracts_for') {
+               if (data.msg_type === 'contracts_for') {
                     if (data.contracts_for) {
                         cachedContractsData = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
+                        
+                        // Perbarui opsi unit durasi dan batasan nilai minimumnya secara otomatis
+                        updateAvailableDurationUnits();
                         updateModalDurationAndRules();
                     }
                 }
@@ -1425,18 +1428,18 @@ function updateModalDurationAndRules() {
         }
 
         function onSubmarketChange() {
-            const subMarketSelect = document.getElementById('modal-submarket');
-            if (!subMarketSelect || !subMarketSelect.value) return;
-            const parts = subMarketSelect.value.split('|');
-            const symbol = parts[1];
-            if (symbol && symbol !== "undefined") {
-                const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
-                if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                    setApiPendingStatus("Sending contracts_for request...");
-                    targetWs.send(JSON.stringify({ contracts_for: symbol, req_id: 2 }));
-                }
-            }
+    const subMarketSelect = document.getElementById('modal-submarket');
+    if (!subMarketSelect || !subMarketSelect.value) return;
+    const parts = subMarketSelect.value.split('|');
+    const symbol = parts[1];
+    if (symbol && symbol !== "undefined") {
+        const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
+        if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+            setApiPendingStatus("Sending contracts_for request...");
+            targetWs.send(JSON.stringify({ contracts_for: symbol, req_id: 2 }));
         }
+    }
+}
 
         function onDurationUnitChange() {
             updateModalDurationAndRules();
