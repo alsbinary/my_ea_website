@@ -194,7 +194,7 @@
 
             <main class="flex-1 bg-slate-50 p-3 flex flex-col space-y-3 overflow-hidden text-xs h-full">
                 
-                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col h-[40%] overflow-hidden">
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col h-[35%] overflow-hidden">
                     <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase flex justify-between items-center shrink-0">
                         <span>STRATEGY MANAGEMENT PANEL</span>
                     </div>
@@ -233,13 +233,11 @@
                         </div>
 
                         <div class="flex items-center space-x-2 ml-auto flex-wrap">
-                            <!-- TARGET PROFIT DENGAN HOVER BAHASA INGGRIS -->
                             <div class="flex items-center space-x-1" title="Target profit is an estimate. The bot will stop when session profit reaches or exceeds this value.">
                                 <label class="font-bold text-emerald-700 text-[10px] uppercase cursor-help">Est. Target Profit ($) ℹ️:</label>
                                 <input type="number" step="1.00" id="input-target-profit" value="10.00" class="w-20 bg-white border border-slate-300 rounded px-2 py-0.5 font-bold text-emerald-700 text-xs text-center">
                             </div>
                             
-                            <!-- DROPDOWN MODE STOP LOSS -->
                             <div class="flex items-center space-x-1" title="Select risk management method: Stop based on estimated loss limit or wait until the last level fails completely.">
                                 <label class="font-bold text-rose-700 text-[10px] uppercase cursor-help">Stop Loss Mode ℹ️:</label>
                                 <select id="select-stop-loss-mode" onchange="toggleStopLossInput()" class="bg-white border border-slate-300 rounded px-1.5 py-0.5 font-bold text-rose-700 text-xs cursor-pointer">
@@ -248,7 +246,6 @@
                                 </select>
                             </div>
 
-                            <!-- INPUT NOMINAL STOP LOSS DENGAN HOVER BAHASA INGGRIS -->
                             <div class="flex items-center space-x-1" id="wrapper-stop-loss-input" title="Estimated maximum loss threshold. The bot will stop once session losses meet or exceed this limit.">
                                 <input type="number" step="1.00" id="input-stop-loss" value="4.00" class="w-20 bg-white border border-slate-300 rounded px-2 py-0.5 font-bold text-rose-700 text-xs text-center">
                             </div>
@@ -256,7 +253,8 @@
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col h-[60%] overflow-hidden">
+                <!-- CONTRACT TABLE & VISIBLE SYSTEM LOG PANEL -->
+                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col h-[55%] overflow-hidden">
                     <div class="bg-slate-200 text-slate-800 font-bold px-3 py-1.5 text-center text-[11px] tracking-wider uppercase border-b border-slate-300 flex justify-between items-center shrink-0">
                         <div class="flex items-center space-x-3">
                             <span>CONTRACT TABLE (LOG TRADE)</span>
@@ -266,7 +264,7 @@
                         <span id="log-count-badge" class="bg-slate-300 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Contracts</span>
                     </div>
 
-                    <div id="contract-table-scroll-container" class="flex-1 overflow-x-auto overflow-y-auto bg-slate-50">
+                    <div id="contract-table-scroll-container" class="flex-1 overflow-x-auto overflow-y-auto bg-slate-50 max-h-[160px]">
                         <table class="w-full text-left border-collapse text-xs bg-white">
                             <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300 text-[11px] sticky top-0 z-10 shadow-sm">
                                 <tr>
@@ -289,6 +287,17 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- VISIBLE SYSTEM LOG PANEL (LPG) -->
+                    <div class="bg-slate-900 border-t border-slate-300 p-2 flex flex-col shrink-0">
+                        <div class="flex justify-between items-center text-[10px] font-bold text-slate-300 uppercase pb-1">
+                            <span>System Log & API Requests (LPG)</span>
+                            <button type="button" onclick="clearSystemLogs()" class="text-rose-400 hover:underline">Clear Log</button>
+                        </div>
+                        <div id="system-log-container" class="bg-slate-950 text-emerald-400 font-mono text-[10px] p-2 rounded h-20 overflow-y-auto no-scrollbar space-y-1">
+                            <div>[System] Initialized successfully. Waiting for account connection...</div>
+                        </div>
                     </div>
 
                     <div class="bg-slate-100 border-t border-slate-300 p-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold shrink-0">
@@ -546,6 +555,23 @@
             { level: 1, contract_type: "Touch/No Touch", market: "Derived", submarket: "Volatility 100 (1s) Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 5, duration_unit: "ticks", amount: 2.00, payout: 3.35 }
         ];
 
+        function logMsg(msg, type='INFO') {
+            const timeStr = new Date().toLocaleTimeString();
+            console.log(`[${timeStr}] [${type}] ${msg}`);
+            
+            const logContainer = document.getElementById('system-log-container');
+            if (logContainer) {
+                const colorClass = type === 'ERR' ? 'text-rose-400' : (type === 'REQ' ? 'text-amber-300' : 'text-emerald-400');
+                logContainer.innerHTML += `<div class="${colorClass}">[${timeStr}] [${type}] ${msg}</div>`;
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        }
+
+        function clearSystemLogs() {
+            const logContainer = document.getElementById('system-log-container');
+            if (logContainer) logContainer.innerHTML = '';
+        }
+
         function goToLandingView() {
             document.getElementById('landing-view').classList.remove('hidden');
             document.getElementById('login-view').classList.add('hidden');
@@ -752,23 +778,6 @@
             profEl.className = `p-1.5 font-bold ${prof >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
         }
 
-function logMsg(msg, type='INFO') {
-            const timeStr = new Date().toLocaleTimeString();
-            console.log(`[${timeStr}] [${type}] ${msg}`);
-            
-            const logContainer = document.getElementById('system-log-container');
-            if (logContainer) {
-                const colorClass = type === 'ERR' ? 'text-rose-400' : 'text-emerald-400';
-                logContainer.innerHTML += `<div class="${colorClass}">[${timeStr}] ${msg}</div>`;
-                logContainer.scrollTop = logContainer.scrollHeight;
-            }
-        }
-
-        function clearSystemLogs() {
-            const logContainer = document.getElementById('system-log-container');
-            if (logContainer) logContainer.innerHTML = '';
-        }
-
         function toggleAccountDropdown(event) {
             if (event) event.stopPropagation();
             const menu = document.getElementById('account-menu');
@@ -874,14 +883,13 @@ function logMsg(msg, type='INFO') {
             setInterval(async () => {
                 if (isAccountConnected && currentActiveAccountId && accessToken) {
                     if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
-                        if (isReconnecting) return; // Mencegah penumpukan request
+                        if (isReconnecting) return;
                         isReconnecting = true;
                         logMsg("WebSocket connection lost. Fetching fresh OTP for reconnection...", 'ERR');
                         const statusEl = document.getElementById('conn-status-indicator');
                         if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting (Fresh OTP)...';
                         
                         try {
-                            // Ambil OTP baru secara dinamis agar tidak kedaluwarsa
                             const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${currentActiveAccountId}/otp`, {
                                 method: "POST",
                                 headers: { "Authorization": `Bearer ${accessToken}` }
@@ -892,9 +900,11 @@ function logMsg(msg, type='INFO') {
                                 connectAuthenticatedWebSocket(lastWsUrl, currentActiveAccountId);
                             } else {
                                 logMsg("Failed to refresh OTP during reconnection.", 'ERR');
+                                isReconnecting = false;
                             }
                         } catch(err) {
                             logMsg("Reconnect error: " + err.message, 'ERR');
+                            isReconnecting = false;
                         }
                     }
                 }
@@ -903,7 +913,11 @@ function logMsg(msg, type='INFO') {
 
         function initPublicWebSocket() {
             publicWs = new WebSocket(`wss://api.derivws.com/trading/v1/options/ws/public`);
-            publicWs.onopen = () => { publicWs.send(JSON.stringify({ active_symbols: "brief", req_id: 1 })); };
+            publicWs.onopen = () => { 
+                const req = { active_symbols: "brief", req_id: 1 };
+                logMsg("REQ [Public WS]: " + JSON.stringify(req), 'REQ');
+                publicWs.send(JSON.stringify(req)); 
+            };
             publicWs.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
                 if (data.msg_type === 'active_symbols' && data.active_symbols) {
@@ -982,6 +996,7 @@ function logMsg(msg, type='INFO') {
                     lastWsUrl = otpData.data.url;
                     connectAuthenticatedWebSocket(lastWsUrl, accountId);
                 } else {
+                    isReconnecting = false;
                     if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1.5"></span> OTP Failed';
                 }
             } catch(e) {
@@ -995,15 +1010,20 @@ function logMsg(msg, type='INFO') {
             if (ws) ws.close();
             ws = new WebSocket(url);
             ws.onopen = () => {
-                ws.send(JSON.stringify({ balance: 1, subscribe: 1, req_id: 3 }));
+                const req = { balance: 1, subscribe: 1, req_id: 3 };
+                logMsg("REQ [Auth WS]: " + JSON.stringify(req), 'REQ');
+                ws.send(JSON.stringify(req));
                 isAccountConnected = true;
                 isReconnecting = false;
                 updateAccountUiLabel(accountId);
                 const statusEl = document.getElementById('conn-status-indicator');
                 if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span> Connected';
+                logMsg(`Successfully connected to account ${accountId}`);
             };
             ws.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
+                logMsg("RES: " + msg.data.substring(0, 150) + (msg.data.length > 150 ? '...' : ''));
+
                 if (data.msg_type === 'balance') {
                     const bal = parseFloat(data.balance.balance).toFixed(2);
                     const cur = data.balance.currency || 'USD';
@@ -1011,7 +1031,9 @@ function logMsg(msg, type='INFO') {
                 }
                 if (data.msg_type === 'proposal' && data.req_id === 105 && isBotRunning) {
                     if (data.proposal && data.proposal.id) {
-                        ws.send(JSON.stringify({ buy: data.proposal.id, price: data.proposal.ask_price, req_id: 106 }));
+                        const buyReq = { buy: data.proposal.id, price: data.proposal.ask_price, req_id: 106 };
+                        logMsg("REQ [Buy]: " + JSON.stringify(buyReq), 'REQ');
+                        ws.send(JSON.stringify(buyReq));
                     }
                 }
                 if (data.msg_type === 'buy' && data.req_id === 106 && isBotRunning) {
@@ -1020,7 +1042,9 @@ function logMsg(msg, type='INFO') {
                         const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
                         const executedAmount = parseFloat(currentConfig.amount) || parseFloat(data.buy.buy_price) || 0.00;
                         totalAccumulatedAmount += executedAmount;
-                        ws.send(JSON.stringify({ proposal_open_contract: 1, contract_id: activeContractId, subscribe: 1, req_id: 107 }));
+                        const pocReq = { proposal_open_contract: 1, contract_id: activeContractId, subscribe: 1, req_id: 107 };
+                        logMsg("REQ [POC]: " + JSON.stringify(pocReq), 'REQ');
+                        ws.send(JSON.stringify(pocReq));
                     }
                 }
                 if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract) {
@@ -1081,14 +1105,17 @@ function logMsg(msg, type='INFO') {
                         if (totalSessionProfit >= targetProfitLimit) {
                             isBotRunning = false;
                             updateBotStatusUi('STOPPED');
+                            logMsg(`🎉 TARGET PROFIT REACHED: $${totalSessionProfit.toFixed(2)}`);
                             alert(`🎉 EST. TARGET PROFIT REACHED! Session Profit: $${totalSessionProfit.toFixed(2)} (Target was >= $${targetProfitLimit.toFixed(2)}). Bot Stopped.`);
                         } else if (stopLossMode === 'until_end' && shouldStopForMaxLevelLoss) {
                             isBotRunning = false;
                             updateBotStatusUi('STOPPED');
+                            logMsg(`⚠️ MAX LEVEL LOSS REACHED: $${totalSessionProfit.toFixed(2)}`, 'ERR');
                             alert(`⚠️ MAX LEVEL LOSS REACHED! Strategy cycle completed with loss. Total P/L: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
                         } else if (stopLossMode === 'amount' && totalSessionProfit <= -stopLossLimit) {
                             isBotRunning = false;
                             updateBotStatusUi('STOPPED');
+                            logMsg(`⚠️ STOP LOSS EXCEEDED: $${Math.abs(totalSessionProfit.toFixed(2))}`, 'ERR');
                             alert(`⚠️ EST. STOP LOSS EXCEEDED! Total Net Loss: $${Math.abs(totalSessionProfit).toFixed(2)} (Limit was >= $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
                         } else if (isBotRunning) {
                             setTimeout(() => executeNextStrategyStep(), 1500);
@@ -1129,6 +1156,7 @@ function logMsg(msg, type='INFO') {
             ws.onclose = () => {
                 isAccountConnected = false;
                 isReconnecting = true;
+                logMsg("WebSocket closed unexpectedly.", 'ERR');
                 const statusEl = document.getElementById('conn-status-indicator');
                 if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
             };
@@ -1295,6 +1323,7 @@ function logMsg(msg, type='INFO') {
             if (currentConfig.barrier) proposalReq.barrier = currentConfig.barrier;
             if (currentConfig.last_digit !== undefined && currentConfig.last_digit !== "") proposalReq.barrier = currentConfig.last_digit.toString();
 
+            logMsg("REQ [Proposal]: " + JSON.stringify(proposalReq), 'REQ');
             ws.send(JSON.stringify(proposalReq));
         }
 
@@ -1446,7 +1475,9 @@ function logMsg(msg, type='INFO') {
                 const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
                 if (targetWs && targetWs.readyState === WebSocket.OPEN) {
                     setApiPendingStatus("Sending contracts_for request...");
-                    targetWs.send(JSON.stringify({ contracts_for: symbol, req_id: 2 }));
+                    const req = { contracts_for: symbol, req_id: 2 };
+                    logMsg("REQ [Contracts For]: " + JSON.stringify(req), 'REQ');
+                    targetWs.send(JSON.stringify(req));
                 }
             }
         }
@@ -1491,6 +1522,7 @@ function logMsg(msg, type='INFO') {
                 } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
                     req.barrier = selectedDigit.toString();
                 }
+                logMsg("REQ [Proposal Update]: " + JSON.stringify(req), 'REQ');
                 targetWs.send(JSON.stringify(req));
             }
         }
@@ -1713,15 +1745,5 @@ function logMsg(msg, type='INFO') {
             }
         }
     </script>
-    <!-- PANEL LOG AKTIVITAS -->
-                <div class="space-y-1.5 pt-2 border-t border-slate-200 shrink-0">
-                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase">
-                        <span>System Log</span>
-                        <button type="button" onclick="clearSystemLogs()" class="text-rose-500 hover:underline">Clear</button>
-                    </div>
-                    <div id="system-log-container" class="bg-slate-900 text-emerald-400 font-mono text-[10px] p-2 rounded h-28 overflow-y-auto no-scrollbar space-y-1">
-                        <div>[System] Initialized successfully.</div>
-                    </div>
-                </div>
 </body>
 </html>
