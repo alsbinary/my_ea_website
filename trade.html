@@ -752,9 +752,21 @@
             profEl.className = `p-1.5 font-bold ${prof >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
         }
 
-        function logMsg(msg, type='INFO') {
+function logMsg(msg, type='INFO') {
             const timeStr = new Date().toLocaleTimeString();
             console.log(`[${timeStr}] [${type}] ${msg}`);
+            
+            const logContainer = document.getElementById('system-log-container');
+            if (logContainer) {
+                const colorClass = type === 'ERR' ? 'text-rose-400' : 'text-emerald-400';
+                logContainer.innerHTML += `<div class="${colorClass}">[${timeStr}] ${msg}</div>`;
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        }
+
+        function clearSystemLogs() {
+            const logContainer = document.getElementById('system-log-container');
+            if (logContainer) logContainer.innerHTML = '';
         }
 
         function toggleAccountDropdown(event) {
@@ -859,18 +871,34 @@
         }
 
         function startAutoReconnectWatcher() {
-            setInterval(() => {
+            setInterval(async () => {
                 if (isAccountConnected && currentActiveAccountId && accessToken) {
                     if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+                        if (isReconnecting) return; // Mencegah penumpukan request
                         isReconnecting = true;
-                        logMsg("WebSocket connection lost. Reconnecting...", 'ERR');
+                        logMsg("WebSocket connection lost. Fetching fresh OTP for reconnection...", 'ERR');
                         const statusEl = document.getElementById('conn-status-indicator');
-                        if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
-                        if (lastWsUrl) connectAuthenticatedWebSocket(lastWsUrl, currentActiveAccountId);
-                        else selectAndConnectAccount(currentActiveAccountId, accessToken);
+                        if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting (Fresh OTP)...';
+                        
+                        try {
+                            // Ambil OTP baru secara dinamis agar tidak kedaluwarsa
+                            const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${currentActiveAccountId}/otp`, {
+                                method: "POST",
+                                headers: { "Authorization": `Bearer ${accessToken}` }
+                            });
+                            const otpData = await otpRes.json();
+                            if (otpData.data && otpData.data.url) {
+                                lastWsUrl = otpData.data.url;
+                                connectAuthenticatedWebSocket(lastWsUrl, currentActiveAccountId);
+                            } else {
+                                logMsg("Failed to refresh OTP during reconnection.", 'ERR');
+                            }
+                        } catch(err) {
+                            logMsg("Reconnect error: " + err.message, 'ERR');
+                        }
                     }
                 }
-            }, 3000);
+            }, 5000);
         }
 
         function initPublicWebSocket() {
@@ -1685,5 +1713,15 @@
             }
         }
     </script>
+    <!-- PANEL LOG AKTIVITAS -->
+                <div class="space-y-1.5 pt-2 border-t border-slate-200 shrink-0">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase">
+                        <span>System Log</span>
+                        <button type="button" onclick="clearSystemLogs()" class="text-rose-500 hover:underline">Clear</button>
+                    </div>
+                    <div id="system-log-container" class="bg-slate-900 text-emerald-400 font-mono text-[10px] p-2 rounded h-28 overflow-y-auto no-scrollbar space-y-1">
+                        <div>[System] Initialized successfully.</div>
+                    </div>
+                </div>
 </body>
 </html>
