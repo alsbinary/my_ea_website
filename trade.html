@@ -128,11 +128,14 @@
                 <div class="relative">
                     <button type="button" onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
                         <div class="text-right">
-                            <div id="account-type-label" class="text-amber-600 text-[11px] font-semibold">Demo account</div>
-                            <div class="flex items-center space-x-1">
-                                <span id="account-id-label" class="text-slate-400 text-[11px] font-mono">---</span>
-                                <span id="account-balance-label" class="text-slate-900 font-bold text-xs">0.00 USD</span>
+                            <!-- Label Jenis Akun di Bawah ID Akun -->
+                            <div class="flex items-center space-x-1 justify-end">
+                                <span id="account-id-label" class="text-slate-900 font-bold text-xs font-mono">---</span>
                             </div>
+                            <div id="account-type-label" class="text-amber-600 text-[10px] font-semibold">Demo account</div>
+                        </div>
+                        <div class="text-left font-bold text-slate-900 text-xs pl-1 border-l border-slate-200">
+                            <span id="account-balance-label">0.00 USD</span>
                         </div>
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
@@ -200,7 +203,6 @@
                     <div class="p-2 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
                         <div class="flex items-center space-x-1.5 flex-wrap">
                             <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+)</button>
-                            <!-- TOMBOL DELETE, CLEAR, EXPORT (DISABLE KETIKA RUN) -->
                             <button type="button" id="btn-delete-last" onclick="deleteLastRow()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Delete Last</button>
                             <button type="button" id="btn-clear-strategy" onclick="clearStrategy()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Clear</button>
                             <button type="button" id="btn-export-strategy" onclick="exportStrategyJson()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px]">Export Strategy</button>
@@ -362,12 +364,12 @@
 
     <!-- MODAL: SYSTEM LOG (LPG) -->
     <div id="system-log-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3">
-        <div class="bg-white border border-slate-200 rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col text-xs">
+        <div class="bg-white border border-slate-200 rounded-xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col text-xs">
             <div class="bg-slate-900 text-white px-4 py-2.5 flex justify-between items-center">
                 <h3 class="font-bold text-xs tracking-wide">System Log & API Requests (LPG)</h3>
                 <button type="button" onclick="closeSystemLogModal()" class="text-white hover:text-slate-200 font-bold text-base cursor-pointer">&times;</button>
             </div>
-            <div class="p-3 bg-slate-950 text-emerald-400 font-mono text-[10px] h-80 overflow-y-auto no-scrollbar space-y-1" id="system-log-container">
+            <div class="p-3 bg-slate-950 text-emerald-400 font-mono text-[10px] h-96 overflow-y-auto no-scrollbar space-y-1 whitespace-pre-wrap break-all" id="system-log-container">
                 <div>[System] Initialized log viewer...</div>
             </div>
             <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-between items-center">
@@ -504,7 +506,7 @@
         let isAccountConnected = false;
         let currentActiveAccountId = "";
         let lastWsUrl = "";
-        let isReconnecting = false;
+        let currentAccountBalance = 0.00;
 
         let isBotRunning = false;
         let currentStrategyLevelIndex = 0;
@@ -628,15 +630,19 @@
             const balLabel = document.getElementById('account-balance-label');
 
             if (idLabel) idLabel.innerText = accountId;
-            if (balLabel && balanceStr) balLabel.innerText = balanceStr;
+            if (balanceStr) {
+                balLabel.innerText = balanceStr;
+                const cleanBal = parseFloat(balanceStr);
+                if (!isNaN(cleanBal)) currentAccountBalance = cleanBal;
+            }
 
             if (typeLabel) {
                 if (isDemo) {
                     typeLabel.innerText = "Demo account";
-                    typeLabel.className = "text-amber-600 text-[11px] font-semibold";
+                    typeLabel.className = "text-amber-600 text-[10px] font-semibold";
                 } else {
                     typeLabel.innerText = "Real account";
-                    typeLabel.className = "text-slate-500 text-[11px] font-semibold";
+                    typeLabel.className = "text-slate-500 text-[10px] font-semibold";
                 }
             }
         }
@@ -647,7 +653,6 @@
             const subtext = document.getElementById('bot-status-subtext');
             const btnRunBot = document.getElementById('btn-run-bot');
             
-            // Tombol manajemen strategi
             const btnDeleteLast = document.getElementById('btn-delete-last');
             const btnClear = document.getElementById('btn-clear-strategy');
             const btnExport = document.getElementById('btn-export-strategy');
@@ -946,8 +951,8 @@
                 const balanceDisplay = acc.balance !== undefined ? `${parseFloat(acc.balance).toFixed(2)} ${acc.currency || 'USD'}` : '--- USD';
                 div.innerHTML = `
                     <div>
-                        <span class="${isDemo ? 'text-amber-600' : 'text-slate-500'} block text-[11px] font-semibold">${isDemo ? 'Demo account' : 'Real account'}</span>
-                        <span class="font-bold text-slate-800 font-mono text-xs">${acc.account_id}</span>
+                        <span class="font-bold text-slate-800 font-mono text-xs block">${acc.account_id}</span>
+                        <span class="${isDemo ? 'text-amber-600' : 'text-slate-500'} text-[10px] font-semibold">${isDemo ? 'Demo account' : 'Real account'}</span>
                     </div>
                     <div class="text-right"><span class="font-bold text-xs text-slate-900 block">${balanceDisplay}</span></div>
                 `;
@@ -1003,8 +1008,9 @@
                 logMsg(`Successfully connected to account ${accountId}`);
             };
             ws.onmessage = (msg) => {
+                // RES diprint utuh tanpa dipotong
+                logMsg("RES: " + msg.data);
                 const data = JSON.parse(msg.data);
-                logMsg("RES: " + msg.data.substring(0, 150) + (msg.data.length > 150 ? '...' : ''));
 
                 if (data.msg_type === 'balance') {
                     const bal = parseFloat(data.balance.balance).toFixed(2);
@@ -1019,7 +1025,11 @@
                     }
                 }
                 if (data.msg_type === 'buy' && data.req_id === 106 && isBotRunning) {
-                    if (data.buy && data.buy.contract_id) {
+                    if (data.error) {
+                        isBotRunning = false;
+                        updateBotStatusUi('STOPPED');
+                        alert(`⚠️ BOT STOPPED: Your account balance is insufficient (Current balance: $${currentAccountBalance.toFixed(2)}). Details: ${data.error.message}`);
+                    } else if (data.buy && data.buy.contract_id) {
                         activeContractId = data.buy.contract_id;
                         const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
                         const executedAmount = parseFloat(currentConfig.amount) || parseFloat(data.buy.buy_price) || 0.00;
@@ -1029,6 +1039,14 @@
                         ws.send(JSON.stringify(pocReq));
                     }
                 }
+                
+                // Menangkap error dari API secara umum (seperti InsufficientBalance)
+                if (data.error && isBotRunning) {
+                    isBotRunning = false;
+                    updateBotStatusUi('STOPPED');
+                    alert(`⚠️ BOT STOPPED: Your account balance is insufficient (Current balance: $${currentAccountBalance.toFixed(2)}). Message: ${data.error.message}`);
+                }
+
                 if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract) {
                     const poc = data.proposal_open_contract;
                     const cId = poc.contract_id;
@@ -1095,7 +1113,6 @@
                         } else if (stopLossMode === 'amount' && totalSessionProfit <= -Math.abs(stopLossLimit)) {
                             isBotRunning = false;
                             updateBotStatusUi('STOPPED');
-                            // Menampilkan nilai profit/loss aktual yang sama persis dengan Total P/L
                             alert(`⚠️ EST. STOP LOSS EXCEEDED! Total Net Loss: $${totalSessionProfit.toFixed(2)} (Limit was >= $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
                         } else if (isBotRunning) {
                             setTimeout(() => executeNextStrategyStep(), 1500);
@@ -1196,7 +1213,6 @@
             if (!unitSelect || !cachedContractsData) return;
 
             const activeTradeType = document.getElementById('modal-trade-type').value;
-            
             let hasTicks = false, hasSeconds = false, hasMinutes = false, hasHoursOrDays = false;
 
             cachedContractsData.forEach(c => {
