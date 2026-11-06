@@ -70,7 +70,7 @@
                     Smart Automated Execution for <span class="text-teal-400">Deriv Options</span>
                 </h1>
                 <p class="text-slate-400 max-w-2xl mx-auto text-xs md:text-sm leading-relaxed">
-                    DXBot is an automated strategy engine featuring real-time WebSocket architecture, multi-tier risk management, and advanced execution tools.
+                    DXBot is an automated strategy engine featuring real-time WebSocket architecture, multi-tier risk management, and advanced execution.
                 </p>
             </div>
 
@@ -96,7 +96,7 @@
             <div id="login-status-box" class="hidden p-3 rounded-xl text-center space-y-1.5 border text-xs">
                 <div id="login-status-spinner" class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                 <div id="login-status-text" class="font-bold">Connecting...</div>
-                <div id="login-status-subtext" class="text-[10px] opacity-80">Establishing secure OAuth handshake with Deriv...</div>
+                <div id="login-status-subtext" class="text-[10px] opacity-80">Connecting to Deriv OAuth portal...</div>
             </div>
             <div class="space-y-4 text-xs" id="login-action-container">
                 <button type="button" onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs cursor-pointer flex items-center justify-center space-x-2">
@@ -349,8 +349,8 @@
             </div>
             <div class="p-4 space-y-3 bg-slate-50 text-slate-700 leading-relaxed max-h-[70vh] overflow-y-auto">
                 <p><strong>1. Account Sign In:</strong> Click "CONNECT DERIV ACCOUNT" for OAuth PKCE authentication.</p>
-                <p><strong>2. Select Trading Account:</strong> Choose Demo or Real account from the header dropdown.</p>
-                <p><strong>3. Strategy Management:</strong> Configure your multi-tier trading rules.</p>
+                <p><strong>2. Select Trading Account:</strong> Choose Demo or Real account from the top header dropdown.</p>
+                <p><strong>3. Strategy Management:</strong> Configure multi-tier trading rules.</p>
                 <p><strong>4. Execute Bot:</strong> Click <strong>RUN BOT</strong> to start automated trading.</p>
             </div>
             <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-end">
@@ -651,7 +651,6 @@
             const subtext = document.getElementById('bot-status-subtext');
             const btnRunBot = document.getElementById('btn-run-bot');
             const btnOpenModal = document.getElementById('btn-open-modal');
-            
             const btnDeleteLast = document.getElementById('btn-delete-last');
             const btnClear = document.getElementById('btn-clear-strategy');
             const btnExport = document.getElementById('btn-export-strategy');
@@ -667,13 +666,1034 @@
                     btnRunBot.disabled = true;
                     btnRunBot.className = "py-2.5 bg-slate-300 text-slate-500 font-bold rounded text-xs cursor-not-allowed shadow-sm transition";
                 }
-                if (btnOpenModal) {
-                    btnOpenModal.disabled = true;
-                    btnOpenModal.className = "px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]";
-                }
+                if (btnOpenModal) { btnOpenModal.disabled = true; btnOpenModal.className = "px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]"; }
                 if (btnDeleteLast) { btnDeleteLast.disabled = true; btnDeleteLast.classList.add('opacity-50', 'cursor-not-allowed'); }
                 if (btnClear) { btnClear.disabled = true; btnClear.classList.add('opacity-50', 'cursor-not-allowed'); }
                 if (btnExport) { btnExport.disabled = true; btnExport.classList.add('opacity-50', 'cursor-not-allowed'); }
             } else {
                 dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 inline-block";
-                label.innerText = "STOP
+                label.innerText = "STOPPED";
+                label.className = "font-bold text-[11px] tracking-wide text-rose-400";
+                subtext.innerText = "Idle";
+                if (btnRunBot) {
+                    btnRunBot.disabled = false;
+                    btnRunBot.className = "py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm transition";
+                }
+                // Add level button is NEVER disabled unless running
+                if (btnOpenModal) { btnOpenModal.disabled = false; btnOpenModal.className = "px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer transition text-[11px]"; }
+                if (btnDeleteLast) { btnDeleteLast.disabled = false; btnDeleteLast.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                if (btnClear) { btnClear.disabled = false; btnClear.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                if (btnExport) { btnExport.disabled = false; btnExport.classList.remove('opacity-50', 'cursor-not-allowed'); }
+            }
+        }
+
+        function updateDefaultStopLoss() {
+            let totalAmountSum = defaultStrategyData.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+            const stopLossInput = document.getElementById('input-stop-loss');
+            if (stopLossInput && !isBotRunning) {
+                stopLossInput.value = totalAmountSum.toFixed(2);
+            }
+        }
+
+        function isContractMatchingActiveSelection(c, activeTradeType, selectedChoice, durationUnitVal) {
+            const cCat = (c.contract_category || "").toLowerCase();
+            const cType = (c.contract_type || "").toUpperCase();
+            const expiryType = (c.expiry_type || "").toLowerCase();
+            const minDurStr = (c.min_contract_duration || "").toLowerCase();
+
+            let matchesExpiry = false;
+            if (durationUnitVal === 't') {
+                matchesExpiry = (expiryType === 'tick' || minDurStr.endsWith('t'));
+            } else if (durationUnitVal === 's') {
+                matchesExpiry = (expiryType === 'intraday' && minDurStr.endsWith('s'));
+            } else if (durationUnitVal === 'm') {
+                matchesExpiry = (expiryType === 'intraday' && (minDurStr.endsWith('m') || minDurStr.endsWith('s')));
+            } else if (durationUnitVal === 'h') {
+                matchesExpiry = (expiryType === 'daily' || expiryType === 'intraday');
+            } else {
+                matchesExpiry = (expiryType === durationUnitVal || expiryType === 'daily');
+            }
+            if (!matchesExpiry) return false;
+
+            if (activeTradeType === 'Rise/Fall') {
+                return cCat === 'callput' && (selectedChoice === 'Rise' ? cType === 'CALL' : cType === 'PUT');
+            }
+            if (activeTradeType === 'Higher/Lower') {
+                return cCat === 'higherlower' && (selectedChoice === 'Higher' ? cType === 'HIGHER' : cType === 'LOWER');
+            }
+            if (activeTradeType === 'Touch/No Touch') {
+                return cCat === 'touchnotouch' && (selectedChoice === 'Touch' ? cType === 'ONETOUCH' : cType === 'NOTOUCH');
+            }
+            if (activeTradeType === 'Matches/Differs') {
+                return cCat === 'digits' && (selectedChoice === 'Matches' ? cType === 'DIGITMATCH' : cType === 'DIGITDIFF');
+            }
+            if (activeTradeType === 'Over/Under') {
+                return cCat === 'digits' && (selectedChoice === 'Over' ? cType === 'DIGITOVER' : cType === 'DIGITUNDER');
+            }
+            if (activeTradeType === 'Even/Odd') {
+                return cCat === 'digits' && (selectedChoice === 'Even' ? cType === 'DIGITEVEN' : cType === 'DIGITODD');
+            }
+            return true;
+        }
+
+        function resetRightPanelPortfolio() {
+            document.getElementById('pf-level').innerText = "-";
+            document.getElementById('pf-market').innerText = "-";
+            document.getElementById('pf-contract').innerText = "-";
+            document.getElementById('pf-starttime').innerText = "-";
+            document.getElementById('pf-endtime').innerText = "-";
+            document.getElementById('pf-remain').innerText = "-";
+            document.getElementById('pf-entry').innerText = "-";
+            document.getElementById('pf-target').innerText = "-";
+            document.getElementById('pf-barrier').innerText = "-";
+            document.getElementById('pf-spot').innerText = "-";
+            document.getElementById('pf-payout').innerText = "-";
+            document.getElementById('pf-purchase').innerText = "-";
+            document.getElementById('pf-profit').innerText = "-";
+            const badge = document.getElementById('active-contract-id-badge');
+            if (badge) badge.classList.add('hidden');
+        }
+
+        function updateRightPanelPortfolio(pocData, levelNum) {
+            if (!pocData) { resetRightPanelPortfolio(); return; }
+            const badge = document.getElementById('active-contract-id-badge');
+            if (badge) { badge.innerText = `#${pocData.contract_id}`; badge.classList.remove('hidden'); }
+            document.getElementById('pf-level').innerText = `Level ${levelNum || 1}`;
+            document.getElementById('pf-market').innerText = pocData.display_name || pocData.underlying || "Derived Market";
+            document.getElementById('pf-contract').innerText = pocData.contract_type || "-";
+            document.getElementById('pf-starttime').innerText = pocData.date_start ? new Date(pocData.date_start * 1000).toLocaleTimeString() : "-";
+            document.getElementById('pf-endtime').innerText = pocData.date_expiry ? new Date(pocData.date_expiry * 1000).toLocaleTimeString() : "-";
+            document.getElementById('pf-remain').innerText = pocData.is_sold ? "0s (Final)" : (pocData.tick_count ? `${pocData.tick_count} ticks` : "Active");
+            document.getElementById('pf-entry').innerText = pocData.entry_spot || "-";
+            document.getElementById('pf-target').innerText = pocData.barrier || "-";
+            document.getElementById('pf-barrier').innerText = pocData.barrier || "-";
+            document.getElementById('pf-spot').innerText = pocData.current_spot || "-";
+            document.getElementById('pf-payout').innerText = `$${parseFloat(pocData.payout || 0).toFixed(2)}`;
+            document.getElementById('pf-purchase').innerText = `$${parseFloat(pocData.buy_price || 0).toFixed(2)}`;
+            const prof = parseFloat(pocData.profit || 0);
+            const profEl = document.getElementById('pf-profit');
+            profEl.innerText = `${prof >= 0 ? '+' : ''}$${prof.toFixed(2)}`;
+            profEl.className = `p-1.5 font-bold ${prof >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+        }
+
+        function toggleAccountDropdown(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('account-menu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        window.addEventListener('click', function(e) {
+            const menu = document.getElementById('account-menu');
+            const btn = document.getElementById('account-dropdown-btn');
+            if (menu && btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        function loginWithDerivOAuthPKCE() {
+            const clientId = DEFAULT_APP_ID;
+            localStorage.setItem('deriv_client_id', clientId);
+            showLoginConnectingStatus("Connecting to OAuth Gateway...", "Creating secure PKCE handshake request to Deriv...");
+            logMsg("Starting OAuth PKCE login process...", 'REQ');
+
+            const array = crypto.getRandomValues(new Uint8Array(64));
+            const codeVerifier = Array.from(array)
+                .map(v => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[v % 66])
+                .join('');
+
+            const encoder = new TextEncoder();
+            const data = encoder.encode(codeVerifier);
+
+            crypto.subtle.digest('SHA-256', data).then(digest => {
+                const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+                    .replace(/\+/g, '-')
+                    .replace(/\//g, '_')
+                    .replace(/=+$/, '');
+
+                const state = crypto.randomUUID();
+                localStorage.setItem('pkce_code_verifier', codeVerifier);
+                localStorage.setItem('oauth_state', state);
+                const redirectUri = "https://tradelib.net/trade-callback"; 
+
+                const params = new URLSearchParams({
+                    client_id: clientId,
+                    redirect_uri: redirectUri,
+                    response_type: 'code',
+                    scope: 'trade',
+                    state: state,
+                    code_challenge: codeChallenge,
+                    code_challenge_method: 'S256'
+                });
+
+                setTimeout(() => {
+                    showLoginConnectingStatus("Login Successful!", "Redirecting to DXBot Engine...", true);
+                    logMsg("Redirecting to auth.deriv.com with PKCE parameters.", 'INFO');
+                    setTimeout(() => {
+                        window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
+                    }, 800);
+                }, 600);
+            });
+        }
+
+        function handleLogout() {
+            logMsg("User logged out, clearing session cache.", 'INFO');
+            localStorage.clear();
+            sessionStorage.clear();
+            location.reload();
+        }
+
+        window.onload = async function() {
+            logMsg("System | DXBot initialized.", 'INFO');
+            startGMTClock();
+            loadSavedStrategy();
+            updateDefaultStopLoss();
+            resetRightPanelPortfolio();
+            toggleStopLossInput();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            let code = urlParams.get('code');
+            if (code) {
+                logMsg(`Received authorization code from redirect URL: ${code.substring(0, 10)}...`, 'INFO');
+                localStorage.setItem('deriv_access_token', code);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            accessToken = localStorage.getItem('deriv_access_token');
+            initPublicWebSocket();
+
+            if (accessToken) {
+                document.getElementById('landing-view').classList.add('hidden');
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+                renderStrategyTable(defaultStrategyData);
+                renderContractTable();
+                
+                initMainWebSocket(accessToken);
+            } else {
+                goToLandingView();
+            }
+        };
+
+        function startGMTClock() {
+            setInterval(() => {
+                const now = new Date();
+                const el = document.getElementById('gmt-time');
+                if (el) el.innerText = now.toUTCString().split(' ')[4] + ' GMT';
+            }, 1000);
+        }
+
+        function initPublicWebSocket() {
+            const pubUrl = `wss://ws.derivws.com/websockets/v3?app_id=${DEFAULT_APP_ID}`;
+            logMsg(`REQ [Public WS Connect]: Opening connection to ${pubUrl}`, 'REQ');
+            publicWs = new WebSocket(pubUrl);
+            
+            publicWs.onopen = () => { 
+                logMsg("RES [Public WS Open]: Public connection successfully opened.", 'INFO');
+                const req = { active_symbols: "brief", product_type: "basic", req_id: 1 };
+                logMsg(`REQ [Public WS Send]: ${JSON.stringify(req)}`, 'REQ');
+                publicWs.send(JSON.stringify(req)); 
+            };
+            publicWs.onmessage = (msg) => {
+                logMsg(`RES [Public WS Message]: ${msg.data}`, 'INFO');
+                try {
+                    const data = JSON.parse(msg.data);
+                    if (data.msg_type === 'active_symbols' && data.active_symbols) {
+                        activeSymbolsList = data.active_symbols;
+                        onMarketCategoryChange();
+                    }
+                } catch(e) {}
+            };
+            publicWs.onerror = (err) => {
+                logMsg(`ERR [Public WS Error]: ${JSON.stringify(err)}`, 'ERR');
+            };
+            publicWs.onclose = () => {
+                logMsg("ERR [Public WS Close]: Public connection closed. Attempting reconnect in 5 seconds...", 'ERR');
+                setTimeout(() => { if (!publicWs || publicWs.readyState === WebSocket.CLOSED) initPublicWebSocket(); }, 5000);
+            };
+        }
+
+        function initMainWebSocket(token) {
+            const wsUrl = `wss://ws.derivws.com/websockets/v3?app_id=${DEFAULT_APP_ID}`;
+            logMsg(`REQ [Main WS Connect]: Opening authenticated WebSocket to ${wsUrl}`, 'REQ');
+            
+            if (ws) {
+                try { ws.close(); } catch(e) {}
+            }
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                logMsg("RES [Main WS Open]: Main connection successfully opened. Sending authorize request...", 'INFO');
+                const authReq = { authorize: token, req_id: 2 };
+                logMsg(`REQ [Authorize]: ${JSON.stringify(authReq)}`, 'REQ');
+                ws.send(JSON.stringify(authReq));
+            };
+
+            ws.onmessage = (msg) => {
+                logMsg(`RES [Main WS Message]: ${msg.data}`, 'INFO');
+                try {
+                    const data = JSON.parse(msg.data);
+
+                    if (data.msg_type === 'authorize') {
+                        if (data.error) {
+                            logMsg(`ERR [Authorize Failed]: ${data.error.message}`, 'ERR');
+                            const statusEl = document.getElementById('conn-status-indicator');
+                            if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1.5"></span> Authorization Failed';
+                        } else if (data.authorize) {
+                            isAccountConnected = true;
+                            const auth = data.authorize;
+                            currentActiveAccountId = auth.loginid;
+                            accountsList = auth.account_list || [{ account_id: auth.loginid, currency: auth.currency, balance: auth.balance }];
+                            
+                            renderAccountsDropdown(accountsList);
+                            updateAccountUiLabel(auth.loginid, `${parseFloat(auth.balance).toFixed(2)} ${auth.currency || 'USD'}`);
+                            loadLogsFromStorage(auth.loginid);
+                            renderContractTable();
+                            renderSummaryFooters();
+
+                            const statusEl = document.getElementById('conn-status-indicator');
+                            if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span> Connected';
+                            logMsg(`Successfully connected to account ${auth.loginid} (Balance: ${auth.balance} ${auth.currency})`, 'INFO');
+
+                            const balReq = { balance: 1, subscribe: 1, req_id: 3 };
+                            logMsg(`REQ [Balance Subscribe]: ${JSON.stringify(balReq)}`, 'REQ');
+                            ws.send(JSON.stringify(balReq));
+                        }
+                    }
+
+                    if (data.msg_type === 'balance' && data.balance) {
+                        const bal = parseFloat(data.balance.balance).toFixed(2);
+                        const cur = data.balance.currency || 'USD';
+                        updateAccountUiLabel(currentActiveAccountId, `${bal} ${cur}`);
+                    }
+
+                    if (data.msg_type === 'proposal' && data.req_id === 105 && isBotRunning) {
+                        if (data.proposal && data.proposal.id) {
+                            const buyReq = { buy: data.proposal.id, price: data.proposal.ask_price, req_id: 106 };
+                            logMsg(`REQ [Buy]: ${JSON.stringify(buyReq)}`, 'REQ');
+                            ws.send(JSON.stringify(buyReq));
+                        }
+                    }
+
+                    if (data.msg_type === 'buy' && data.req_id === 106 && isBotRunning) {
+                        if (data.error) {
+                            isBotRunning = false;
+                            updateBotStatusUi('STOPPED');
+                            logMsg(`ERR [Buy Error]: ${data.error.message}`, 'ERR');
+                            alert(`⚠️ BOT STOPPED: Insufficient account balance (Current balance: $${currentAccountBalance.toFixed(2)}). Detail: ${data.error.message}`);
+                        } else if (data.buy && data.buy.contract_id) {
+                            activeContractId = data.buy.contract_id;
+                            const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
+                            const executedAmount = parseFloat(currentConfig.amount) || parseFloat(data.buy.buy_price) || 0.00;
+                            totalAccumulatedAmount += executedAmount;
+                            const pocReq = { proposal_open_contract: 1, contract_id: activeContractId, subscribe: 1, req_id: 107 };
+                            logMsg(`REQ [Proposal Open Contract]: ${JSON.stringify(pocReq)}`, 'REQ');
+                            ws.send(JSON.stringify(pocReq));
+                        }
+                    }
+
+                    if (data.error && isBotRunning) {
+                        isBotRunning = false;
+                        updateBotStatusUi('STOPPED');
+                        logMsg(`ERR [API Error]: ${JSON.stringify(data.error)}`, 'ERR');
+                        alert(`⚠️ BOT STOPPED: Insufficient account balance (Current balance: $${currentAccountBalance.toFixed(2)}). Message: ${data.error.message}`);
+                    }
+
+                    if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract) {
+                        const poc = data.proposal_open_contract;
+                        const cId = poc.contract_id;
+                        const isSold = poc.is_sold;
+                        const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
+
+                        let existingLog = contractLogs.find(l => l.contract_id === cId);
+                        if (!existingLog) {
+                            existingLog = {
+                                id: contractLogs.length + 1, contract_id: cId, account_id: currentActiveAccountId,
+                                status: poc.status || 'open', level: currentStrategyLevelIndex + 1,
+                                contract_type: currentConfig.contract_type || "Touch/No Touch",
+                                submarket: currentConfig.submarket || "Volatility 100 (1s) Index",
+                                purchase_type: currentConfig.purchase_type || "No Touch",
+                                buy_price: parseFloat(poc.buy_price || 0), sell_price: parseFloat(poc.sell_price || 0),
+                                payout: parseFloat(poc.payout || 0), profit: parseFloat(poc.profit || 0), pocData: poc
+                            };
+                            contractLogs.push(existingLog);
+                        } else {
+                            existingLog.status = poc.status || existingLog.status;
+                            existingLog.sell_price = parseFloat(poc.sell_price || existingLog.sell_price);
+                            existingLog.profit = parseFloat(poc.profit || existingLog.profit);
+                            existingLog.pocData = poc;
+                        }
+                        saveLogsToStorage(currentActiveAccountId);
+                        if (!isSold) updateRightPanelPortfolio(poc, existingLog.level);
+                        else resetRightPanelPortfolio();
+                        renderContractTable();
+
+                        if (isSold === 1 && !processedContractIds.has(cId)) {
+                            processedContractIds.add(cId);
+                            const profitVal = parseFloat(poc.profit || 0);
+                            totalSessionProfit += profitVal;
+
+                            const stopLossMode = document.getElementById('select-stop-loss-mode').value;
+                            let shouldStopForMaxLevelLoss = false;
+
+                            if (poc.status === 'won') {
+                                winCount++;
+                                currentStrategyLevelIndex = 0;
+                                totalAccumulatedAmount = 0;
+                            } else if (poc.status === 'lost') {
+                                lossCount++;
+                                if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) {
+                                    currentStrategyLevelIndex++;
+                                } else {
+                                    currentStrategyLevelIndex = 0;
+                                    shouldStopForMaxLevelLoss = true;
+                                }
+                            }
+                            renderSummaryFooters();
+
+                            const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
+                            const stopLossLimit = parseFloat(document.getElementById('input-stop-loss').value) || 4.00;
+
+                            if (totalSessionProfit >= targetProfitLimit) {
+                                isBotRunning = false;
+                                updateBotStatusUi('STOPPED');
+                                alert(`🎉 EST. TARGET PROFIT REACHED! Session Profit: $${totalSessionProfit.toFixed(2)} (Target >= $${targetProfitLimit.toFixed(2)}). Bot Stopped.`);
+                            } else if (stopLossMode === 'until_end' && shouldStopForMaxLevelLoss) {
+                                isBotRunning = false;
+                                updateBotStatusUi('STOPPED');
+                                alert(`⚠️ MAX LEVEL LOSS REACHED! Total P/L: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
+                            } else if (stopLossMode === 'amount' && totalSessionProfit <= -Math.abs(stopLossLimit)) {
+                                isBotRunning = false;
+                                updateBotStatusUi('STOPPED');
+                                alert(`⚠️ EST. STOP LOSS EXCEEDED! Total Net Loss: $${totalSessionProfit.toFixed(2)} (Limit >= $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
+                            } else if (isBotRunning) {
+                                setTimeout(() => executeNextStrategyStep(), 1500);
+                            }
+                        }
+                    }
+
+                    if (data.msg_type === 'contracts_for') {
+                        if (data.contracts_for) {
+                            cachedContractsData = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
+                            updateAvailableDurationUnits();
+                            updateModalDurationAndRules();
+                        }
+                    }
+
+                    if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
+                        const banner = document.getElementById('api-status-banner');
+                        currentEstimatedPayout = parseFloat(data.proposal.payout || 0);
+                        document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
+                        if(banner) {
+                            banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
+                            document.getElementById('api-status-text').innerText = "Proposal & payout successfully updated from API.";
+                            const badge = document.getElementById('api-status-badge');
+                            badge.innerText = "VERIFIED";
+                            badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
+                        }
+                    }
+                } catch(e) {
+                    logMsg(`ERR [Message Parse Error]: ${e.message}`, 'ERR');
+                }
+            };
+
+            ws.onerror = (err) => {
+                logMsg(`ERR [Main WS Error]: ${JSON.stringify(err)}`, 'ERR');
+            };
+
+            ws.onclose = () => {
+                isAccountConnected = false;
+                logMsg("ERR [Main WS Close]: WebSocket closed unexpectedly. Executing auto-reconnect...", 'ERR');
+                const statusEl = document.getElementById('conn-status-indicator');
+                if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
+                
+                setTimeout(() => {
+                    if (accessToken) {
+                        logMsg("System | Attempting to reconnect main WebSocket...", 'INFO');
+                        initMainWebSocket(accessToken);
+                    }
+                }, 3000);
+            };
+        }
+
+        function renderAccountsDropdown(accounts) {
+            const container = document.getElementById('account-list-container');
+            if(!container) return;
+            container.innerHTML = "";
+            accounts.forEach(acc => {
+                const isDemo = checkIsDemoAccount(acc.account_id);
+                const div = document.createElement('div');
+                div.className = "p-2.5 hover:bg-slate-50 cursor-pointer rounded flex justify-between items-center border-b border-slate-100";
+                const balanceDisplay = acc.balance !== undefined ? `${parseFloat(acc.balance).toFixed(2)} ${acc.currency || 'USD'}` : '--- USD';
+                div.innerHTML = `
+                    <div>
+                        <span class="${isDemo ? 'text-amber-600' : 'text-slate-500'} text-[10px] font-semibold block">${isDemo ? 'Demo account' : 'Real account'}</span>
+                        <span class="font-bold text-slate-800 font-mono text-xs block">${acc.account_id}</span>
+                    </div>
+                    <div class="text-right"><span class="font-bold text-xs text-slate-900 block">${balanceDisplay}</span></div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateModalDurationAndRules() {
+            if (!cachedContractsData || cachedContractsData.length === 0) return;
+
+            const activeTradeType = document.getElementById('modal-trade-type').value;
+            const durationUnitVal = document.getElementById('modal-duration-unit').value;
+
+            const matchedContract = cachedContractsData.find(c => isContractMatchingActiveSelection(c, activeTradeType, selectedChoice, durationUnitVal));
+
+            const barrierInput = document.getElementById('modal-barrier');
+            const durationInput = document.getElementById('modal-duration');
+            const amountInput = document.getElementById('modal-amount');
+            const minDurationLabel = document.getElementById('duration-min-label');
+            const minAmountLabel = document.getElementById('amount-min-label');
+
+            if (matchedContract && matchedContract.min_contract_duration) {
+                const minStr = matchedContract.min_contract_duration;
+                const matchNum = minStr.match(/\d+/);
+                let minDurVal = matchNum ? parseInt(matchNum[0]) : 1;
+
+                durationInput.value = minDurVal;
+                durationInput.min = minDurVal;
+                if (minDurationLabel) minDurationLabel.innerText = `Min: ${minStr}`;
+
+                if (matchedContract.max_contract_duration) {
+                    const maxStr = matchedContract.max_contract_duration;
+                    const matchNumMax = maxStr.match(/\d+/);
+                    if (matchNumMax) durationInput.max = parseInt(matchNumMax[0]);
+                }
+
+                const defaultStakeVal = matchedContract.default_stake !== undefined ? parseFloat(matchedContract.default_stake) : 2.00;
+                const minStakeVal = matchedContract.min_stake !== undefined ? parseFloat(matchedContract.min_stake) : 0.35;
+
+                amountInput.value = defaultStakeVal.toFixed(2);
+                amountInput.min = minStakeVal.toFixed(2);
+                if (minAmountLabel) minAmountLabel.innerText = `Min: $${minStakeVal.toFixed(2)}`;
+
+                if (['Higher/Lower', 'Touch/No Touch'].includes(activeTradeType)) {
+                    barrierInput.value = matchedContract.barrier || '';
+                } else {
+                    barrierInput.value = '';
+                }
+            } else {
+                if (minDurationLabel) minDurationLabel.innerText = `Min: 1`;
+                durationInput.min = 1;
+                durationInput.value = 1;
+            }
+
+            requestProposalUpdate();
+        }
+
+        function updateAvailableDurationUnits() {
+            const unitSelect = document.getElementById('modal-duration-unit');
+            if (!unitSelect || !cachedContractsData) return;
+
+            const activeTradeType = document.getElementById('modal-trade-type').value;
+            let hasTicks = false, hasSeconds = false, hasMinutes = false, hasHoursOrDays = false;
+
+            cachedContractsData.forEach(c => {
+                const cCat = (c.contract_category || "").toLowerCase();
+                const cType = (c.contract_type || "").toUpperCase();
+                const expiryType = (c.expiry_type || "").toLowerCase();
+                const minDur = (c.min_contract_duration || "").toLowerCase();
+
+                let isCategoryMatch = false;
+                if (activeTradeType === 'Rise/Fall') isCategoryMatch = (cCat === 'callput' && (cType === 'CALL' || cType === 'PUT'));
+                else if (activeTradeType === 'Higher/Lower') isCategoryMatch = (cCat === 'higherlower' && (cType === 'HIGHER' || cType === 'LOWER'));
+                else if (activeTradeType === 'Touch/No Touch') isCategoryMatch = (cCat === 'touchnotouch' && (cType === 'ONETOUCH' || cType === 'NOTOUCH'));
+                else if (['Matches/Differs', 'Over/Under', 'Even/Odd'].includes(activeTradeType)) isCategoryMatch = (cCat === 'digits');
+                else isCategoryMatch = true;
+
+                if (isCategoryMatch) {
+                    if (expiryType === 'tick' || minDur.endsWith('t')) hasTicks = true;
+                    if (expiryType === 'intraday' && minDur.endsWith('s')) hasSeconds = true;
+                    if (expiryType === 'intraday' && (minDur.endsWith('m') || minDur.endsWith('s'))) hasMinutes = true;
+                    if (expiryType === 'daily' || expiryType === 'intraday') hasHoursOrDays = true;
+                }
+            });
+
+            const currentVal = unitSelect.value;
+            unitSelect.innerHTML = '';
+
+            if (hasTicks) unitSelect.innerHTML += `<option value="t">Ticks</option>`;
+            if (hasSeconds) unitSelect.innerHTML += `<option value="s">Seconds</option>`;
+            if (hasMinutes) unitSelect.innerHTML += `<option value="m">Minutes</option>`;
+            if (hasHoursOrDays) unitSelect.innerHTML += `<option value="h">Hours / Days</option>`;
+
+            if (unitSelect.options.length === 0) unitSelect.innerHTML = `<option value="t">Ticks</option>`;
+
+            let found = false;
+            for (let i = 0; i < unitSelect.options.length; i++) {
+                if (unitSelect.options[i].value === currentVal) {
+                    unitSelect.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) unitSelect.selectedIndex = 0;
+        }
+
+        function loadLogsFromStorage(accountId) {
+            const saved = localStorage.getItem(`contract_logs_${accountId}`);
+            contractLogs = saved ? JSON.parse(saved) : [];
+        }
+
+        function saveLogsToStorage(accountId) {
+            if (!accountId) return;
+            localStorage.setItem(`contract_logs_${accountId}`, JSON.stringify(contractLogs.filter(l => l.account_id === accountId)));
+        }
+
+        function clearCurrentAccountLogs() {
+            if (!currentActiveAccountId) return;
+            if (confirm(`Clear all transaction logs for account ${currentActiveAccountId}?`)) {
+                contractLogs = contractLogs.filter(l => l.account_id !== currentActiveAccountId);
+                localStorage.removeItem(`contract_logs_${currentActiveAccountId}`);
+                processedContractIds.clear();
+                totalSessionProfit = 0; totalAccumulatedAmount = 0; winCount = 0; lossCount = 0;
+                renderContractTable();
+                renderSummaryFooters();
+            }
+        }
+
+        function executeNextStrategyStep() {
+            if (!isBotRunning || !ws || ws.readyState !== WebSocket.OPEN) return;
+            const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
+            let contractTypeApi = "NOTOUCH";
+            const pType = currentConfig.purchase_type;
+            const cType = currentConfig.contract_type;
+
+            if (cType === 'Touch/No Touch') contractTypeApi = (pType === 'Touch') ? "ONETOUCH" : "NOTOUCH";
+            else if (cType === 'Rise/Fall') contractTypeApi = (pType === 'Rise') ? "CALL" : "PUT";
+            else if (cType === 'Higher/Lower') contractTypeApi = (pType === 'Higher') ? "HIGHER" : "LOWER";
+            else if (cType === 'Matches/Differs') contractTypeApi = (pType === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
+            else if (cType === 'Over/Under') contractTypeApi = (pType === 'Over') ? "DIGITOVER" : "DIGITUNDER";
+            else if (cType === 'Even/Odd') contractTypeApi = (pType === 'Even') ? "DIGITEVEN" : "DIGITODD";
+
+            let underlyingSymbol = "1HZ100V";
+            if (activeSymbolsList && activeSymbolsList.length > 0) {
+                const foundSymbol = activeSymbolsList.find(s => s.display_name === currentConfig.submarket || s.underlying_symbol_name === currentConfig.submarket);
+                if (foundSymbol) underlyingSymbol = foundSymbol.underlying_symbol || foundSymbol.symbol;
+            }
+
+            let durUnit = 't';
+            const unitLower = (currentConfig.duration_unit || 't').toLowerCase();
+            if (unitLower.startsWith('sec')) durUnit = 's';
+            else if (unitLower.startsWith('min')) durUnit = 'm';
+            else if (unitLower.startsWith('hour')) durUnit = 'h';
+
+            const proposalReq = {
+                proposal: 1, amount: parseFloat(currentConfig.amount) || 2.00, basis: "stake", currency: "USD",
+                underlying_symbol: underlyingSymbol, contract_type: contractTypeApi,
+                duration: parseInt(currentConfig.duration_amount) || 1, duration_unit: durUnit, req_id: 105
+            };
+            if (currentConfig.barrier) proposalReq.barrier = currentConfig.barrier;
+            if (currentConfig.last_digit !== undefined && currentConfig.last_digit !== "") proposalReq.barrier = currentConfig.last_digit.toString();
+
+            logMsg(`REQ [Proposal]: ${JSON.stringify(proposalReq)}`, 'REQ');
+            ws.send(JSON.stringify(proposalReq));
+        }
+
+        function renderContractTable() {
+            const tbody = document.getElementById('contract-table-body');
+            const badge = document.getElementById('log-count-badge');
+            if(!tbody) return;
+            const activeLogs = contractLogs.filter(l => l.account_id === currentActiveAccountId);
+            if (badge) badge.innerText = `${activeLogs.length} Contracts`;
+
+            if (activeLogs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="p-3 text-center text-slate-400 italic bg-white">No contract history yet for this account...</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            activeLogs.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-teal-50 cursor-pointer transition border-b border-slate-200 text-xs";
+                let statusBadge = '<span class="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold text-[10px] uppercase">OPEN</span>';
+                if (item.status === 'won') statusBadge = '<span class="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold text-[10px] uppercase">WIN</span>';
+                else if (item.status === 'lost') statusBadge = '<span class="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold text-[10px] uppercase">LOSS</span>';
+
+                const profitClass = item.profit > 0 ? 'text-emerald-600 font-bold' : (item.profit < 0 ? 'text-rose-600 font-bold' : 'text-slate-600');
+                tr.innerHTML = `
+                    <td class="text-center font-bold text-slate-500 bg-slate-50/50">${index + 1}</td>
+                    <td class="text-center">${statusBadge}</td>
+                    <td class="text-center font-bold text-slate-700">L${item.level}</td>
+                    <td class="text-center font-mono text-slate-600">${item.account_id}</td>
+                    <td class="text-slate-800">${item.contract_type}</td>
+                    <td class="text-slate-800 font-medium">${item.submarket}</td>
+                    <td class="font-bold text-slate-900">${item.purchase_type}</td>
+                    <td class="font-mono text-slate-600">$${item.buy_price.toFixed(2)}</td>
+                    <td class="font-mono text-slate-600">$${item.sell_price.toFixed(2)}</td>
+                    <td class="font-mono text-slate-600">$${item.payout.toFixed(2)}</td>
+                    <td class="text-left font-mono ${profitClass}">${item.profit >= 0 ? '+' : ''}$${item.profit.toFixed(2)}</td>
+                `;
+                tr.ondblclick = () => { openContractDetailModal(item); };
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openContractDetailModal(item) {
+            const modal = document.getElementById('contract-detail-modal');
+            const tbody = document.getElementById('modal-detail-tbody');
+            if (!modal || !tbody) return;
+            const poc = item.pocData || {};
+            tbody.innerHTML = `
+                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract ID</td><td class="p-2 font-mono font-bold text-slate-800">#${item.contract_id}</td></tr>
+                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Account</td><td class="p-2 font-mono text-slate-700">${item.account_id}</td></tr>
+                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Level / Status</td><td class="p-2 font-bold text-slate-700">Level ${item.level} (${item.status.toUpperCase()})</td></tr>
+                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Market / Submarket</td><td class="p-2 text-slate-700">${item.submarket}</td></tr>
+                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Contract Type</td><td class="p-2 text-slate-700">${item.contract_type} (${item.purchase_type})</td></tr>
+                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Start Time</td><td class="p-2 font-mono text-slate-600">${poc.date_start ? new Date(poc.date_start * 1000).toLocaleTimeString() : '-'}</td></tr>
+                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">End Time</td><td class="p-2 font-mono text-slate-600">${poc.date_expiry ? new Date(poc.date_expiry * 1000).toLocaleTimeString() : '-'}</td></tr>
+                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Entry Spot</td><td class="p-2 font-mono text-slate-700">${poc.entry_spot || '-'}</td></tr>
+                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Barrier / Target</td><td class="p-2 text-slate-700">${poc.barrier || '-'}</td></tr>
+                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Purchase Price</td><td class="p-2 font-mono text-slate-700">$${item.buy_price.toFixed(2)}</td></tr>
+                <tr class="border-b border-slate-200"><td class="p-2 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200">Payout</td><td class="p-2 font-mono text-emerald-600 font-bold">$${item.payout.toFixed(2)}</td></tr>
+                <tr><td class="p-2 font-bold text-slate-800 bg-slate-200 border-r border-slate-200">Profit / Loss</td><td class="p-2 font-bold font-mono ${item.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${item.profit >= 0 ? '+' : ''}$${item.profit.toFixed(2)}</td></tr>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function closeContractDetailModal() { document.getElementById('contract-detail-modal').classList.add('hidden'); }
+        function openUsageModal() { document.getElementById('usage-modal').classList.remove('hidden'); }
+        function closeUsageModal() { document.getElementById('usage-modal').classList.add('hidden'); }
+
+        function renderSummaryFooters() {
+            const winEl = document.getElementById('summary-win-count');
+            const lossEl = document.getElementById('summary-loss-count');
+            const rateEl = document.getElementById('summary-win-rate');
+            const totalEl = document.getElementById('summary-total-profit');
+
+            const activeLogs = contractLogs.filter(l => l.account_id === currentActiveAccountId);
+            let wins = activeLogs.filter(l => l.status === 'won').length;
+            let losses = activeLogs.filter(l => l.status === 'lost').length;
+            let totalProf = activeLogs.reduce((acc, curr) => acc + curr.profit, 0);
+
+            if (winEl) winEl.innerText = wins;
+            if (lossEl) lossEl.innerText = losses;
+
+            const totalTrades = wins + losses;
+            const winRateVal = totalTrades > 0 ? ((wins / totalTrades) * 100).toFixed(1) : "0.0";
+            if (rateEl) rateEl.innerText = `${winRateVal}%`;
+
+            if (totalEl) {
+                totalEl.innerText = `${totalProf >= 0 ? '+' : ''}$${totalProf.toFixed(2)}`;
+                totalEl.className = `font-black text-sm font-mono ${totalProf >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+            }
+        }
+
+        function setApiPendingStatus(message) {
+            const banner = document.getElementById('api-status-banner');
+            if(!banner) return;
+            banner.className = "bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
+            document.getElementById('api-status-text').innerText = message;
+            const badge = document.getElementById('api-status-badge');
+            badge.innerText = "PENDING";
+            badge.className = "font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase";
+        }
+
+        function onMarketCategoryChange() {
+            const cat = document.getElementById('modal-market-cat').value;
+            const subSelect = document.getElementById('modal-submarket');
+            if(!subSelect) return;
+            subSelect.innerHTML = '';
+            let filtered = activeSymbolsList.filter(s => s.market === cat);
+            if (filtered.length > 0) {
+                filtered.forEach(item => {
+                    const opt = document.createElement('option');
+                    const symbolKey = item.underlying_symbol || item.symbol;
+                    const nameKey = item.underlying_symbol_name || item.display_name;
+                    if (symbolKey && nameKey) {
+                        opt.value = nameKey + "|" + symbolKey;
+                        opt.innerText = nameKey;
+                        subSelect.appendChild(opt);
+                    }
+                });
+            } else {
+                const opt = document.createElement('option');
+                opt.value = ""; opt.innerText = "Loading data from API...";
+                subSelect.appendChild(opt);
+            }
+            onSubmarketChange();
+        }
+
+        function onSubmarketChange() {
+            const subMarketSelect = document.getElementById('modal-submarket');
+            if (!subMarketSelect || !subMarketSelect.value) return;
+            const parts = subMarketSelect.value.split('|');
+            const symbol = parts[1];
+            if (symbol && symbol !== "undefined") {
+                const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
+                if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+                    setApiPendingStatus("Sending contracts_for request...");
+                    const req = { contracts_for: symbol, req_id: 2 };
+                    logMsg(`REQ [Contracts For]: ${JSON.stringify(req)}`, 'REQ');
+                    targetWs.send(JSON.stringify(req));
+                }
+            }
+        }
+
+        function onDurationUnitChange() { updateModalDurationAndRules(); }
+
+        function requestProposalUpdate() {
+            const subMarketSelect = document.getElementById('modal-submarket');
+            if (!subMarketSelect || !subMarketSelect.value) return;
+            const parts = subMarketSelect.value.split('|');
+            const underlyingSymbol = parts[1];
+            if (!underlyingSymbol || underlyingSymbol === "undefined") return;
+
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const duration = parseInt(document.getElementById('modal-duration').value) || 1;
+            const durationUnit = document.getElementById('modal-duration-unit').value;
+            const amount = parseFloat(document.getElementById('modal-amount').value) || 2.0;
+            const barrier = document.getElementById('modal-barrier').value.trim();
+
+            document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
+            setApiPendingStatus("Sending proposal request to API...");
+
+            const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
+            if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+                let contractTypeApi = "NOTOUCH";
+                if (tradeType === 'Touch/No Touch') contractTypeApi = (selectedChoice === 'Touch') ? "ONETOUCH" : "NOTOUCH";
+                else if (tradeType === 'Rise/Fall') contractTypeApi = (selectedChoice === 'Rise') ? "CALL" : "PUT";
+                else if (tradeType === 'Higher/Lower') contractTypeApi = (selectedChoice === 'Higher') ? "HIGHER" : "LOWER";
+                else if (tradeType === 'Matches/Differs') contractTypeApi = (selectedChoice === 'Matches') ? "DIGITMATCH" : "DIGITDIFF";
+                else if (tradeType === 'Over/Under') contractTypeApi = (selectedChoice === 'Over') ? "DIGITOVER" : "DIGITUNDER";
+                else if (tradeType === 'Even/Odd') contractTypeApi = (selectedChoice === 'Even') ? "DIGITEVEN" : "DIGITODD";
+
+                const req = {
+                    proposal: 1, amount: amount, basis: "stake", currency: "USD",
+                    underlying_symbol: underlyingSymbol, contract_type: contractTypeApi,
+                    duration: duration, duration_unit: durationUnit, req_id: 4
+                };
+                if (tradeType === 'Touch/No Touch' || tradeType === 'Higher/Lower') {
+                    if (barrier) req.barrier = barrier;
+                } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
+                    req.barrier = selectedDigit.toString();
+                }
+                logMsg(`REQ [Proposal Update]: ${JSON.stringify(req)}`, 'REQ');
+                targetWs.send(JSON.stringify(req));
+            }
+        }
+
+        function onTradeTypeChange() {
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const unitSelect = document.getElementById('modal-duration-unit');
+            const barrierContainer = document.getElementById('barrier-container');
+            const digitContainer = document.getElementById('digit-prediction-container');
+            const barrierInput = document.getElementById('modal-barrier');
+
+            renderChoiceButtons(tradeType);
+            updateAvailableDurationUnits();
+
+            if (tradeType === 'Higher/Lower' || tradeType === 'Touch/No Touch') {
+                unitSelect.disabled = false;
+                barrierContainer.classList.remove('hidden'); 
+                digitContainer.classList.add('hidden');
+            } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
+                unitSelect.value = 't'; 
+                unitSelect.disabled = true;
+                barrierContainer.classList.add('hidden'); 
+                barrierInput.value = '';
+                digitContainer.classList.remove('hidden'); 
+                renderDigitGrid();
+            } else {
+                unitSelect.disabled = false;
+                barrierContainer.classList.add('hidden'); 
+                barrierInput.value = '';
+                digitContainer.classList.add('hidden');
+            }
+            updateModalDurationAndRules();
+        }
+
+        function renderChoiceButtons(tradeType) {
+            const container = document.getElementById('choice-buttons-grid');
+            const wrapper = document.getElementById('choice-buttons-container');
+            const label = document.getElementById('choice-label');
+            if(!container) return;
+            container.innerHTML = '';
+            let choices = [], labelText = "Touch Type";
+
+            if (tradeType === 'Rise/Fall') { choices = ['Rise', 'Fall']; labelText = "Prediction Direction"; }
+            else if (tradeType === 'Higher/Lower') { choices = ['Higher', 'Lower']; labelText = "Barrier Type"; }
+            else if (tradeType === 'Touch/No Touch') { choices = ['Touch', 'No Touch']; labelText = "Touch Type"; }
+            else if (tradeType === 'Matches/Differs') { choices = ['Matches', 'Differs']; labelText = "Digit Contract Type"; }
+            else if (tradeType === 'Over/Under') { choices = ['Over', 'Under']; labelText = "Digit Contract Type"; }
+            else if (tradeType === 'Even/Odd') { choices = ['Even', 'Odd']; labelText = "Digit Contract Type"; }
+            else { wrapper.classList.add('hidden'); return; }
+
+            label.innerText = labelText;
+            wrapper.classList.remove('hidden');
+            if (!choices.includes(selectedChoice)) selectedChoice = choices[0];
+
+            choices.forEach(choiceName => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = (selectedChoice === choiceName);
+                btn.className = `choice-btn py-1.5 rounded-lg border font-bold text-xs transition cursor-pointer ${isSelected ? 'active bg-slate-900 text-white border-slate-900 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
+                btn.innerText = choiceName;
+                btn.onclick = () => { selectedChoice = choiceName; renderChoiceButtons(tradeType); updateModalDurationAndRules(); };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderDigitGrid() {
+            const grid = document.getElementById('digit-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            for (let i = 0; i <= 9; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = (selectedDigit === i);
+                btn.className = `digit-btn py-1.5 rounded border font-bold text-xs transition cursor-pointer ${isSelected ? 'active bg-indigo-600 text-white border-indigo-600 shadow' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`;
+                btn.innerText = i;
+                btn.onclick = () => { selectedDigit = i; renderDigitGrid(); requestProposalUpdate(); };
+                grid.appendChild(btn);
+            }
+        }
+
+        function openAddModal() {
+            if (isBotRunning) return; // Only disabled when bot is running
+            document.getElementById('add-strategy-modal').classList.remove('hidden');
+            onMarketCategoryChange();
+            onTradeTypeChange();
+        }
+
+        function closeAddModal() { document.getElementById('add-strategy-modal').classList.add('hidden'); }
+
+        function confirmAddStrategy() {
+            const marketCat = document.getElementById('modal-market-cat').value;
+            const subMarketSelect = document.getElementById('modal-submarket');
+            const subMarketText = subMarketSelect.options[subMarketSelect.selectedIndex] ? subMarketSelect.options[subMarketSelect.selectedIndex].text : '';
+            const tradeType = document.getElementById('modal-trade-type').value;
+            const rawDurationUnit = document.getElementById('modal-duration-unit').value;
+            const durationAmt = document.getElementById('modal-duration').value;
+
+            let barrierVal = "";
+            if (['Higher/Lower', 'Touch/No Touch'].includes(tradeType)) barrierVal = document.getElementById('modal-barrier').value.trim();
+
+            defaultStrategyData.push({
+                level: defaultStrategyData.length + 1, contract_type: tradeType,
+                market: marketCat === 'synthetic_index' ? 'Derived' : 'Forex', submarket: subMarketText,
+                purchase_type: selectedChoice, barrier: barrierVal,
+                last_digit: ['Matches/Differs', 'Over/Under'].includes(tradeType) ? selectedDigit : "",
+                duration_amount: durationAmt, duration_unit: formatDurationUnit(rawDurationUnit, durationAmt),
+                amount: parseFloat(document.getElementById('modal-amount').value), payout: currentEstimatedPayout
+            });
+            renderStrategyTable(defaultStrategyData);
+            updateDefaultStopLoss();
+            autoSaveStrategy();
+            closeAddModal();
+        }
+
+        function renderStrategyTable(dataList) {
+            const tbody = document.getElementById('strategy-table-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            (dataList || defaultStrategyData).forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-teal-50/50 transition border-b border-slate-200 text-xs";
+                tr.innerHTML = `
+                    <td class="text-center font-bold text-slate-600 bg-slate-50">${index + 1}</td>
+                    <td><input type="text" value="${item.contract_type}" readonly></td>
+                    <td><input type="text" value="${item.market}" readonly></td>
+                    <td><input type="text" value="${item.submarket}" readonly></td>
+                    <td><input type="text" value="${item.purchase_type}" readonly></td>
+                    <td><input type="text" value="${item.barrier || ''}" class="font-mono font-bold text-slate-700" readonly></td>
+                    <td><input type="text" value="${item.last_digit !== undefined && item.last_digit !== null ? item.last_digit : ''}" class="font-bold text-indigo-600 text-center" readonly></td>
+                    <td><input type="number" value="${item.duration_amount}" readonly></td>
+                    <td><input type="text" value="${formatDurationUnit(item.duration_unit, item.duration_amount)}" readonly></td>
+                    <td><input type="number" step="1.00" value="${item.amount}" class="font-bold text-teal-700" readonly></td>
+                    <td class="font-bold text-emerald-600">$${(item.payout || 0).toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function autoSaveStrategy() { localStorage.setItem('saved_trading_strategy', JSON.stringify(defaultStrategyData)); }
+        function loadSavedStrategy() {
+            const saved = localStorage.getItem('saved_trading_strategy');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if(Array.isArray(parsed) && parsed.length > 0) defaultStrategyData = parsed;
+                } catch(e) {}
+            }
+        }
+
+        function exportStrategyJson() {
+            if (isBotRunning) return;
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(defaultStrategyData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "trading_strategy_" + new Date().toISOString().slice(0,10) + ".json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importStrategyJson(event) {
+            if (isBotRunning) { event.target.value = ""; return; }
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData)) {
+                        defaultStrategyData = importedData;
+                        renderStrategyTable(defaultStrategyData);
+                        updateDefaultStopLoss();
+                        autoSaveStrategy();
+                        alert("Strategy imported successfully!");
+                    }
+                } catch(err) {}
+                event.target.value = "";
+            };
+            reader.readAsText(file);
+        }
+
+        function botAction(actionType) {
+            if (actionType === 'run_bot') {
+                if (!isAccountConnected || !ws || ws.readyState !== WebSocket.OPEN) {
+                    alert("⚠️ Account connection lost. Please wait until connection is restored before running the bot.");
+                    return;
+                }
+                if (currentActiveAccountId) {
+                    contractLogs = contractLogs.filter(l => l.account_id !== currentActiveAccountId);
+                    localStorage.removeItem(`contract_logs_${currentActiveAccountId}`);
+                }
+                isBotRunning = true;
+                currentStrategyLevelIndex = 0; totalSessionProfit = 0; totalAccumulatedAmount = 0;
+                winCount = 0; lossCount = 0; processedContractIds.clear();
+                renderContractTable(); renderSummaryFooters(); updateBotStatusUi('RUNNING');
+                executeNextStrategyStep();
+            } else if (actionType === 'stop_trade') {
+                isBotRunning = false;
+                updateBotStatusUi('STOPPED');
+                resetRightPanelPortfolio();
+            }
+        }
+
+        function deleteLastRow() {
+            if (!isBotRunning && defaultStrategyData.length > 0) {
+                defaultStrategyData.pop();
+                renderStrategyTable(defaultStrategyData);
+                updateDefaultStopLoss();
+                autoSaveStrategy();
+            }
+        }
+
+        function clearStrategy() {
+            if (!isBotRunning) {
+                defaultStrategyData = [];
+                renderStrategyTable(defaultStrategyData);
+                updateDefaultStopLoss();
+                autoSaveStrategy();
+            }
+        }
+    </script>
+</body>
+</html>
