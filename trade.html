@@ -127,13 +127,13 @@
                 </a>
                 <div class="relative">
                     <button type="button" onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
-                        <div class="text-right">
-                            <div class="flex items-center space-x-1 justify-end">
+                        <div class="text-left">
+                            <div id="account-type-label" class="text-amber-600 text-[10px] font-semibold">Demo account</div>
+                            <div class="flex items-center space-x-1">
                                 <span id="account-id-label" class="text-slate-900 font-bold text-xs font-mono">---</span>
                             </div>
-                            <div id="account-type-label" class="text-amber-600 text-[10px] font-semibold">Demo account</div>
                         </div>
-                        <div class="text-left font-bold text-slate-900 text-xs pl-1 border-l border-slate-200">
+                        <div class="text-left font-bold text-slate-900 text-xs pl-2 border-l border-slate-200">
                             <span id="account-balance-label">0.00 USD</span>
                         </div>
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -159,7 +159,6 @@
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     Guide
                 </div>
-                <!-- TOMBOL SYSTEM LOG (LPG) DI BAWAH GUIDE -->
                 <div onclick="openSystemLogModal()" class="flex flex-col items-center cursor-pointer hover:text-teal-600" title="System Log & API Requests">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     Log LPG
@@ -866,7 +865,6 @@
                 renderStrategyTable(defaultStrategyData);
                 renderContractTable();
                 
-                // Menghubungkan langsung ke WebSocket utama Deriv menggunakan token/kode awal
                 initMainWebSocket(accessToken);
             } else {
                 goToLandingView();
@@ -954,7 +952,6 @@
                             if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span> Connected';
                             logMsg(`Successfully connected to account ${auth.loginid} (Balance: ${auth.balance} ${auth.currency})`, 'INFO');
 
-                            // Subscribe balance real-time
                             const balReq = { balance: 1, subscribe: 1, req_id: 3 };
                             logMsg(`REQ [Balance Subscribe]: ${JSON.stringify(balReq)}`, 'REQ');
                             ws.send(JSON.stringify(balReq));
@@ -1107,7 +1104,6 @@
                 const statusEl = document.getElementById('conn-status-indicator');
                 if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
                 
-                // Reconnect otomatis setelah 3 detik
                 setTimeout(() => {
                     if (accessToken) {
                         logMsg("System | Mencoba menghubungkan ulang WebSocket utama...", 'INFO');
@@ -1128,8 +1124,8 @@
                 const balanceDisplay = acc.balance !== undefined ? `${parseFloat(acc.balance).toFixed(2)} ${acc.currency || 'USD'}` : '--- USD';
                 div.innerHTML = `
                     <div>
+                        <span class="${isDemo ? 'text-amber-600' : 'text-slate-500'} text-[10px] font-semibold block">${isDemo ? 'Demo account' : 'Real account'}</span>
                         <span class="font-bold text-slate-800 font-mono text-xs block">${acc.account_id}</span>
-                        <span class="${isDemo ? 'text-amber-600' : 'text-slate-500'} text-[10px] font-semibold">${isDemo ? 'Demo account' : 'Real account'}</span>
                     </div>
                     <div class="text-right"><span class="font-bold text-xs text-slate-900 block">${balanceDisplay}</span></div>
                 `;
