@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DXBot - Automated Strategy Engine</title>
+    <title>DXBot - Automated Strategy Engine (v1.1)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .strategy-table input, .strategy-table select {
@@ -27,14 +27,6 @@
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
         }
-        .digit-btn, .choice-btn {
-            transition: all 0.2s ease;
-        }
-        .digit-btn.active, .choice-btn.active {
-            background-color: #0f172a !important;
-            color: #ffffff !important;
-            border-color: #0f172a !important;
-        }
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -46,6 +38,14 @@
 </head>
 <body class="bg-slate-100 text-slate-800 h-screen flex flex-col font-sans text-xs overflow-hidden">
 
+    <!-- TOMBOL AKSES LOG LPG DARURAT (Selalu Muncul) -->
+    <div class="absolute top-3 right-3 z-50 flex items-center space-x-2">
+        <button type="button" onclick="openSystemLogModal()" class="bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-slate-700 px-3 py-1.5 rounded-lg shadow-lg font-mono text-[11px] flex items-center space-x-1.5 cursor-pointer transition">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Log LPG</span>
+        </button>
+    </div>
+
     <!-- VIEW 0: LANDING PAGE -->
     <div id="landing-view" class="flex-1 flex flex-col justify-between p-6 bg-slate-950 text-slate-100 overflow-y-auto">
         <header class="flex justify-between items-center max-w-5xl w-full mx-auto py-2">
@@ -53,16 +53,12 @@
                 <div class="bg-teal-600 text-white font-black px-3 py-1 rounded text-sm tracking-wider shadow-lg shadow-teal-500/20">DX</div>
                 <span class="text-base font-bold text-white tracking-wide">DXBot Engine</span>
             </div>
-            <a href="https://t.deriv.link?t=REXB5ZQKPMGE" target="_blank" class="text-xs text-slate-400 hover:text-teal-400 transition flex items-center space-x-1">
-                <span>Deriv Platform</span>
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-            </a>
         </header>
 
         <main class="max-w-4xl w-full mx-auto my-auto py-8 text-center space-y-8">
             <div class="inline-flex items-center space-x-2 bg-teal-500/10 text-teal-400 font-semibold px-4 py-1.5 rounded-full text-xs border border-teal-500/20">
                 <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
-                <span>Next-Gen Automated Trading Engine</span>
+                <span>Next-Gen Automated Trading Engine (REST + OTP WS)</span>
             </div>
 
             <div class="space-y-4">
@@ -70,7 +66,7 @@
                     Smart Automated Execution for <span class="text-teal-400">Deriv Options</span>
                 </h1>
                 <p class="text-slate-400 max-w-2xl mx-auto text-xs md:text-sm leading-relaxed">
-                    DXBot adalah engine strategi otomatis dengan integrasi endpoint kustom `api.derivws.com/trading/v1/options`.
+                    Sistem ini menggunakan arsitektur endpoint gateway terbaru: REST Accounts &rarr; OTP Verification &rarr; WSS Demo/Real.
                 </p>
             </div>
 
@@ -82,24 +78,31 @@
             </div>
         </main>
         <footer class="text-center text-slate-600 text-[11px] py-2 border-t border-slate-900">
-            DXBot Engine &copy; 2026. Automated Trading Software.
+            DXBot Engine &copy; 2026. All rights reserved.
         </footer>
     </div>
 
-    <!-- VIEW 1: LOGIN / ACCOUNT SETUP -->
+    <!-- VIEW 1: LOGIN / TOKEN INPUT & GATEWAY SETUP -->
     <div id="login-view" class="flex-1 flex items-center justify-center p-4 bg-slate-950 text-slate-100 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 shadow-2xl space-y-6">
             <div class="text-center space-y-2">
                 <div class="inline-block bg-teal-600/20 text-teal-400 font-semibold px-3 py-1 rounded-full text-xs border border-teal-500/30">API Gateway Auth</div>
                 <h2 class="text-base font-bold text-white">Connect Trading Account</h2>
             </div>
+
+            <div class="space-y-3">
+                <label class="block text-slate-400 text-xs">Masukkan API Token / Bearer Token Deriv Anda:</label>
+                <input type="password" id="input-api-token" placeholder="Contoh: v1_xxxxxx..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
+            </div>
+
             <div id="login-status-box" class="hidden p-3 rounded-xl text-center space-y-1.5 border text-xs">
                 <div id="login-status-spinner" class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                 <div id="login-status-text" class="font-bold">Connecting...</div>
                 <div id="login-status-subtext" class="text-[10px] opacity-80">Menghubungkan ke gateway trading...</div>
             </div>
-            <div class="space-y-4 text-xs" id="login-action-container">
-                <button type="button" onclick="initializeAccountConnection()" class="w-full bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs cursor-pointer flex items-center justify-center space-x-2">
+
+            <div class="space-y-3 text-xs" id="login-action-container">
+                <button type="button" onclick="initializeAccountConnectionWithToken()" class="w-full bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs cursor-pointer flex items-center justify-center space-x-2">
                     <span>CONNECT GATEWAY (OTP FLOW)</span>
                 </button>
                 <button type="button" onclick="goToLandingView()" class="w-full text-slate-400 hover:text-white text-[11px] underline text-center cursor-pointer">
@@ -111,7 +114,6 @@
 
     <!-- VIEW 2: MAIN DASHBOARD -->
     <div id="dashboard-view" class="flex-1 flex flex-col hidden relative overflow-hidden h-full">
-        
         <header class="bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center shadow-sm shrink-0">
             <div class="flex items-center space-x-3">
                 <div class="bg-teal-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">DX</div>
@@ -119,53 +121,19 @@
             </div>
 
             <div class="flex items-center space-x-3">
-                <div class="relative">
-                    <button type="button" onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
-                        <div class="text-left">
-                            <div id="account-type-label" class="text-amber-600 text-[10px] font-semibold">Demo account</div>
-                            <div class="flex items-center space-x-1">
-                                <span id="account-id-label" class="text-slate-900 font-bold text-xs font-mono">D0T93166058</span>
-                            </div>
-                        </div>
-                        <div class="text-left font-bold text-slate-900 text-xs pl-2 border-l border-slate-200">
-                            <span id="account-balance-label">9862.52 USD</span>
-                        </div>
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div id="account-menu" class="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
-                        <div id="account-list-container" class="space-y-1">
-                            <div class="p-2.5 text-slate-500 text-center">Memuat akun...</div>
-                        </div>
-                    </div>
+                <div class="text-left bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
+                    <div id="account-type-label" class="text-amber-600 text-[10px] font-semibold">Demo account</div>
+                    <span id="account-id-label" class="text-slate-900 font-bold text-xs font-mono">---</span>
                 </div>
+                <button type="button" onclick="handleLogout()" class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition">Logout</button>
             </div>
         </header>
 
-        <div class="flex-1 flex overflow-hidden">
-            <!-- SIDEBAR KIRI -->
-            <aside class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 space-y-6 text-[11px] text-slate-500 shrink-0">
-                <div onclick="openSystemLogModal()" class="flex flex-col items-center cursor-pointer hover:text-teal-600" title="System Log & API Requests">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Log LPG
-                </div>
-                <div class="flex-1"></div>
-                <div onclick="handleLogout()" class="flex flex-col items-center cursor-pointer hover:text-rose-600 pb-2">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    Log out
-                </div>
-            </aside>
-
-            <main class="flex-1 bg-slate-50 p-3 flex flex-col space-y-3 overflow-hidden text-xs h-full">
-                <!-- PANEL UTAMA -->
-                <div class="bg-white border border-slate-300 rounded-lg shadow-sm flex flex-col h-[40%] overflow-hidden">
-                    <div class="bg-teal-600 text-white font-bold px-3 py-2 text-center text-[11px] tracking-wider uppercase flex justify-between items-center shrink-0">
-                        <span>STRATEGY MANAGEMENT PANEL</span>
-                    </div>
-                    <div class="overflow-x-auto flex-1 bg-white p-3">
-                        <p class="text-slate-600">Sistem terhubung menggunakan arsitektur endpoint gateway kustom. Silakan gunakan Log LPG untuk memantau status HTTP/WebSocket secara real-time.</p>
-                    </div>
-                </div>
-            </main>
+        <div class="flex-1 flex p-4 bg-slate-50 overflow-y-auto">
+            <div class="bg-white border border-slate-300 rounded-lg p-6 w-full max-w-2xl mx-auto shadow-sm space-y-4">
+                <h3 class="font-bold text-sm text-slate-800">Status Koneksi Gateway Berhasil</h3>
+                <p class="text-slate-600 text-xs">Sesi WebSocket aman berhasil dibuka melalui protokol OTP terbaru. Semua aktivitas permintaan dan respons API tercatat secara transparan di panel <strong>Log LPG</strong> pojok kanan atas.</p>
+            </div>
         </div>
     </div>
 
@@ -190,8 +158,7 @@
     </div>
 
     <script>
-        let ws = null;
-        let publicWs = null;
+        let secureWs = null;
 
         function logMsg(msg, type='INFO') {
             const timeStr = new Date().toLocaleTimeString();
@@ -249,36 +216,57 @@
                 document.getElementById('login-status-spinner').classList.add('hidden');
             } else {
                 box.className = "p-3 rounded-xl text-center space-y-1.5 border border-teal-500/30 bg-teal-500/10 text-teal-400 text-xs";
-                document.getElementById('login-status-spinner').classList.remove('hidden');
+                document.getElementById('login-status-spinner').classList.add('hidden'); // atau biarkan berputar
             }
         }
 
-        async function initializeAccountConnection() {
+        async function initializeAccountConnectionWithToken() {
+            const tokenInput = document.getElementById('input-api-token').value.trim();
+            if (!tokenInput) {
+                alert("Harap masukkan API Token yang valid terlebih dahulu.");
+                return;
+            }
+
             showLoginStatus("Mengambil Data Akun...", "Melakukan XHR GET ke /trading/v1/options/accounts...");
             logMsg("XHR GET https://api.derivws.com/trading/v1/options/accounts", "REQ");
 
             try {
-                // Simulasi atau eksekusi fetch ke endpoint gateway akun Anda
-                const response = await fetch('https://api.derivws.com/trading/v1/options/accounts').catch(err => {
+                // 1. Request daftar akun menggunakan token
+                const response = await fetch('https://api.derivws.com/trading/v1/options/accounts', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${tokenInput}`,
+                        'Content-Type': 'application/json'
+                    }
+                }).catch(err => {
                     throw new Error(`Network/CORS Error: ${err.message}`);
                 });
+
+                if (response.status === 401) {
+                    throw new Error("HTTP 401 Unauthorized: API Token Anda tidak valid atau kedaluwarsa.");
+                }
 
                 if (!response.ok) {
                     throw new Error(`HTTP Error Status: ${response.status} (${response.statusText})`);
                 }
 
-                const data = await response.json();
-                logMsg(`XHR GET Response: ${JSON.stringify(data)}`, "INFO");
+                const accountsData = await response.json();
+                logMsg(`XHR GET Accounts Response: ${JSON.stringify(accountsData)}`, "INFO");
 
-                // Mengambil ID akun pertama atau default (misal: D0T93166058)
-                let accountId = "D0T93166058"; 
+                // Ambil ID akun pertama atau default dari respons
+                const targetAccountId = (Array.isArray(accountsData) ? accountsData[0]?.account_id : accountsData.account_id) || "D0T93166058";
+                const isDemo = targetAccountId.toString().toUpperCase().startsWith('D');
 
-                showLoginStatus("Meminta OTP...", `Mengirim POST untuk akun ${accountId}...`);
-                logMsg(`XHR POST https://api.derivws.com/trading/v1/options/accounts/${accountId}/otp`, "REQ");
+                // 2. Request OTP untuk WebSocket privat
+                showLoginStatus("Meminta OTP...", `Mengirim POST untuk akun ${targetAccountId}...`);
+                logMsg(`XHR POST https://api.derivws.com/trading/v1/options/accounts/${targetAccountId}/otp`, "REQ");
 
-                // Simulasi request OTP
-                const otpResponse = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${accountId}/otp`, {
-                    method: 'POST'
+                const otpResponse = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${targetAccountId}/otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${tokenInput}`,
+                        'Content-Type': 'application/json'
+                    }
                 }).catch(err => {
                     throw new Error(`OTP Request Error: ${err.message}`);
                 });
@@ -287,20 +275,24 @@
                     throw new Error(`HTTP Error Status on OTP: ${otpResponse.status}`);
                 }
 
-                const otpData = await otpResponse.json().catch(() => ({ otp: "dz9mMu5F" })); 
-                const otpToken = otpData.otp || "dz9mMu5F";
+                const otpData = await otpResponse.json();
+                const otpToken = otpData.otp || otpData.token;
                 logMsg(`XHR POST OTP Response: Token diterima (${otpToken})`, "INFO");
 
-                showLoginStatus("Menghubungkan WebSocket...", `Membuka koneksi wss://... dengan OTP...`, true);
+                // 3. Hubungkan ke WebSocket versi terbaru sesuai environment (demo/real)
+                showLoginStatus("Menghubungkan WebSocket...", `Membuka koneksi wss:// dengan OTP...`, true);
                 
-                // Membuka WebSocket demo dengan parameter OTP sesuai format log Anda
-                const wsUrl = `wss://api.derivws.com/trading/v1/options/ws/demo?otp=${otpToken}`;
+                const wsType = isDemo ? 'demo' : 'real';
+                const wsUrl = `wss://api.derivws.com/trading/v1/options/ws/${wsType}?otp=${otpToken}`;
                 logMsg(`GET WSS ${wsUrl}`, "REQ");
 
-                ws = new WebSocket(wsUrl);
+                secureWs = new WebSocket(wsUrl);
 
-                ws.onopen = () => {
+                secureWs.onopen = () => {
                     logMsg("WSS Connected: Switching Protocols berhasil (101)", "INFO");
+                    document.getElementById('account-id-label').innerText = targetAccountId;
+                    document.getElementById('account-type-label').innerText = isDemo ? "Demo account" : "Real account";
+                    
                     setTimeout(() => {
                         document.getElementById('landing-view').classList.add('hidden');
                         document.getElementById('login-view').classList.add('hidden');
@@ -308,37 +300,31 @@
                     }, 500);
                 };
 
-                ws.onerror = (err) => {
+                secureWs.onerror = (err) => {
                     logMsg(`ERR [WSS Error]: Gagal membangun koneksi WebSocket ke ${wsUrl}`, "ERR");
-                    alert("Gagal terhubung ke WebSocket server. Periksa panel Log LPG.");
                 };
 
-                ws.onclose = () => {
-                    logMsg("WSS Closed: Koneksi terputus.", "ERR");
+                secureWs.onclose = () => {
+                    logMsg("WSS Closed: Koneksi WebSocket terputus.", "ERR");
                 };
 
             } catch (error) {
                 logMsg(`ERR [API Exception]: ${error.message}`, "ERR");
                 showLoginStatus("Koneksi Gagal", error.message, true);
-                alert(`Terjadi kesalahan koneksi:\n${error.message}\n\nSilakan cek detail lengkap di panel "Log LPG".`);
+                alert(`Terjadi kesalahan koneksi:\n${error.message}\n\nSilakan buka panel "Log LPG" di pojok kanan atas untuk melihat detail error.`);
             }
         }
 
         function handleLogout() {
             logMsg("Logout pengguna, membersihkan sesi.", "INFO");
+            if (secureWs) secureWs.close();
             localStorage.clear();
             sessionStorage.clear();
             location.reload();
         }
 
-        function toggleAccountDropdown(event) {
-            if (event) event.stopPropagation();
-            const menu = document.getElementById('account-menu');
-            if (menu) menu.classList.toggle('hidden');
-        }
-
         window.onload = function() {
-            logMsg("System | DXBot Gateway Client diinisialisasi.", "INFO");
+            logMsg("System | DXBot Gateway Client v1.1 diinisialisasi.", "INFO");
         }
     </script>
 </body>
