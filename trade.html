@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -70,7 +70,7 @@
                     Smart Automated Execution for <span class="text-teal-400">Deriv Options</span>
                 </h1>
                 <p class="text-slate-400 max-w-2xl mx-auto text-xs md:text-sm leading-relaxed">
-                    DXBot is an automated strategy engine featuring real-time WebSocket architecture, multi-tier risk management, and advanced execution.
+                    DXBot adalah engine strategi otomatis dengan arsitektur WebSocket real-time, manajemen risiko multi-tingkat, dan eksekusi tingkat lanjut.
                 </p>
             </div>
 
@@ -96,14 +96,14 @@
             <div id="login-status-box" class="hidden p-3 rounded-xl text-center space-y-1.5 border text-xs">
                 <div id="login-status-spinner" class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                 <div id="login-status-text" class="font-bold">Connecting...</div>
-                <div id="login-status-subtext" class="text-[10px] opacity-80">Connecting to Deriv OAuth portal...</div>
+                <div id="login-status-subtext" class="text-[10px] opacity-80">Menghubungkan ke portal OAuth Deriv...</div>
             </div>
             <div class="space-y-4 text-xs" id="login-action-container">
                 <button type="button" onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs cursor-pointer flex items-center justify-center space-x-2">
                     <span>CONNECT DERIV ACCOUNT</span>
                 </button>
                 <button type="button" onclick="goToLandingView()" class="w-full text-slate-400 hover:text-white text-[11px] underline text-center cursor-pointer">
-                    &larr; Back to Overview
+                    &larr; Kembali ke Ringkasan
                 </button>
             </div>
         </div>
@@ -128,6 +128,7 @@
                 <div class="relative">
                     <button type="button" onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
                         <div class="text-left">
+                            <!-- Demo/Real account di atas, ID akun di bawahnya -->
                             <div id="account-type-label" class="text-amber-600 text-[10px] font-semibold">Demo account</div>
                             <div class="flex items-center space-x-1">
                                 <span id="account-id-label" class="text-slate-900 font-bold text-xs font-mono">---</span>
@@ -140,7 +141,7 @@
                     </button>
                     <div id="account-menu" class="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
                         <div id="account-list-container" class="space-y-1">
-                            <div class="p-2.5 text-slate-500 text-center">Loading accounts...</div>
+                            <div class="p-2.5 text-slate-500 text-center">Memuat akun...</div>
                         </div>
                     </div>
                 </div>
@@ -149,7 +150,7 @@
 
         <div class="flex-1 flex overflow-hidden">
             
-            <!-- LEFT SIDEBAR -->
+            <!-- SIDEBAR KIRI -->
             <aside class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 space-y-6 text-[11px] text-slate-500 shrink-0">
                 <a href="https://t.deriv.link?t=REXB5ZQKPMGE" target="_blank" class="flex flex-col items-center cursor-pointer hover:text-teal-600">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
@@ -200,7 +201,7 @@
 
                     <div class="p-2 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
                         <div class="flex items-center space-x-1.5 flex-wrap">
-                            <button type="button" id="btn-open-modal" onclick="openAddModal()" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer transition text-[11px]">Add Level (+)</button>
+                            <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+)</button>
                             <button type="button" id="btn-delete-last" onclick="deleteLastRow()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Delete Last</button>
                             <button type="button" id="btn-clear-strategy" onclick="clearStrategy()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Clear</button>
                             <button type="button" id="btn-export-strategy" onclick="exportStrategyJson()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px]">Export Strategy</button>
@@ -348,13 +349,13 @@
                 <button type="button" onclick="closeUsageModal()" class="text-white hover:text-slate-200 font-bold text-base cursor-pointer">&times;</button>
             </div>
             <div class="p-4 space-y-3 bg-slate-50 text-slate-700 leading-relaxed max-h-[70vh] overflow-y-auto">
-                <p><strong>1. Account Sign In:</strong> Click "CONNECT DERIV ACCOUNT" for OAuth PKCE authentication.</p>
-                <p><strong>2. Select Trading Account:</strong> Choose Demo or Real account from the top header dropdown.</p>
-                <p><strong>3. Strategy Management:</strong> Configure multi-tier trading rules.</p>
-                <p><strong>4. Execute Bot:</strong> Click <strong>RUN BOT</strong> to start automated trading.</p>
+                <p><strong>1. Account Sign In:</strong> Klik "CONNECT DERIV ACCOUNT" untuk autentikasi OAuth PKCE.</p>
+                <p><strong>2. Select Trading Account:</strong> Pilih akun Demo atau Real dari dropdown di header atas.</p>
+                <p><strong>3. Strategy Management:</strong> Konfigurasi aturan trading berjenjang.</p>
+                <p><strong>4. Execute Bot:</strong> Klik <strong>RUN BOT</strong> untuk memulai trading otomatis.</p>
             </div>
             <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-end">
-                <button type="button" onclick="closeUsageModal()" class="px-4 py-1.5 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Understood</button>
+                <button type="button" onclick="closeUsageModal()" class="px-4 py-1.5 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Mengerti</button>
             </div>
         </div>
     </div>
@@ -367,14 +368,14 @@
                 <button type="button" onclick="closeSystemLogModal()" class="text-white hover:text-slate-200 font-bold text-base cursor-pointer">&times;</button>
             </div>
             <div class="p-3 bg-slate-950 text-emerald-400 font-mono text-[10px] h-96 overflow-y-auto no-scrollbar space-y-1 whitespace-pre-wrap break-all" id="system-log-container">
-                <div>[System] Log viewer initialized...</div>
+                <div>[System] Log viewer diinisialisasi...</div>
             </div>
             <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-between items-center">
                 <div class="space-x-2">
                     <button type="button" onclick="clearSystemLogs()" class="px-3 py-1.5 bg-rose-500 text-white rounded font-bold text-xs shadow cursor-pointer">Clear Log</button>
                     <button type="button" onclick="exportSystemLogs()" class="px-3 py-1.5 bg-slate-700 text-white rounded font-bold text-xs shadow cursor-pointer">Export Log</button>
                 </div>
-                <button type="button" onclick="closeSystemLogModal()" class="px-4 py-1.5 bg-slate-800 text-white rounded font-bold text-xs shadow cursor-pointer">Close</button>
+                <button type="button" onclick="closeSystemLogModal()" class="px-4 py-1.5 bg-slate-800 text-white rounded font-bold text-xs shadow cursor-pointer">Tutup</button>
             </div>
         </div>
     </div>
@@ -392,7 +393,7 @@
                 </div>
             </div>
             <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-end">
-                <button type="button" onclick="closeContractDetailModal()" class="px-4 py-1.5 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Close</button>
+                <button type="button" onclick="closeContractDetailModal()" class="px-4 py-1.5 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Tutup</button>
             </div>
         </div>
     </div>
@@ -420,7 +421,7 @@
                     </div>
                 </div>
                 <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs">
-                    <span id="api-status-text">Processing request to Deriv API...</span>
+                    <span id="api-status-text">Memproses permintaan ke Deriv API...</span>
                     <span id="api-status-badge" class="font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase">PENDING</span>
                 </div>
                 <div>
@@ -483,8 +484,8 @@
                 </div>
             </div>
             <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-end space-x-2">
-                <button type="button" onclick="closeAddModal()" class="px-3 py-1.5 bg-white border border-slate-300 rounded text-xs cursor-pointer">Cancel</button>
-                <button type="button" onclick="confirmAddStrategy()" class="px-4 py-1.5 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Add</button>
+                <button type="button" onclick="closeAddModal()" class="px-3 py-1.5 bg-white border border-slate-300 rounded text-xs cursor-pointer">Batal</button>
+                <button type="button" onclick="confirmAddStrategy()" class="px-4 py-1.5 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Tambah</button>
             </div>
         </div>
     </div>
@@ -552,14 +553,14 @@
         function closeSystemLogModal() { document.getElementById('system-log-modal').classList.add('hidden'); }
 
         function goToLandingView() {
-            logMsg("Navigation to Landing View", 'INFO');
+            logMsg("Navigasi ke Landing View", 'INFO');
             document.getElementById('landing-view').classList.remove('hidden');
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('dashboard-view').classList.add('hidden');
         }
 
         function goToLoginView() {
-            logMsg("Navigation to Login View", 'INFO');
+            logMsg("Navigasi ke Login View", 'INFO');
             document.getElementById('landing-view').classList.add('hidden');
             document.getElementById('login-view').classList.remove('hidden');
             document.getElementById('dashboard-view').classList.add('hidden');
@@ -650,7 +651,7 @@
             const label = document.getElementById('bot-status-label');
             const subtext = document.getElementById('bot-status-subtext');
             const btnRunBot = document.getElementById('btn-run-bot');
-            const btnOpenModal = document.getElementById('btn-open-modal');
+            
             const btnDeleteLast = document.getElementById('btn-delete-last');
             const btnClear = document.getElementById('btn-clear-strategy');
             const btnExport = document.getElementById('btn-export-strategy');
@@ -666,7 +667,6 @@
                     btnRunBot.disabled = true;
                     btnRunBot.className = "py-2.5 bg-slate-300 text-slate-500 font-bold rounded text-xs cursor-not-allowed shadow-sm transition";
                 }
-                if (btnOpenModal) { btnOpenModal.disabled = true; btnOpenModal.className = "px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]"; }
                 if (btnDeleteLast) { btnDeleteLast.disabled = true; btnDeleteLast.classList.add('opacity-50', 'cursor-not-allowed'); }
                 if (btnClear) { btnClear.disabled = true; btnClear.classList.add('opacity-50', 'cursor-not-allowed'); }
                 if (btnExport) { btnExport.disabled = true; btnExport.classList.add('opacity-50', 'cursor-not-allowed'); }
@@ -679,8 +679,6 @@
                     btnRunBot.disabled = false;
                     btnRunBot.className = "py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm transition";
                 }
-                // Add level button is NEVER disabled unless running
-                if (btnOpenModal) { btnOpenModal.disabled = false; btnOpenModal.className = "px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer transition text-[11px]"; }
                 if (btnDeleteLast) { btnDeleteLast.disabled = false; btnDeleteLast.classList.remove('opacity-50', 'cursor-not-allowed'); }
                 if (btnClear) { btnClear.disabled = false; btnClear.classList.remove('opacity-50', 'cursor-not-allowed'); }
                 if (btnExport) { btnExport.disabled = false; btnExport.classList.remove('opacity-50', 'cursor-not-allowed'); }
@@ -793,8 +791,8 @@
         function loginWithDerivOAuthPKCE() {
             const clientId = DEFAULT_APP_ID;
             localStorage.setItem('deriv_client_id', clientId);
-            showLoginConnectingStatus("Connecting to OAuth Gateway...", "Creating secure PKCE handshake request to Deriv...");
-            logMsg("Starting OAuth PKCE login process...", 'REQ');
+            showLoginConnectingStatus("Menghubungkan ke OAuth Gateway...", "Membuat request handshake aman ke Deriv...");
+            logMsg("Memulai proses login OAuth PKCE...", 'REQ');
 
             const array = crypto.getRandomValues(new Uint8Array(64));
             const codeVerifier = Array.from(array)
@@ -826,8 +824,8 @@
                 });
 
                 setTimeout(() => {
-                    showLoginConnectingStatus("Login Successful!", "Redirecting to DXBot Engine...", true);
-                    logMsg("Redirecting to auth.deriv.com with PKCE parameters.", 'INFO');
+                    showLoginConnectingStatus("Login Berhasil!", "Mengarahkan ke DXBot Engine...", true);
+                    logMsg("Redirect ke auth.deriv.com dengan parameter PKCE.", 'INFO');
                     setTimeout(() => {
                         window.location.href = `https://auth.deriv.com/oauth2/auth?${params.toString()}`;
                     }, 800);
@@ -836,14 +834,14 @@
         }
 
         function handleLogout() {
-            logMsg("User logged out, clearing session cache.", 'INFO');
+            logMsg("Logout pengguna, menghapus cache sesi.", 'INFO');
             localStorage.clear();
             sessionStorage.clear();
             location.reload();
         }
 
         window.onload = async function() {
-            logMsg("System | DXBot initialized.", 'INFO');
+            logMsg("System | DXBot diinisialisasi.", 'INFO');
             startGMTClock();
             loadSavedStrategy();
             updateDefaultStopLoss();
@@ -853,7 +851,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             let code = urlParams.get('code');
             if (code) {
-                logMsg(`Received authorization code from redirect URL: ${code.substring(0, 10)}...`, 'INFO');
+                logMsg(`Menerima authorization code dari redirect URL: ${code.substring(0, 10)}...`, 'INFO');
                 localStorage.setItem('deriv_access_token', code);
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
@@ -884,11 +882,11 @@
 
         function initPublicWebSocket() {
             const pubUrl = `wss://ws.derivws.com/websockets/v3?app_id=${DEFAULT_APP_ID}`;
-            logMsg(`REQ [Public WS Connect]: Opening connection to ${pubUrl}`, 'REQ');
+            logMsg(`REQ [Public WS Connect]: Membuka koneksi ke ${pubUrl}`, 'REQ');
             publicWs = new WebSocket(pubUrl);
             
             publicWs.onopen = () => { 
-                logMsg("RES [Public WS Open]: Public connection successfully opened.", 'INFO');
+                logMsg("RES [Public WS Open]: Koneksi publik berhasil dibuka.", 'INFO');
                 const req = { active_symbols: "brief", product_type: "basic", req_id: 1 };
                 logMsg(`REQ [Public WS Send]: ${JSON.stringify(req)}`, 'REQ');
                 publicWs.send(JSON.stringify(req)); 
@@ -907,14 +905,14 @@
                 logMsg(`ERR [Public WS Error]: ${JSON.stringify(err)}`, 'ERR');
             };
             publicWs.onclose = () => {
-                logMsg("ERR [Public WS Close]: Public connection closed. Attempting reconnect in 5 seconds...", 'ERR');
+                logMsg("ERR [Public WS Close]: Koneksi publik tertutup. Mencoba reconnect dalam 5 detik...", 'ERR');
                 setTimeout(() => { if (!publicWs || publicWs.readyState === WebSocket.CLOSED) initPublicWebSocket(); }, 5000);
             };
         }
 
         function initMainWebSocket(token) {
             const wsUrl = `wss://ws.derivws.com/websockets/v3?app_id=${DEFAULT_APP_ID}`;
-            logMsg(`REQ [Main WS Connect]: Opening authenticated WebSocket to ${wsUrl}`, 'REQ');
+            logMsg(`REQ [Main WS Connect]: Membuka WebSocket autentikasi ke ${wsUrl}`, 'REQ');
             
             if (ws) {
                 try { ws.close(); } catch(e) {}
@@ -923,7 +921,7 @@
             ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
-                logMsg("RES [Main WS Open]: Main connection successfully opened. Sending authorize request...", 'INFO');
+                logMsg("RES [Main WS Open]: Koneksi utama berhasil dibuka. Mengirim request authorize...", 'INFO');
                 const authReq = { authorize: token, req_id: 2 };
                 logMsg(`REQ [Authorize]: ${JSON.stringify(authReq)}`, 'REQ');
                 ws.send(JSON.stringify(authReq));
@@ -938,7 +936,7 @@
                         if (data.error) {
                             logMsg(`ERR [Authorize Failed]: ${data.error.message}`, 'ERR');
                             const statusEl = document.getElementById('conn-status-indicator');
-                            if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1.5"></span> Authorization Failed';
+                            if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1.5"></span> Authorize Gagal';
                         } else if (data.authorize) {
                             isAccountConnected = true;
                             const auth = data.authorize;
@@ -980,7 +978,7 @@
                             isBotRunning = false;
                             updateBotStatusUi('STOPPED');
                             logMsg(`ERR [Buy Error]: ${data.error.message}`, 'ERR');
-                            alert(`⚠️ BOT STOPPED: Insufficient account balance (Current balance: $${currentAccountBalance.toFixed(2)}). Detail: ${data.error.message}`);
+                            alert(`⚠️ BOT STOPPED: Saldo akun tidak mencukupi (Saldo saat ini: $${currentAccountBalance.toFixed(2)}). Detail: ${data.error.message}`);
                         } else if (data.buy && data.buy.contract_id) {
                             activeContractId = data.buy.contract_id;
                             const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
@@ -996,7 +994,7 @@
                         isBotRunning = false;
                         updateBotStatusUi('STOPPED');
                         logMsg(`ERR [API Error]: ${JSON.stringify(data.error)}`, 'ERR');
-                        alert(`⚠️ BOT STOPPED: Insufficient account balance (Current balance: $${currentAccountBalance.toFixed(2)}). Message: ${data.error.message}`);
+                        alert(`⚠️ BOT STOPPED: Saldo akun tidak mencukupi (Saldo saat ini: $${currentAccountBalance.toFixed(2)}). Pesan: ${data.error.message}`);
                     }
 
                     if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract) {
@@ -1086,7 +1084,7 @@
                         document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
                         if(banner) {
                             banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
-                            document.getElementById('api-status-text').innerText = "Proposal & payout successfully updated from API.";
+                            document.getElementById('api-status-text').innerText = "Proposal & payout berhasil diperbarui dari API.";
                             const badge = document.getElementById('api-status-badge');
                             badge.innerText = "VERIFIED";
                             badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
@@ -1103,13 +1101,13 @@
 
             ws.onclose = () => {
                 isAccountConnected = false;
-                logMsg("ERR [Main WS Close]: WebSocket closed unexpectedly. Executing auto-reconnect...", 'ERR');
+                logMsg("ERR [Main WS Close]: WebSocket tertutup tidak terduga. Menjalankan auto-reconnect...", 'ERR');
                 const statusEl = document.getElementById('conn-status-indicator');
                 if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
                 
                 setTimeout(() => {
                     if (accessToken) {
-                        logMsg("System | Attempting to reconnect main WebSocket...", 'INFO');
+                        logMsg("System | Mencoba menghubungkan ulang WebSocket utama...", 'INFO');
                         initMainWebSocket(accessToken);
                     }
                 }, 3000);
@@ -1209,7 +1207,7 @@
                 if (isCategoryMatch) {
                     if (expiryType === 'tick' || minDur.endsWith('t')) hasTicks = true;
                     if (expiryType === 'intraday' && minDur.endsWith('s')) hasSeconds = true;
-                    if (expiryType === 'intraday' && (minDur.endsWith('m') || minDur.endsWith('s'))) hasMinutes = true;
+                    if (expiryType === 'intraday' && (minDur.endsWith('m' ) || minDur.endsWith('s'))) hasMinutes = true;
                     if (expiryType === 'daily' || expiryType === 'intraday') hasHoursOrDays = true;
                 }
             });
@@ -1247,7 +1245,7 @@
 
         function clearCurrentAccountLogs() {
             if (!currentActiveAccountId) return;
-            if (confirm(`Clear all transaction logs for account ${currentActiveAccountId}?`)) {
+            if (confirm(`Hapus semua riwayat log transaksi untuk akun ${currentActiveAccountId}?`)) {
                 contractLogs = contractLogs.filter(l => l.account_id !== currentActiveAccountId);
                 localStorage.removeItem(`contract_logs_${currentActiveAccountId}`);
                 processedContractIds.clear();
@@ -1303,7 +1301,7 @@
             if (badge) badge.innerText = `${activeLogs.length} Contracts`;
 
             if (activeLogs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="11" class="p-3 text-center text-slate-400 italic bg-white">No contract history yet for this account...</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="11" class="p-3 text-center text-slate-400 italic bg-white">Belum ada riwayat kontrak pada akun ini...</td></tr>`;
                 return;
             }
 
@@ -1413,7 +1411,7 @@
                 });
             } else {
                 const opt = document.createElement('option');
-                opt.value = ""; opt.innerText = "Loading data from API...";
+                opt.value = ""; opt.innerText = "Memuat data dari API...";
                 subSelect.appendChild(opt);
             }
             onSubmarketChange();
@@ -1427,7 +1425,7 @@
             if (symbol && symbol !== "undefined") {
                 const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
                 if (targetWs && targetWs.readyState === WebSocket.OPEN) {
-                    setApiPendingStatus("Sending contracts_for request...");
+                    setApiPendingStatus("Mengirim request contracts_for...");
                     const req = { contracts_for: symbol, req_id: 2 };
                     logMsg(`REQ [Contracts For]: ${JSON.stringify(req)}`, 'REQ');
                     targetWs.send(JSON.stringify(req));
@@ -1451,7 +1449,7 @@
             const barrier = document.getElementById('modal-barrier').value.trim();
 
             document.getElementById('payout-type-label').innerText = `Buy (${selectedChoice})`;
-            setApiPendingStatus("Sending proposal request to API...");
+            setApiPendingStatus("Mengirim proposal request ke API...");
 
             const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
             if (targetWs && targetWs.readyState === WebSocket.OPEN) {
@@ -1555,7 +1553,7 @@
         }
 
         function openAddModal() {
-            if (isBotRunning) return; // Only disabled when bot is running
+            if (isBotRunning || !isAccountConnected) return;
             document.getElementById('add-strategy-modal').classList.remove('hidden');
             onMarketCategoryChange();
             onTradeTypeChange();
@@ -1647,7 +1645,7 @@
                         renderStrategyTable(defaultStrategyData);
                         updateDefaultStopLoss();
                         autoSaveStrategy();
-                        alert("Strategy imported successfully!");
+                        alert("Strategi berhasil diimpor!");
                     }
                 } catch(err) {}
                 event.target.value = "";
@@ -1658,7 +1656,7 @@
         function botAction(actionType) {
             if (actionType === 'run_bot') {
                 if (!isAccountConnected || !ws || ws.readyState !== WebSocket.OPEN) {
-                    alert("⚠️ Account connection lost. Please wait until connection is restored before running the bot.");
+                    alert("⚠️ Koneksi akun terputus. Harap tunggu hingga koneksi pulih sebelum menjalankan bot.");
                     return;
                 }
                 if (currentActiveAccountId) {
