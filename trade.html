@@ -74,6 +74,26 @@
                 </p>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left max-w-3xl mx-auto pt-4">
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-2">
+                    <div class="w-8 h-8 rounded-lg bg-teal-600/20 text-teal-400 flex items-center justify-center font-bold text-sm">01</div>
+                    <h3 class="font-bold text-white text-xs">Multi-Level Strategies</h3>
+                    <p class="text-slate-400 text-[11px] leading-normal">Configure sequential trading rules across multiple submarkets, duration units, and contract types.</p>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-2">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold text-sm">02</div>
+                    <h3 class="font-bold text-white text-xs">Automated Risk Control</h3>
+                    <p class="text-slate-400 text-[11px] leading-normal">Built-in Target Profit & Stop Loss tracking calibrated against real-time session net P/L.</p>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-2">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-sm">03</div>
+                    <h3 class="font-bold text-white text-xs">OAuth PKCE Security</h3>
+                    <p class="text-slate-400 text-[11px] leading-normal">Direct encrypted authentication via Deriv official OAuth PKCE gateway without storing API tokens.</p>
+                </div>
+            </div>
+
             <div class="pt-4">
                 <button type="button" onclick="goToLoginView()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-extrabold px-8 py-3.5 rounded-xl shadow-xl shadow-teal-500/20 text-sm tracking-wider transition transform hover:-translate-y-0.5 cursor-pointer">
                     <span>START DXBOT</span>
@@ -81,6 +101,7 @@
                 </button>
             </div>
         </main>
+
         <footer class="text-center text-slate-600 text-[11px] py-2 border-t border-slate-900">
             DXBot Engine &copy; 2026. Automated Trading Software for Deriv Platform.
         </footer>
@@ -92,15 +113,19 @@
             <div class="text-center space-y-2">
                 <div class="inline-block bg-teal-600/20 text-teal-400 font-semibold px-3 py-1 rounded-full text-xs border border-teal-500/30">OAuth 2.0 PKCE Gateway</div>
                 <h2 class="text-base font-bold text-white">Sign In to DXBot Engine</h2>
+                <p class="text-xs text-slate-400">Authenticate securely using your Deriv Account credentials.</p>
             </div>
+
             <div id="login-status-box" class="hidden p-3 rounded-xl text-center space-y-1.5 border text-xs">
                 <div id="login-status-spinner" class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                 <div id="login-status-text" class="font-bold">Connecting...</div>
                 <div id="login-status-subtext" class="text-[10px] opacity-80">Please wait while we redirect to OAuth portal...</div>
             </div>
+
             <div class="space-y-4 text-xs" id="login-action-container">
                 <button type="button" onclick="loginWithDerivOAuthPKCE()" class="w-full bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg tracking-wider text-xs cursor-pointer flex items-center justify-center space-x-2">
                     <span>CONNECT DERIV ACCOUNT</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </button>
                 <button type="button" onclick="goToLandingView()" class="w-full text-slate-400 hover:text-white text-[11px] underline text-center cursor-pointer">
                     &larr; Back to DXBot Overview
@@ -121,10 +146,13 @@
             <div class="flex items-center space-x-3">
                 <a href="https://t.deriv.link?t=REXB5ZQKPMGE" target="_blank" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold px-3 py-1.5 rounded-lg text-xs shadow flex items-center space-x-1 transition cursor-pointer">
                     <span>Go to Deriv Page</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                 </a>
+
                 <a href="https://t.deriv.link?t=REXB5ZQKPMGE" target="_blank" class="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-3.5 py-1.5 rounded-lg text-xs shadow transition cursor-pointer">
                     Deposit
                 </a>
+
                 <div class="relative">
                     <button type="button" onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
                         <div class="text-right">
@@ -136,6 +164,7 @@
                         </div>
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
+                    
                     <div id="account-menu" class="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50 p-2 space-y-1 text-xs">
                         <div id="account-list-container" class="space-y-1">
                             <div class="p-2.5 text-slate-500 text-center">Loading accounts...</div>
@@ -147,7 +176,6 @@
 
         <div class="flex-1 flex overflow-hidden">
             
-            <!-- SIDEBAR KIRI -->
             <aside class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 space-y-6 text-[11px] text-slate-500 shrink-0">
                 <a href="https://t.deriv.link?t=REXB5ZQKPMGE" target="_blank" class="flex flex-col items-center cursor-pointer hover:text-teal-600">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
@@ -156,11 +184,6 @@
                 <div onclick="openUsageModal()" class="flex flex-col items-center cursor-pointer hover:text-teal-600">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     Guide
-                </div>
-                <!-- TOMBOL SYSTEM LOG (LPG) DI BAWAH GUIDE -->
-                <div onclick="openSystemLogModal()" class="flex flex-col items-center cursor-pointer hover:text-teal-600" title="System Log & API Requests">
-                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Log LPG
                 </div>
                 <div class="flex-1"></div>
                 <div onclick="handleLogout()" class="flex flex-col items-center cursor-pointer hover:text-rose-600 pb-2">
@@ -200,7 +223,6 @@
                     <div class="p-2 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
                         <div class="flex items-center space-x-1.5 flex-wrap">
                             <button type="button" id="btn-open-modal" onclick="openAddModal()" disabled class="px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]">Add Level (+)</button>
-                            <!-- TOMBOL DELETE, CLEAR, EXPORT (DISABLE KETIKA RUN) -->
                             <button type="button" id="btn-delete-last" onclick="deleteLastRow()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Delete Last</button>
                             <button type="button" id="btn-clear-strategy" onclick="clearStrategy()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]">Clear</button>
                             <button type="button" id="btn-export-strategy" onclick="exportStrategyJson()" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px]">Export Strategy</button>
@@ -211,18 +233,23 @@
                         </div>
 
                         <div class="flex items-center space-x-2 ml-auto flex-wrap">
-                            <div class="flex items-center space-x-1">
+                            <!-- TARGET PROFIT DENGAN HOVER BAHASA INGGRIS -->
+                            <div class="flex items-center space-x-1" title="Target profit is an estimate. The bot will stop when session profit reaches or exceeds this value.">
                                 <label class="font-bold text-emerald-700 text-[10px] uppercase cursor-help">Est. Target Profit ($) ℹ️:</label>
                                 <input type="number" step="1.00" id="input-target-profit" value="10.00" class="w-20 bg-white border border-slate-300 rounded px-2 py-0.5 font-bold text-emerald-700 text-xs text-center">
                             </div>
-                            <div class="flex items-center space-x-1">
+                            
+                            <!-- DROPDOWN MODE STOP LOSS -->
+                            <div class="flex items-center space-x-1" title="Select risk management method: Stop based on estimated loss limit or wait until the last level fails completely.">
                                 <label class="font-bold text-rose-700 text-[10px] uppercase cursor-help">Stop Loss Mode ℹ️:</label>
                                 <select id="select-stop-loss-mode" onchange="toggleStopLossInput()" class="bg-white border border-slate-300 rounded px-1.5 py-0.5 font-bold text-rose-700 text-xs cursor-pointer">
                                     <option value="amount" selected>Est. Max Loss (&gt; $)</option>
                                     <option value="until_end">Until Level Ends</option>
                                 </select>
                             </div>
-                            <div class="flex items-center space-x-1" id="wrapper-stop-loss-input">
+
+                            <!-- INPUT NOMINAL STOP LOSS DENGAN HOVER BAHASA INGGRIS -->
+                            <div class="flex items-center space-x-1" id="wrapper-stop-loss-input" title="Estimated maximum loss threshold. The bot will stop once session losses meet or exceed this limit.">
                                 <input type="number" step="1.00" id="input-stop-loss" value="4.00" class="w-20 bg-white border border-slate-300 rounded px-2 py-0.5 font-bold text-rose-700 text-xs text-center">
                             </div>
                         </div>
@@ -285,9 +312,11 @@
                         </div>
                     </div>
                 </div>
+
             </main>
 
             <aside id="right-panel" class="w-72 bg-white border-l border-slate-200 p-3 flex flex-col space-y-3 text-xs shrink-0 overflow-y-auto h-full">
+                
                 <div class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg flex justify-between items-center text-[11px] text-slate-600 shadow-sm shrink-0">
                     <span id="conn-status-indicator" class="flex items-center font-medium">
                         <span id="conn-dot" class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Waiting for Account
@@ -315,9 +344,15 @@
                         <span>TRADING RUNNING</span>
                         <span id="active-contract-id-badge" class="text-[9px] bg-teal-800 text-teal-100 px-1.5 py-0.5 rounded font-mono hidden">#---</span>
                     </div>
+
                     <div class="bg-slate-50 border border-slate-300 rounded-lg overflow-y-auto max-h-[400px] text-xs">
                         <table class="w-full border-collapse table-fixed">
-                            <thead><tr><th class="w-36"></th><th class="w-auto"></th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th class="w-36"></th>
+                                    <th class="w-auto"></th>
+                                </tr>
+                            </thead>
                             <tbody id="portfolio-table-body">
                                 <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Level</td><td id="pf-level" class="p-1.5 font-bold text-slate-800 truncate">-</td></tr>
                                 <tr class="border-b border-slate-200"><td class="p-1.5 font-semibold text-slate-600 bg-slate-100 border-r border-slate-200 w-36">Market</td><td id="pf-market" class="p-1.5 text-slate-700 truncate">-</td></tr>
@@ -360,26 +395,6 @@
         </div>
     </div>
 
-    <!-- MODAL: SYSTEM LOG (LPG) -->
-    <div id="system-log-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3">
-        <div class="bg-white border border-slate-200 rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col text-xs">
-            <div class="bg-slate-900 text-white px-4 py-2.5 flex justify-between items-center">
-                <h3 class="font-bold text-xs tracking-wide">System Log & API Requests (LPG)</h3>
-                <button type="button" onclick="closeSystemLogModal()" class="text-white hover:text-slate-200 font-bold text-base cursor-pointer">&times;</button>
-            </div>
-            <div class="p-3 bg-slate-950 text-emerald-400 font-mono text-[10px] h-80 overflow-y-auto no-scrollbar space-y-1" id="system-log-container">
-                <div>[System] Initialized log viewer...</div>
-            </div>
-            <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-between items-center">
-                <div class="space-x-2">
-                    <button type="button" onclick="clearSystemLogs()" class="px-3 py-1.5 bg-rose-500 text-white rounded font-bold text-xs shadow cursor-pointer">Clear Log</button>
-                    <button type="button" onclick="exportSystemLogs()" class="px-3 py-1.5 bg-slate-700 text-white rounded font-bold text-xs shadow cursor-pointer">Export Log</button>
-                </div>
-                <button type="button" onclick="closeSystemLogModal()" class="px-4 py-1.5 bg-slate-800 text-white rounded font-bold text-xs shadow cursor-pointer">Close</button>
-            </div>
-        </div>
-    </div>
-
     <!-- MODAL: CONTRACT DETAIL -->
     <div id="contract-detail-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3">
         <div class="bg-white border border-slate-200 rounded-xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col text-xs">
@@ -389,7 +404,9 @@
             </div>
             <div class="p-4 space-y-2 bg-slate-50">
                 <div class="bg-white border border-slate-300 rounded-lg overflow-hidden text-xs">
-                    <table class="w-full border-collapse"><tbody id="modal-detail-tbody"></tbody></table>
+                    <table class="w-full border-collapse">
+                        <tbody id="modal-detail-tbody"></tbody>
+                    </table>
                 </div>
             </div>
             <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-end">
@@ -420,10 +437,12 @@
                         <select id="modal-submarket" onchange="onSubmarketChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-semibold text-xs cursor-pointer"></select>
                     </div>
                 </div>
+
                 <div id="api-status-banner" class="bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs">
                     <span id="api-status-text">Processing request to Deriv API...</span>
                     <span id="api-status-badge" class="font-bold text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded uppercase">PENDING</span>
                 </div>
+
                 <div>
                     <label class="font-medium text-slate-600 block mb-1">Trade Type</label>
                     <select id="modal-trade-type" onchange="onTradeTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-semibold text-teal-700 text-xs cursor-pointer">
@@ -435,16 +454,19 @@
                         <option value="Even/Odd">Even / Odd</option>
                     </select>
                 </div>
+
                 <div id="choice-buttons-container" class="space-y-1">
                     <label class="font-medium text-slate-600 block" id="choice-label">Touch Type</label>
                     <div class="grid grid-cols-2 gap-2" id="choice-buttons-grid"></div>
                 </div>
+
                 <div id="digit-prediction-container" class="hidden space-y-2 pt-2 border-t border-slate-200 bg-slate-50 p-2.5 rounded-lg border">
                     <div id="digit-grid-wrapper" class="space-y-1.5">
                         <span class="font-bold text-slate-700 block text-[11px]">Last digit prediction</span>
                         <div class="grid grid-cols-5 gap-1.5" id="digit-grid"></div>
                     </div>
                 </div>
+
                 <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-200">
                     <div>
                         <div class="flex justify-between items-center mb-1">
@@ -469,10 +491,12 @@
                         <input type="number" step="1.00" id="modal-amount" value="2.00" min="0.35" onchange="requestProposalUpdate()" onkeyup="requestProposalUpdate()" class="w-full bg-white border border-teal-500 rounded p-1.5 font-bold text-teal-700 text-xs">
                     </div>
                 </div>
+
                 <div id="barrier-container" class="pt-2 border-t border-slate-200">
                     <label class="font-medium text-slate-600 block mb-1">Barrier Offset</label>
                     <input type="text" id="modal-barrier" value="" placeholder="+0.46" oninput="requestProposalUpdate()" onchange="requestProposalUpdate()" class="w-full bg-white border border-slate-300 rounded p-1.5 font-mono font-bold text-slate-800 text-xs">
                 </div>
+
                 <div id="payout-summary-box" class="bg-emerald-600 text-white p-2.5 rounded-lg flex justify-between items-center shadow">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">ESTIMATED PAYOUT</span>
@@ -483,6 +507,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-end space-x-2">
                 <button type="button" onclick="closeAddModal()" class="px-3 py-1.5 bg-white border border-slate-300 rounded text-xs cursor-pointer">Cancel</button>
                 <button type="button" onclick="confirmAddStrategy()" class="px-4 py-1.5 bg-teal-600 text-white rounded font-bold text-xs shadow cursor-pointer">Add</button>
@@ -491,7 +516,7 @@
     </div>
 
     <script>
-        const DEFAULT_APP_ID = "34SWbJF6aKILJTuO0pIhy";
+        const DEFAULT_APP_ID = "34M4TGKofeTRkLOlcJ9zO";
 
         let ws = null;
         let publicWs = null;
@@ -520,38 +545,6 @@
         let defaultStrategyData = [
             { level: 1, contract_type: "Touch/No Touch", market: "Derived", submarket: "Volatility 100 (1s) Index", purchase_type: "No Touch", barrier: "+0.46", last_digit: "", duration_amount: 5, duration_unit: "ticks", amount: 2.00, payout: 3.35 }
         ];
-
-        function logMsg(msg, type='INFO') {
-            const timeStr = new Date().toLocaleTimeString();
-            console.log(`[${timeStr}] [${type}] ${msg}`);
-            const logContainer = document.getElementById('system-log-container');
-            if (logContainer) {
-                const colorClass = type === 'ERR' ? 'text-rose-400' : (type === 'REQ' ? 'text-amber-300' : 'text-emerald-400');
-                logContainer.innerHTML += `<div class="${colorClass}">[${timeStr}] [${type}] ${msg}</div>`;
-                logContainer.scrollTop = logContainer.scrollHeight;
-            }
-        }
-
-        function clearSystemLogs() {
-            const logContainer = document.getElementById('system-log-container');
-            if (logContainer) logContainer.innerHTML = '';
-        }
-
-        function exportSystemLogs() {
-            const logContainer = document.getElementById('system-log-container');
-            if (!logContainer) return;
-            const textContent = logContainer.innerText;
-            const dataStr = "data:text/plain;charset=utf-8," + encodeURIComponent(textContent);
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "system_lpg_" + new Date().toISOString().slice(0,10) + ".txt");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        function openSystemLogModal() { document.getElementById('system-log-modal').classList.remove('hidden'); }
-        function closeSystemLogModal() { document.getElementById('system-log-modal').classList.add('hidden'); }
 
         function goToLandingView() {
             document.getElementById('landing-view').classList.remove('hidden');
@@ -646,11 +639,6 @@
             const label = document.getElementById('bot-status-label');
             const subtext = document.getElementById('bot-status-subtext');
             const btnRunBot = document.getElementById('btn-run-bot');
-            
-            // Tombol manajemen strategi
-            const btnDeleteLast = document.getElementById('btn-delete-last');
-            const btnClear = document.getElementById('btn-clear-strategy');
-            const btnExport = document.getElementById('btn-export-strategy');
 
             if (!dot || !label || !subtext) return;
 
@@ -663,9 +651,6 @@
                     btnRunBot.disabled = true;
                     btnRunBot.className = "py-2.5 bg-slate-300 text-slate-500 font-bold rounded text-xs cursor-not-allowed shadow-sm transition";
                 }
-                if (btnDeleteLast) { btnDeleteLast.disabled = true; btnDeleteLast.classList.add('opacity-50', 'cursor-not-allowed'); }
-                if (btnClear) { btnClear.disabled = true; btnClear.classList.add('opacity-50', 'cursor-not-allowed'); }
-                if (btnExport) { btnExport.disabled = true; btnExport.classList.add('opacity-50', 'cursor-not-allowed'); }
             } else {
                 dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 inline-block";
                 label.innerText = "STOPPED";
@@ -675,9 +660,6 @@
                     btnRunBot.disabled = false;
                     btnRunBot.className = "py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm transition";
                 }
-                if (btnDeleteLast) { btnDeleteLast.disabled = false; btnDeleteLast.classList.remove('opacity-50', 'cursor-not-allowed'); }
-                if (btnClear) { btnClear.disabled = false; btnClear.classList.remove('opacity-50', 'cursor-not-allowed'); }
-                if (btnExport) { btnExport.disabled = false; btnExport.classList.remove('opacity-50', 'cursor-not-allowed'); }
             }
         }
 
@@ -768,6 +750,11 @@
             const profEl = document.getElementById('pf-profit');
             profEl.innerText = `${prof >= 0 ? '+' : ''}$${prof.toFixed(2)}`;
             profEl.className = `p-1.5 font-bold ${prof >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+        }
+
+        function logMsg(msg, type='INFO') {
+            const timeStr = new Date().toLocaleTimeString();
+            console.log(`[${timeStr}] [${type}] ${msg}`);
         }
 
         function toggleAccountDropdown(event) {
@@ -872,40 +859,23 @@
         }
 
         function startAutoReconnectWatcher() {
-            setInterval(async () => {
+            setInterval(() => {
                 if (isAccountConnected && currentActiveAccountId && accessToken) {
                     if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
-                        logMsg("WebSocket connection lost. Attempting automated reconnection...", 'ERR');
+                        isReconnecting = true;
+                        logMsg("WebSocket connection lost. Reconnecting...", 'ERR');
                         const statusEl = document.getElementById('conn-status-indicator');
                         if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
-                        
-                        try {
-                            const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${currentActiveAccountId}/otp`, {
-                                method: "POST",
-                                headers: { "Authorization": `Bearer ${accessToken}` }
-                            });
-                            const otpData = await otpRes.json();
-                            if (otpData.data && otpData.data.url) {
-                                lastWsUrl = otpData.data.url;
-                                connectAuthenticatedWebSocket(lastWsUrl, currentActiveAccountId);
-                            } else {
-                                logMsg("Failed to refresh OTP during reconnection.", 'ERR');
-                            }
-                        } catch(err) {
-                            logMsg("Reconnect error: " + err.message, 'ERR');
-                        }
+                        if (lastWsUrl) connectAuthenticatedWebSocket(lastWsUrl, currentActiveAccountId);
+                        else selectAndConnectAccount(currentActiveAccountId, accessToken);
                     }
                 }
-            }, 4000);
+            }, 3000);
         }
 
         function initPublicWebSocket() {
             publicWs = new WebSocket(`wss://api.derivws.com/trading/v1/options/ws/public`);
-            publicWs.onopen = () => { 
-                const req = { active_symbols: "brief", req_id: 1 };
-                logMsg("REQ [Public WS]: " + JSON.stringify(req), 'REQ');
-                publicWs.send(JSON.stringify(req)); 
-            };
+            publicWs.onopen = () => { publicWs.send(JSON.stringify({ active_symbols: "brief", req_id: 1 })); };
             publicWs.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
                 if (data.msg_type === 'active_symbols' && data.active_symbols) {
@@ -949,7 +919,9 @@
                         <span class="${isDemo ? 'text-amber-600' : 'text-slate-500'} block text-[11px] font-semibold">${isDemo ? 'Demo account' : 'Real account'}</span>
                         <span class="font-bold text-slate-800 font-mono text-xs">${acc.account_id}</span>
                     </div>
-                    <div class="text-right"><span class="font-bold text-xs text-slate-900 block">${balanceDisplay}</span></div>
+                    <div class="text-right">
+                        <span class="font-bold text-xs text-slate-900 block">${balanceDisplay}</span>
+                    </div>
                 `;
                 div.onclick = async () => {
                     document.getElementById('account-menu').classList.add('hidden');
@@ -962,6 +934,7 @@
         async function selectAndConnectAccount(accountId, token) {
             try {
                 isAccountConnected = false;
+                isReconnecting = true;
                 currentActiveAccountId = accountId;
                 updateAccountUiLabel(accountId);
                 loadLogsFromStorage(accountId);
@@ -984,6 +957,7 @@
                     if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1.5"></span> OTP Failed';
                 }
             } catch(e) {
+                isReconnecting = false;
                 const statusEl = document.getElementById('conn-status-indicator');
                 if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1.5"></span> Connection Error';
             }
@@ -993,19 +967,15 @@
             if (ws) ws.close();
             ws = new WebSocket(url);
             ws.onopen = () => {
-                const req = { balance: 1, subscribe: 1, req_id: 3 };
-                logMsg("REQ [Auth WS]: " + JSON.stringify(req), 'REQ');
-                ws.send(JSON.stringify(req));
+                ws.send(JSON.stringify({ balance: 1, subscribe: 1, req_id: 3 }));
                 isAccountConnected = true;
+                isReconnecting = false;
                 updateAccountUiLabel(accountId);
                 const statusEl = document.getElementById('conn-status-indicator');
                 if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span> Connected';
-                logMsg(`Successfully connected to account ${accountId}`);
             };
             ws.onmessage = (msg) => {
                 const data = JSON.parse(msg.data);
-                logMsg("RES: " + msg.data.substring(0, 150) + (msg.data.length > 150 ? '...' : ''));
-
                 if (data.msg_type === 'balance') {
                     const bal = parseFloat(data.balance.balance).toFixed(2);
                     const cur = data.balance.currency || 'USD';
@@ -1013,9 +983,7 @@
                 }
                 if (data.msg_type === 'proposal' && data.req_id === 105 && isBotRunning) {
                     if (data.proposal && data.proposal.id) {
-                        const buyReq = { buy: data.proposal.id, price: data.proposal.ask_price, req_id: 106 };
-                        logMsg("REQ [Buy]: " + JSON.stringify(buyReq), 'REQ');
-                        ws.send(JSON.stringify(buyReq));
+                        ws.send(JSON.stringify({ buy: data.proposal.id, price: data.proposal.ask_price, req_id: 106 }));
                     }
                 }
                 if (data.msg_type === 'buy' && data.req_id === 106 && isBotRunning) {
@@ -1024,9 +992,7 @@
                         const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
                         const executedAmount = parseFloat(currentConfig.amount) || parseFloat(data.buy.buy_price) || 0.00;
                         totalAccumulatedAmount += executedAmount;
-                        const pocReq = { proposal_open_contract: 1, contract_id: activeContractId, subscribe: 1, req_id: 107 };
-                        logMsg("REQ [POC]: " + JSON.stringify(pocReq), 'REQ');
-                        ws.send(JSON.stringify(pocReq));
+                        ws.send(JSON.stringify({ proposal_open_contract: 1, contract_id: activeContractId, subscribe: 1, req_id: 107 }));
                     }
                 }
                 if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract) {
@@ -1082,7 +1048,7 @@
                         renderSummaryFooters();
 
                         const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
-                        const stopLossLimit = parseFloat(document.getElementById('input-stop-loss').value) || 4.00;
+                        const stopLossLimit = Math.abs(parseFloat(document.getElementById('input-stop-loss').value) || 4.00);
 
                         if (totalSessionProfit >= targetProfitLimit) {
                             isBotRunning = false;
@@ -1092,11 +1058,10 @@
                             isBotRunning = false;
                             updateBotStatusUi('STOPPED');
                             alert(`⚠️ MAX LEVEL LOSS REACHED! Strategy cycle completed with loss. Total P/L: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
-                        } else if (stopLossMode === 'amount' && totalSessionProfit <= -Math.abs(stopLossLimit)) {
+                        } else if (stopLossMode === 'amount' && totalSessionProfit <= -stopLossLimit) {
                             isBotRunning = false;
                             updateBotStatusUi('STOPPED');
-                            // Menampilkan nilai profit/loss aktual yang sama persis dengan Total P/L
-                            alert(`⚠️ EST. STOP LOSS EXCEEDED! Total Net Loss: $${totalSessionProfit.toFixed(2)} (Limit was >= $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
+                            alert(`⚠️ EST. STOP LOSS EXCEEDED! Total Net Loss: $${Math.abs(totalSessionProfit).toFixed(2)} (Limit was >= $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
                         } else if (isBotRunning) {
                             setTimeout(() => executeNextStrategyStep(), 1500);
                         }
@@ -1135,7 +1100,7 @@
             };
             ws.onclose = () => {
                 isAccountConnected = false;
-                logMsg("WebSocket closed unexpectedly.", 'ERR');
+                isReconnecting = true;
                 const statusEl = document.getElementById('conn-status-indicator');
                 if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
             };
@@ -1197,7 +1162,10 @@
 
             const activeTradeType = document.getElementById('modal-trade-type').value;
             
-            let hasTicks = false, hasSeconds = false, hasMinutes = false, hasHoursOrDays = false;
+            let hasTicks = false;
+            let hasSeconds = false;
+            let hasMinutes = false;
+            let hasHoursOrDays = false;
 
             cachedContractsData.forEach(c => {
                 const cCat = (c.contract_category || "").toLowerCase();
@@ -1228,7 +1196,9 @@
             if (hasMinutes) unitSelect.innerHTML += `<option value="m">Minutes</option>`;
             if (hasHoursOrDays) unitSelect.innerHTML += `<option value="h">Hours / Days</option>`;
 
-            if (unitSelect.options.length === 0) unitSelect.innerHTML = `<option value="t">Ticks</option>`;
+            if (unitSelect.options.length === 0) {
+                unitSelect.innerHTML = `<option value="t">Ticks</option>`;
+            }
 
             let found = false;
             for (let i = 0; i < unitSelect.options.length; i++) {
@@ -1297,7 +1267,6 @@
             if (currentConfig.barrier) proposalReq.barrier = currentConfig.barrier;
             if (currentConfig.last_digit !== undefined && currentConfig.last_digit !== "") proposalReq.barrier = currentConfig.last_digit.toString();
 
-            logMsg("REQ [Proposal]: " + JSON.stringify(proposalReq), 'REQ');
             ws.send(JSON.stringify(proposalReq));
         }
 
@@ -1449,14 +1418,14 @@
                 const targetWs = (ws && ws.readyState === WebSocket.OPEN) ? ws : publicWs;
                 if (targetWs && targetWs.readyState === WebSocket.OPEN) {
                     setApiPendingStatus("Sending contracts_for request...");
-                    const req = { contracts_for: symbol, req_id: 2 };
-                    logMsg("REQ [Contracts For]: " + JSON.stringify(req), 'REQ');
-                    targetWs.send(JSON.stringify(req));
+                    targetWs.send(JSON.stringify({ contracts_for: symbol, req_id: 2 }));
                 }
             }
         }
 
-        function onDurationUnitChange() { updateModalDurationAndRules(); }
+        function onDurationUnitChange() {
+            updateModalDurationAndRules();
+        }
 
         function requestProposalUpdate() {
             const subMarketSelect = document.getElementById('modal-submarket');
@@ -1494,7 +1463,6 @@
                 } else if (tradeType === 'Matches/Differs' || tradeType === 'Over/Under') {
                     req.barrier = selectedDigit.toString();
                 }
-                logMsg("REQ [Proposal Update]: " + JSON.stringify(req), 'REQ');
                 targetWs.send(JSON.stringify(req));
             }
         }
@@ -1526,6 +1494,7 @@
                 barrierInput.value = '';
                 digitContainer.classList.add('hidden');
             }
+            
             updateModalDurationAndRules();
         }
 
@@ -1678,8 +1647,8 @@
 
         function botAction(actionType) {
             if (actionType === 'run_bot') {
-                if (!isAccountConnected || !ws || ws.readyState !== WebSocket.OPEN) {
-                    alert("⚠️ Connection is currently disconnected. Please wait until the connection is fully restored before running the bot.");
+                if (isReconnecting || !isAccountConnected || !ws || ws.readyState !== WebSocket.OPEN) {
+                    alert("⚠️ Connection is currently reconnecting or disconnected. Please wait until the connection is fully restored before running the bot.");
                     return;
                 }
                 if (currentActiveAccountId) {
