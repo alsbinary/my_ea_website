@@ -128,7 +128,6 @@
                 <div class="relative">
                     <button type="button" onclick="toggleAccountDropdown(event)" id="account-dropdown-btn" class="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
                         <div class="text-right">
-                            <!-- Label Jenis Akun di Bawah ID Akun -->
                             <div class="flex items-center space-x-1 justify-end">
                                 <span id="account-id-label" class="text-slate-900 font-bold text-xs font-mono">---</span>
                             </div>
@@ -160,7 +159,6 @@
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     Guide
                 </div>
-                <!-- TOMBOL SYSTEM LOG (LPG) DI BAWAH GUIDE -->
                 <div onclick="openSystemLogModal()" class="flex flex-col items-center cursor-pointer hover:text-teal-600" title="System Log & API Requests">
                     <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     Log LPG
@@ -647,37 +645,89 @@
             }
         }
 
+        // Fungsi terpusat pengatur state tombol strategi
+        function updateUiControlState() {
+            const btnOpenModal = document.getElementById('btn-open-modal');
+            const btnDeleteLast = document.getElementById('btn-delete-last');
+            const btnClear = document.getElementById('btn-clear-strategy');
+            const btnExport = document.getElementById('btn-export-strategy');
+            const labelImport = document.getElementById('label-import-strategy');
+            const inputImport = document.getElementById('import-file-input');
+
+            const canEdit = !isBotRunning && isAccountConnected;
+
+            if (btnOpenModal) {
+                btnOpenModal.disabled = !canEdit;
+                if (canEdit) {
+                    btnOpenModal.className = "px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer transition text-[11px]";
+                    btnOpenModal.innerText = "Add Level (+)";
+                } else {
+                    btnOpenModal.className = "px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]";
+                    btnOpenModal.innerText = isBotRunning ? "Add Level (+)" : "Add Level (+) [Waiting Account]";
+                }
+            }
+
+            if (btnDeleteLast) {
+                btnDeleteLast.disabled = !canEdit;
+                btnDeleteLast.className = canEdit 
+                    ? "px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]" 
+                    : "px-2.5 py-1 bg-slate-200 border border-slate-300 text-slate-400 rounded font-semibold shadow-sm cursor-not-allowed text-[11px] opacity-60";
+            }
+
+            if (btnClear) {
+                btnClear.disabled = !canEdit;
+                btnClear.className = canEdit 
+                    ? "px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]" 
+                    : "px-2.5 py-1 bg-slate-200 border border-slate-300 text-slate-400 rounded font-semibold shadow-sm cursor-not-allowed text-[11px] opacity-60";
+            }
+
+            if (btnExport) {
+                btnExport.disabled = !canEdit;
+                btnExport.className = canEdit 
+                    ? "px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px]" 
+                    : "px-2.5 py-1 bg-slate-200 border border-slate-300 text-slate-400 font-semibold rounded shadow-sm cursor-not-allowed text-[11px] opacity-60";
+            }
+
+            if (labelImport) {
+                if (canEdit) {
+                    labelImport.className = "px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px] inline-block";
+                    if (inputImport) inputImport.disabled = false;
+                } else {
+                    labelImport.className = "px-2.5 py-1 bg-slate-200 border border-slate-300 text-slate-400 font-semibold rounded shadow-sm cursor-not-allowed text-[11px] inline-block opacity-60";
+                    if (inputImport) inputImport.disabled = true;
+                }
+            }
+        }
+
         function updateBotStatusUi(statusState) {
-    const dot = document.getElementById('bot-status-dot');
-    const label = document.getElementById('bot-status-label');
-    const subtext = document.getElementById('bot-status-subtext');
-    const btnRunBot = document.getElementById('btn-run-bot');
+            const dot = document.getElementById('bot-status-dot');
+            const label = document.getElementById('bot-status-label');
+            const subtext = document.getElementById('bot-status-subtext');
+            const btnRunBot = document.getElementById('btn-run-bot');
 
-    if (!dot || !label || !subtext) return;
+            if (!dot || !label || !subtext) return;
 
-    if (statusState === 'RUNNING') {
-        dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block";
-        label.innerText = "RUNNING";
-        label.className = "font-bold text-[11px] tracking-wide text-emerald-400";
-        subtext.innerText = "Executing Strategy";
-        if (btnRunBot) {
-            btnRunBot.disabled = true;
-            btnRunBot.className = "py-2.5 bg-slate-300 text-slate-500 font-bold rounded text-xs cursor-not-allowed shadow-sm transition";
+            if (statusState === 'RUNNING') {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block";
+                label.innerText = "RUNNING";
+                label.className = "font-bold text-[11px] tracking-wide text-emerald-400";
+                subtext.innerText = "Executing Strategy";
+                if (btnRunBot) {
+                    btnRunBot.disabled = true;
+                    btnRunBot.className = "py-2.5 bg-slate-300 text-slate-500 font-bold rounded text-xs cursor-not-allowed shadow-sm transition";
+                }
+            } else {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 inline-block";
+                label.innerText = "STOPPED";
+                label.className = "font-bold text-[11px] tracking-wide text-rose-400";
+                subtext.innerText = "Idle";
+                if (btnRunBot) {
+                    btnRunBot.disabled = false;
+                    btnRunBot.className = "py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm transition";
+                }
+            }
+            updateUiControlState();
         }
-    } else {
-        dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 inline-block";
-        label.innerText = "STOPPED";
-        label.className = "font-bold text-[11px] tracking-wide text-rose-400";
-        subtext.innerText = "Idle";
-        if (btnRunBot) {
-            btnRunBot.disabled = false;
-            btnRunBot.className = "py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer shadow-sm transition";
-        }
-    }
-
-    // Panggil pembaruan tombol strategi setiap kali status bot berubah
-    updateUiControlState();
-}
 
         function updateDefaultStopLoss() {
             let totalAmountSum = defaultStrategyData.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
@@ -699,7 +749,7 @@
             } else if (durationUnitVal === 's') {
                 matchesExpiry = (expiryType === 'intraday' && minDurStr.endsWith('s'));
             } else if (durationUnitVal === 'm') {
-                matchesExpiry = (expiryType === 'intraday' && (minDurStr.endsWith('m') || minDurStr.endsWith('s')));
+                matchesExpiry = (expiryType === 'intraday' && (minDurStr.endsWith('m' ) || minDurStr.endsWith('s')));
             } else if (durationUnitVal === 'h') {
                 matchesExpiry = (expiryType === 'daily' || expiryType === 'intraday');
             } else {
@@ -868,65 +918,7 @@
                 if (el) el.innerText = now.toUTCString().split(' ')[4] + ' GMT';
             }, 1000);
         }
-// Fungsi terpusat untuk mengatur semua tombol kontrol strategi
-function updateUiControlState() {
-    const btnOpenModal = document.getElementById('btn-open-modal');
-    const btnDeleteLast = document.getElementById('btn-delete-last');
-    const btnClear = document.getElementById('btn-clear-strategy');
-    const btnExport = document.getElementById('btn-export-strategy');
-    const labelImport = document.getElementById('label-import-strategy');
-    const inputImport = document.getElementById('import-file-input');
 
-    // Kondisi: Tombol hanya aktif jika BOT TIDAK RUNNING dan AKUN TERHUBUNG
-    const canEdit = !isBotRunning && isAccountConnected;
-
-    // 1. Tombol Add Level (+)
-    if (btnOpenModal) {
-        btnOpenModal.disabled = !canEdit;
-        if (canEdit) {
-            btnOpenModal.className = "px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer transition text-[11px]";
-            btnOpenModal.innerText = "Add Level (+)";
-        } else {
-            btnOpenModal.className = "px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]";
-            btnOpenModal.innerText = isBotRunning ? "Add Level (+)" : "Add Level (+) [Waiting Account]";
-        }
-    }
-
-    // 2. Tombol Delete Last
-    if (btnDeleteLast) {
-        btnDeleteLast.disabled = !canEdit;
-        btnDeleteLast.className = canEdit 
-            ? "px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]" 
-            : "px-2.5 py-1 bg-slate-200 border border-slate-300 text-slate-400 rounded font-semibold shadow-sm cursor-not-allowed text-[11px] opacity-60";
-    }
-
-    // 3. Tombol Clear
-    if (btnClear) {
-        btnClear.disabled = !canEdit;
-        btnClear.className = canEdit 
-            ? "px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold shadow-sm cursor-pointer text-[11px]" 
-            : "px-2.5 py-1 bg-slate-200 border border-slate-300 text-slate-400 rounded font-semibold shadow-sm cursor-not-allowed text-[11px] opacity-60";
-    }
-
-    // 4. Tombol Export Strategy
-    if (btnExport) {
-        btnExport.disabled = !canEdit;
-        btnExport.className = canEdit 
-            ? "px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px]" 
-            : "px-2.5 py-1 bg-slate-200 border border-slate-300 text-slate-400 font-semibold rounded shadow-sm cursor-not-allowed text-[11px] opacity-60";
-    }
-
-    // 5. Tombol Import Strategy (Label & File Input)
-    if (labelImport) {
-        if (canEdit) {
-            labelImport.className = "px-2.5 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold rounded shadow-sm cursor-pointer text-[11px] inline-block";
-            if (inputImport) inputImport.disabled = false;
-        } else {
-            labelImport.className = "px-2.5 py-1 bg-slate-200 border border-slate-300 text-slate-400 font-semibold rounded shadow-sm cursor-not-allowed text-[11px] inline-block opacity-60";
-            if (inputImport) inputImport.disabled = true;
-        }
-    }
-}
         function startAutoReconnectWatcher() {
             setInterval(async () => {
                 if (isAccountConnected && currentActiveAccountId && accessToken) {
@@ -963,6 +955,7 @@ function updateUiControlState() {
                 publicWs.send(JSON.stringify(req)); 
             };
             publicWs.onmessage = (msg) => {
+                logMsg("RES [Public WS]: " + msg.data);
                 const data = JSON.parse(msg.data);
                 if (data.msg_type === 'active_symbols' && data.active_symbols) {
                     activeSymbolsList = data.active_symbols;
@@ -976,10 +969,12 @@ function updateUiControlState() {
 
         async function fetchAccountsAndSetup(token) {
             try {
+                logMsg("REQ [REST]: Fetching user accounts...", 'REQ');
                 const response = await fetch("https://api.derivws.com/trading/v1/options/accounts", {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
                 const result = await response.json();
+                logMsg("RES [REST Accounts]: " + JSON.stringify(result));
                 if (result.data && result.data.length > 0) {
                     accountsList = result.data;
                     renderAccountsDropdown(accountsList);
@@ -1024,15 +1019,18 @@ function updateUiControlState() {
                 resetRightPanelPortfolio();
                 renderContractTable();
                 renderSummaryFooters();
+                updateUiControlState();
 
                 const statusEl = document.getElementById('conn-status-indicator');
                 if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Connecting...';
 
+                logMsg(`REQ [REST OTP]: Requesting WebSocket OTP URL for account ${accountId}`, 'REQ');
                 const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${accountId}/otp`, {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${token}` }
                 });
                 const otpData = await otpRes.json();
+                logMsg("RES [REST OTP]: " + JSON.stringify(otpData));
                 if (otpData.data && otpData.data.url) {
                     lastWsUrl = otpData.data.url;
                     connectAuthenticatedWebSocket(lastWsUrl, accountId);
@@ -1053,14 +1051,13 @@ function updateUiControlState() {
                 logMsg("REQ [Auth WS]: " + JSON.stringify(req), 'REQ');
                 ws.send(JSON.stringify(req));
                 isAccountConnected = true;
-                updateUiControlState(); // <--- Tambahkan baris ini
                 updateAccountUiLabel(accountId);
+                updateUiControlState();
                 const statusEl = document.getElementById('conn-status-indicator');
                 if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span> Connected';
                 logMsg(`Successfully connected to account ${accountId}`);
             };
             ws.onmessage = (msg) => {
-                // RES diprint utuh tanpa dipotong
                 logMsg("RES: " + msg.data);
                 const data = JSON.parse(msg.data);
 
@@ -1092,7 +1089,6 @@ function updateUiControlState() {
                     }
                 }
                 
-                // Menangkap error dari API secara umum (seperti InsufficientBalance)
                 if (data.error && isBotRunning) {
                     isBotRunning = false;
                     updateBotStatusUi('STOPPED');
@@ -1133,6 +1129,9 @@ function updateUiControlState() {
                         const profitVal = parseFloat(poc.profit || 0);
                         totalSessionProfit += profitVal;
 
+                        // Perbarui ringkasan/footer profit/loss terlebih dahulu sebelum memicu alert
+                        renderSummaryFooters();
+
                         const stopLossMode = document.getElementById('select-stop-loss-mode').value;
                         let shouldStopForMaxLevelLoss = false;
 
@@ -1149,26 +1148,28 @@ function updateUiControlState() {
                                 shouldStopForMaxLevelLoss = true;
                             }
                         }
-                        renderSummaryFooters();
 
                         const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
                         const stopLossLimit = parseFloat(document.getElementById('input-stop-loss').value) || 4.00;
 
-                        if (totalSessionProfit >= targetProfitLimit) {
-                            isBotRunning = false;
-                            updateBotStatusUi('STOPPED');
-                            alert(`🎉 EST. TARGET PROFIT REACHED! Session Profit: $${totalSessionProfit.toFixed(2)} (Target was >= $${targetProfitLimit.toFixed(2)}). Bot Stopped.`);
-                        } else if (stopLossMode === 'until_end' && shouldStopForMaxLevelLoss) {
-                            isBotRunning = false;
-                            updateBotStatusUi('STOPPED');
-                            alert(`⚠️ MAX LEVEL LOSS REACHED! Strategy cycle completed with loss. Total P/L: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
-                        } else if (stopLossMode === 'amount' && totalSessionProfit <= -Math.abs(stopLossLimit)) {
-                            isBotRunning = false;
-                            updateBotStatusUi('STOPPED');
-                            alert(`⚠️ EST. STOP LOSS EXCEEDED! Total Net Loss: $${totalSessionProfit.toFixed(2)} (Limit was >= $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
-                        } else if (isBotRunning) {
-                            setTimeout(() => executeNextStrategyStep(), 1500);
-                        }
+                        // Beri sedikit jeda mikro agar DOM render UI profit selesai sebelum alert muncul
+                        setTimeout(() => {
+                            if (totalSessionProfit >= targetProfitLimit) {
+                                isBotRunning = false;
+                                updateBotStatusUi('STOPPED');
+                                alert(`🎉 EST. TARGET PROFIT REACHED! Session Profit: $${totalSessionProfit.toFixed(2)} (Target was >= $${targetProfitLimit.toFixed(2)}). Bot Stopped.`);
+                            } else if (stopLossMode === 'until_end' && shouldStopForMaxLevelLoss) {
+                                isBotRunning = false;
+                                updateBotStatusUi('STOPPED');
+                                alert(`⚠️ MAX LEVEL LOSS REACHED! Strategy cycle completed with loss. Total P/L: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
+                            } else if (stopLossMode === 'amount' && totalSessionProfit <= -Math.abs(stopLossLimit)) {
+                                isBotRunning = false;
+                                updateBotStatusUi('STOPPED');
+                                alert(`⚠️ EST. STOP LOSS EXCEEDED! Total Net Loss: $${totalSessionProfit.toFixed(2)} (Limit was >= $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
+                            } else if (isBotRunning) {
+                                setTimeout(() => executeNextStrategyStep(), 1500);
+                            }
+                        }, 50);
                     }
                 }
 
@@ -1205,6 +1206,7 @@ function updateUiControlState() {
             ws.onclose = () => {
                 isAccountConnected = false;
                 logMsg("WebSocket closed unexpectedly.", 'ERR');
+                updateUiControlState();
                 const statusEl = document.getElementById('conn-status-indicator');
                 if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
             };
@@ -1458,21 +1460,6 @@ function updateUiControlState() {
             }
         }
 
-        function updateModalButtonState() {
-            if (isBotRunning) return;
-            const btn = document.getElementById('btn-open-modal');
-            if (!btn) return;
-            if (isAccountConnected) {
-                btn.disabled = false;
-                btn.className = "px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold shadow-sm cursor-pointer transition text-[11px]";
-                btn.innerText = "Add Level (+)";
-            } else {
-                btn.disabled = true;
-                btn.className = "px-2.5 py-1 bg-slate-300 text-slate-500 rounded font-semibold shadow-sm cursor-not-allowed transition text-[11px]";
-                btn.innerText = "Add Level (+) [Waiting Account]";
-            }
-        }
-
         function setApiPendingStatus(message) {
             const banner = document.getElementById('api-status-banner');
             if(!banner) return;
@@ -1713,7 +1700,7 @@ function updateUiControlState() {
         }
 
         function exportStrategyJson() {
-            if (isBotRunning) return;
+            if (isBotRunning || !isAccountConnected) return;
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(defaultStrategyData, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
@@ -1724,7 +1711,7 @@ function updateUiControlState() {
         }
 
         function importStrategyJson(event) {
-            if (isBotRunning) { event.target.value = ""; return; }
+            if (isBotRunning || !isAccountConnected) { event.target.value = ""; return; }
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
@@ -1767,7 +1754,7 @@ function updateUiControlState() {
         }
 
         function deleteLastRow() {
-            if (!isBotRunning && defaultStrategyData.length > 0) {
+            if (!isBotRunning && isAccountConnected && defaultStrategyData.length > 0) {
                 defaultStrategyData.pop();
                 renderStrategyTable(defaultStrategyData);
                 updateDefaultStopLoss();
@@ -1776,7 +1763,7 @@ function updateUiControlState() {
         }
 
         function clearStrategy() {
-            if (!isBotRunning) {
+            if (!isBotRunning && isAccountConnected) {
                 defaultStrategyData = [];
                 renderStrategyTable(defaultStrategyData);
                 updateDefaultStopLoss();
