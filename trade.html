@@ -919,6 +919,7 @@
             }, 1000);
         }
 
+        // Perbaikan Auto-Reconnect Watcher dengan memperbarui token OTP baru
         function startAutoReconnectWatcher() {
             setInterval(async () => {
                 if (isAccountConnected && currentActiveAccountId && accessToken) {
@@ -928,16 +929,19 @@
                         if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
                         
                         try {
+                            logMsg(`REQ [REST OTP Reconnect]: Requesting fresh OTP URL for account ${currentActiveAccountId}`, 'REQ');
                             const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${currentActiveAccountId}/otp`, {
                                 method: "POST",
                                 headers: { "Authorization": `Bearer ${accessToken}` }
                             });
                             const otpData = await otpRes.json();
+                            logMsg("RES [REST OTP Reconnect]: " + JSON.stringify(otpData));
+                            
                             if (otpData.data && otpData.data.url) {
                                 lastWsUrl = otpData.data.url;
                                 connectAuthenticatedWebSocket(lastWsUrl, currentActiveAccountId);
                             } else {
-                                logMsg("Failed to refresh OTP during reconnection.", 'ERR');
+                                logMsg("Failed to refresh OTP during reconnection. Retrying...", 'ERR');
                             }
                         } catch(err) {
                             logMsg("Reconnect error: " + err.message, 'ERR');
@@ -1044,8 +1048,20 @@
         }
 
         function connectAuthenticatedWebSocket(url, accountId) {
-            if (ws) ws.close();
+            // Pastikan instance WebSocket lama benar-benar ditutup & dibersihkan
+            if (ws) {
+                try {
+                    ws.onopen = null;
+                    ws.onmessage = null;
+                    ws.onerror = null;
+                    ws.onclose = null;
+                    ws.close();
+                } catch(e) {}
+                ws = null;
+            }
+
             ws = new WebSocket(url);
+            
             ws.onopen = () => {
                 const req = { balance: 1, subscribe: 1, req_id: 3 };
                 logMsg("REQ [Auth WS]: " + JSON.stringify(req), 'REQ');
@@ -1057,6 +1073,7 @@
                 if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span> Connected';
                 logMsg(`Successfully connected to account ${accountId}`);
             };
+
             ws.onmessage = (msg) => {
                 logMsg("RES: " + msg.data);
                 const data = JSON.parse(msg.data);
@@ -1129,7 +1146,6 @@
                         const profitVal = parseFloat(poc.profit || 0);
                         totalSessionProfit += profitVal;
 
-                        // Perbarui ringkasan/footer profit/loss terlebih dahulu sebelum memicu alert
                         renderSummaryFooters();
 
                         const stopLossMode = document.getElementById('select-stop-loss-mode').value;
@@ -1152,7 +1168,6 @@
                         const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
                         const stopLossLimit = parseFloat(document.getElementById('input-stop-loss').value) || 4.00;
 
-                        // Beri sedikit jeda mikro agar DOM render UI profit selesai sebelum alert muncul
                         setTimeout(() => {
                             if (totalSessionProfit >= targetProfitLimit) {
                                 isBotRunning = false;
@@ -1203,6 +1218,11 @@
                     }
                 }
             };
+
+            ws.onerror = (err) => {
+                logMsg("WebSocket error encountered.", 'ERR');
+            };
+
             ws.onclose = () => {
                 isAccountConnected = false;
                 logMsg("WebSocket closed unexpectedly.", 'ERR');
