@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,11 +9,11 @@
 <body class="bg-white text-slate-900 min-h-screen flex items-center justify-center font-sans text-xs">
     <div class="bg-slate-50 border border-slate-200 rounded-2xl p-8 shadow-xl text-center space-y-4 max-w-sm w-full">
         <div class="flex items-center justify-center space-x-2 mb-2">
-            <div class="bg-emerald-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">MD</div>
+            <div class="bg-rose-600 text-white font-black px-2.5 py-1 rounded text-xs tracking-wider">MD</div>
             <span class="text-sm font-bold text-slate-800 tracking-wide">MDbot Engine</span>
         </div>
-        <div id="spinner" class="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <h2 id="status-text" class="text-xs font-bold text-slate-700">Menukar Kode Otorisasi OAuth...</h2>
+        <div id="spinner" class="w-8 h-8 border-4 border-rose-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <h2 id="status-text" class="text-xs font-bold text-slate-700">Exchanging OAuth Authorization Code...</h2>
     </div>
 
     <script>
@@ -23,14 +23,14 @@
             const error = query.get('error');
 
             if (error) {
-                alert('Autentikasi dibatalkan oleh Deriv: ' + query.get('error_description'));
-                window.location.href = './bot';
+                alert('Authentication cancelled by Deriv: ' + query.get('error_description'));
+                window.location.href = '/mdbot/bot';
                 return;
             }
 
             if (!code) {
-                alert('Authorization code tidak ditemukan di URL.');
-                window.location.href = './bot';
+                alert('Authorization code not found in URL.');
+                window.location.href = '/mdbot/bot';
                 return;
             }
 
@@ -39,13 +39,13 @@
             const redirectUri = "https://tradelib.net/trade-callback";
 
             if (!codeVerifier || !clientId) {
-                alert('Sesi PKCE / Client ID kedaluwarsa. Silakan login ulang.');
-                window.location.href = './bot';
+                alert('PKCE Session / Client ID expired. Please log in again.');
+                window.location.href = '/mdbot/bot';
                 return;
             }
 
             try {
-                document.getElementById('status-text').innerText = "Menghubungkan ke server OAuth Deriv...";
+                document.getElementById('status-text').innerText = "Connecting to Deriv OAuth Server...";
 
                 const response = await fetch("https://auth.deriv.com/oauth2/token", {
                     method: "POST",
@@ -70,19 +70,19 @@
                     localStorage.removeItem('oauth_state');
                     localStorage.removeItem('pending_client_id');
 
-                    document.getElementById('status-text').innerText = "Login Berhasil! Mengalihkan ke Dashboard Bot...";
+                    document.getElementById('status-text').innerText = "Login Successful! Redirecting to Bot Dashboard...";
                     setTimeout(() => {
-                        window.location.href = './bot';
+                        window.location.href = '/mdbot/bot';
                     }, 1000);
                 } else {
                     console.error('Token Error Response:', data);
-                    alert('Gagal menukar token: ' + (data.error_description || JSON.stringify(data)));
-                    window.location.href = './bot';
+                    alert('Failed to exchange token: ' + (data.error_description || JSON.stringify(data)));
+                    window.location.href = '/mdbot/bot';
                 }
             } catch (err) {
                 console.error('Token exchange exception:', err);
-                alert('Terjadi kesalahan jaringan saat penukaran token OAuth.');
-                window.location.href = './bot';
+                alert('Network error occurred during OAuth token exchange.');
+                window.location.href = '/mdbot/bot';
             }
         };
     </script>
