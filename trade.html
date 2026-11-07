@@ -1047,190 +1047,224 @@ function startAutoReconnectWatcher() {
             }
         }
 
-        function connectAuthenticatedWebSocket(url, accountId) {
-            // Pastikan instance WebSocket lama benar-benar ditutup & dibersihkan
-            if (ws) {
-                try {
-                    ws.onopen = null;
-                    ws.onmessage = null;
-                    ws.onerror = null;
-                    ws.onclose = null;
-                    ws.close();
-                } catch(e) {}
-                ws = null;
+        // Variabel global untuk menampung interval ping
+let authPingInterval = null;
+
+function connectAuthenticatedWebSocket(url, accountId) {
+    // 1. Bersihkan instance WebSocket dan interval ping lama
+    if (ws) {
+        try {
+            ws.onopen = null;
+            ws.onmessage = null;
+            ws.onerror = null;
+            ws.onclose = null;
+            ws.close();
+        } catch(e) {}
+        ws = null;
+    }
+    
+    if (authPingInterval) {
+        clearInterval(authPingInterval);
+        authPingInterval = null;
+    }
+
+    ws = new WebSocket(url);
+    
+    ws.onopen = () => {
+        // Kirim inisialisasi saldo utama
+        const req = { balance: 1, subscribe: 1, req_id: 3 };
+        logMsg("REQ [Auth WS]: " + JSON.stringify(req), 'REQ');
+        ws.send(JSON.stringify(req));
+        
+        isAccountConnected = true;
+        updateAccountUiLabel(accountId);
+        updateUiControlState();
+        
+        const statusEl = document.getElementById('conn-status-indicator');
+        if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span> Connected';
+        logMsg(`Successfully connected to account ${accountId}`);
+
+        // [BARU] Kirim pesan ping secara berkala setiap 30 detik agar koneksi tidak idle/terputus oleh server
+        authPingInterval = setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ ping: 1 }));
             }
+        }, 30000);
 
-            ws = new WebSocket(url);
-            
-            ws.onopen = () => {
-                const req = { balance: 1, subscribe: 1, req_id: 3 };
-                logMsg("REQ [Auth WS]: " + JSON.stringify(req), 'REQ');
-                ws.send(JSON.stringify(req));
-                isAccountConnected = true;
-                updateAccountUiLabel(accountId);
-                updateUiControlState();
-                const statusEl = document.getElementById('conn-status-indicator');
-                if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span> Connected';
-                logMsg(`Successfully connected to account ${accountId}`);
-            };
+        // [BARU] Jika bot sedang berjalan dan ada kontrak aktif yang terputus, daftarkan ulang (re-subscribe)
+        if (isBotRunning && activeContractId) {
+            const pocReq = { proposal_open_contract: 1, contract_id: activeContractId, subscribe: 1, req_id: 107 };
+            logMsg("REQ [Re-sub POC Recovery]: " + JSON.stringify(pocReq), 'REQ');
+            ws.send(JSON.stringify(pocReq));
+        }
+    };
 
-            ws.onmessage = (msg) => {
-                logMsg("RES: " + msg.data);
-                const data = JSON.parse(msg.data);
+    ws.onmessage = (msg) => {
+        const data = JSON.parse(msg.data);
+        
+        // Abaikan log pesan 'pong' agar log tidak terlalu penuh
+        if (data.msg_type === 'pong') return;
 
-                if (data.msg_type === 'balance') {
-                    const bal = parseFloat(data.balance.balance).toFixed(2);
-                    const cur = data.balance.currency || 'USD';
-                    updateAccountUiLabel(currentActiveAccountId, `${bal} ${cur}`);
-                }
-                if (data.msg_type === 'proposal' && data.req_id === 105 && isBotRunning) {
-                    if (data.proposal && data.proposal.id) {
-                        const buyReq = { buy: data.proposal.id, price: data.proposal.ask_price, req_id: 106 };
-                        logMsg("REQ [Buy]: " + JSON.stringify(buyReq), 'REQ');
-                        ws.send(JSON.stringify(buyReq));
+        logMsg("RES: " + msg.data);
+
+        if (data.msg_type === 'balance') {
+            const bal = parseFloat(data.balance.balance).toFixed(2);
+            const cur = data.balance.currency || 'USD';
+            updateAccountUiLabel(currentActiveAccountId, `${bal} ${cur}`);
+        }
+        if (data.msg_type === 'proposal' && data.req_id === 105 && isBotRunning) {
+            if (data.proposal && data.proposal.id) {
+                const buyReq = { buy: data.proposal.id, price: data.proposal.ask_price, req_id: 106 };
+                logMsg("REQ [Buy]: " + JSON.stringify(buyReq), 'REQ');
+                ws.send(JSON.stringify(buyReq));
+            }
+        }
+        if (data.msg_type === 'buy' && data.req_id === 106 && isBotRunning) {
+            if (data.error) {
+                isBotRunning = false;
+                updateBotStatusUi('STOPPED');
+                alert(`⚠️ BOT STOPPED: Your account balance is insufficient (Current balance: $${currentAccountBalance.toFixed(2)}). Details: ${data.error.message}`);
+            } else if (data.buy && data.buy.contract_id) {
+                activeContractId = data.buy.contract_id;
+                const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
+                const executedAmount = parseFloat(currentConfig.amount) || parseFloat(data.buy.buy_price) || 0.00;
+                totalAccumulatedAmount += executedAmount;
+                const pocReq = { proposal_open_contract: 1, contract_id: activeContractId, subscribe: 1, req_id: 107 };
+                logMsg("REQ [POC]: " + JSON.stringify(pocReq), 'REQ');
+                ws.send(JSON.stringify(pocReq));
+            }
+        }
+        
+        if (data.error && isBotRunning) {
+            isBotRunning = false;
+            updateBotStatusUi('STOPPED');
+            alert(`⚠️ BOT STOPPED: Your account balance is insufficient (Current balance: $${currentAccountBalance.toFixed(2)}). Message: ${data.error.message}`);
+        }
+
+        if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract) {
+            const poc = data.proposal_open_contract;
+            const cId = poc.contract_id;
+            const isSold = poc.is_sold;
+            const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
+
+            let existingLog = contractLogs.find(l => l.contract_id === cId);
+            if (!existingLog) {
+                existingLog = {
+                    id: contractLogs.length + 1, contract_id: cId, account_id: currentActiveAccountId,
+                    status: poc.status || 'open', level: currentStrategyLevelIndex + 1,
+                    contract_type: currentConfig.contract_type || "Touch/No Touch",
+                    submarket: currentConfig.submarket || "Volatility 100 (1s) Index",
+                    purchase_type: currentConfig.purchase_type || "No Touch",
+                    buy_price: parseFloat(poc.buy_price || 0), sell_price: parseFloat(poc.sell_price || 0),
+                    payout: parseFloat(poc.payout || 0), profit: parseFloat(poc.profit || 0), pocData: poc
+                };
+                contractLogs.push(existingLog);
+            } else {
+                existingLog.status = poc.status || existingLog.status;
+                existingLog.sell_price = parseFloat(poc.sell_price || existingLog.sell_price);
+                existingLog.profit = parseFloat(poc.profit || existingLog.profit);
+                existingLog.pocData = poc;
+            }
+            saveLogsToStorage(currentActiveAccountId);
+            if (!isSold) updateRightPanelPortfolio(poc, existingLog.level);
+            else resetRightPanelPortfolio();
+            renderContractTable();
+
+            if (isSold === 1 && !processedContractIds.has(cId)) {
+                processedContractIds.add(cId);
+                const profitVal = parseFloat(poc.profit || 0);
+                totalSessionProfit += profitVal;
+
+                renderSummaryFooters();
+
+                const stopLossMode = document.getElementById('select-stop-loss-mode').value;
+                let shouldStopForMaxLevelLoss = false;
+
+                if (poc.status === 'won') {
+                    winCount++;
+                    currentStrategyLevelIndex = 0;
+                    totalAccumulatedAmount = 0;
+                } else if (poc.status === 'lost') {
+                    lossCount++;
+                    if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) {
+                        currentStrategyLevelIndex++;
+                    } else {
+                        currentStrategyLevelIndex = 0;
+                        shouldStopForMaxLevelLoss = true;
                     }
                 }
-                if (data.msg_type === 'buy' && data.req_id === 106 && isBotRunning) {
-                    if (data.error) {
+
+                const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
+                const stopLossLimit = parseFloat(document.getElementById('input-stop-loss').value) || 4.00;
+
+                setTimeout(() => {
+                    if (totalSessionProfit >= targetProfitLimit) {
                         isBotRunning = false;
                         updateBotStatusUi('STOPPED');
-                        alert(`⚠️ BOT STOPPED: Your account balance is insufficient (Current balance: $${currentAccountBalance.toFixed(2)}). Details: ${data.error.message}`);
-                    } else if (data.buy && data.buy.contract_id) {
-                        activeContractId = data.buy.contract_id;
-                        const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
-                        const executedAmount = parseFloat(currentConfig.amount) || parseFloat(data.buy.buy_price) || 0.00;
-                        totalAccumulatedAmount += executedAmount;
-                        const pocReq = { proposal_open_contract: 1, contract_id: activeContractId, subscribe: 1, req_id: 107 };
-                        logMsg("REQ [POC]: " + JSON.stringify(pocReq), 'REQ');
-                        ws.send(JSON.stringify(pocReq));
+                        alert(`🎉 EST. TARGET PROFIT REACHED! Session Profit: $${totalSessionProfit.toFixed(2)} (Target was >= $${targetProfitLimit.toFixed(2)}). Bot Stopped.`);
+                    } else if (stopLossMode === 'until_end' && shouldStopForMaxLevelLoss) {
+                        isBotRunning = false;
+                        updateBotStatusUi('STOPPED');
+                        alert(`⚠️ MAX LEVEL LOSS REACHED! Strategy cycle completed with loss. Total P/L: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
+                    } else if (stopLossMode === 'amount' && totalSessionProfit <= -Math.abs(stopLossLimit)) {
+                        isBotRunning = false;
+                        updateBotStatusUi('STOPPED');
+                        alert(`⚠️ EST. STOP LOSS EXCEEDED! Total Net Loss: $${totalSessionProfit.toFixed(2)} (Limit was >= $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
+                    } else if (isBotRunning) {
+                        setTimeout(() => executeNextStrategyStep(), 1500);
                     }
-                }
-                
-                if (data.error && isBotRunning) {
-                    isBotRunning = false;
-                    updateBotStatusUi('STOPPED');
-                    alert(`⚠️ BOT STOPPED: Your account balance is insufficient (Current balance: $${currentAccountBalance.toFixed(2)}). Message: ${data.error.message}`);
-                }
-
-                if (data.msg_type === 'proposal_open_contract' && data.proposal_open_contract) {
-                    const poc = data.proposal_open_contract;
-                    const cId = poc.contract_id;
-                    const isSold = poc.is_sold;
-                    const currentConfig = defaultStrategyData[currentStrategyLevelIndex] || defaultStrategyData[0];
-
-                    let existingLog = contractLogs.find(l => l.contract_id === cId);
-                    if (!existingLog) {
-                        existingLog = {
-                            id: contractLogs.length + 1, contract_id: cId, account_id: currentActiveAccountId,
-                            status: poc.status || 'open', level: currentStrategyLevelIndex + 1,
-                            contract_type: currentConfig.contract_type || "Touch/No Touch",
-                            submarket: currentConfig.submarket || "Volatility 100 (1s) Index",
-                            purchase_type: currentConfig.purchase_type || "No Touch",
-                            buy_price: parseFloat(poc.buy_price || 0), sell_price: parseFloat(poc.sell_price || 0),
-                            payout: parseFloat(poc.payout || 0), profit: parseFloat(poc.profit || 0), pocData: poc
-                        };
-                        contractLogs.push(existingLog);
-                    } else {
-                        existingLog.status = poc.status || existingLog.status;
-                        existingLog.sell_price = parseFloat(poc.sell_price || existingLog.sell_price);
-                        existingLog.profit = parseFloat(poc.profit || existingLog.profit);
-                        existingLog.pocData = poc;
-                    }
-                    saveLogsToStorage(currentActiveAccountId);
-                    if (!isSold) updateRightPanelPortfolio(poc, existingLog.level);
-                    else resetRightPanelPortfolio();
-                    renderContractTable();
-
-                    if (isSold === 1 && !processedContractIds.has(cId)) {
-                        processedContractIds.add(cId);
-                        const profitVal = parseFloat(poc.profit || 0);
-                        totalSessionProfit += profitVal;
-
-                        renderSummaryFooters();
-
-                        const stopLossMode = document.getElementById('select-stop-loss-mode').value;
-                        let shouldStopForMaxLevelLoss = false;
-
-                        if (poc.status === 'won') {
-                            winCount++;
-                            currentStrategyLevelIndex = 0;
-                            totalAccumulatedAmount = 0;
-                        } else if (poc.status === 'lost') {
-                            lossCount++;
-                            if (currentStrategyLevelIndex + 1 < defaultStrategyData.length) {
-                                currentStrategyLevelIndex++;
-                            } else {
-                                currentStrategyLevelIndex = 0;
-                                shouldStopForMaxLevelLoss = true;
-                            }
-                        }
-
-                        const targetProfitLimit = parseFloat(document.getElementById('input-target-profit').value) || 10.00;
-                        const stopLossLimit = parseFloat(document.getElementById('input-stop-loss').value) || 4.00;
-
-                        setTimeout(() => {
-                            if (totalSessionProfit >= targetProfitLimit) {
-                                isBotRunning = false;
-                                updateBotStatusUi('STOPPED');
-                                alert(`🎉 EST. TARGET PROFIT REACHED! Session Profit: $${totalSessionProfit.toFixed(2)} (Target was >= $${targetProfitLimit.toFixed(2)}). Bot Stopped.`);
-                            } else if (stopLossMode === 'until_end' && shouldStopForMaxLevelLoss) {
-                                isBotRunning = false;
-                                updateBotStatusUi('STOPPED');
-                                alert(`⚠️ MAX LEVEL LOSS REACHED! Strategy cycle completed with loss. Total P/L: $${totalSessionProfit.toFixed(2)}. Bot Stopped.`);
-                            } else if (stopLossMode === 'amount' && totalSessionProfit <= -Math.abs(stopLossLimit)) {
-                                isBotRunning = false;
-                                updateBotStatusUi('STOPPED');
-                                alert(`⚠️ EST. STOP LOSS EXCEEDED! Total Net Loss: $${totalSessionProfit.toFixed(2)} (Limit was >= $${stopLossLimit.toFixed(2)}). Bot Stopped.`);
-                            } else if (isBotRunning) {
-                                setTimeout(() => executeNextStrategyStep(), 1500);
-                            }
-                        }, 50);
-                    }
-                }
-
-                if (data.msg_type === 'contracts_for') {
-                    if (data.contracts_for) {
-                        cachedContractsData = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
-                        updateAvailableDurationUnits();
-                        updateModalDurationAndRules();
-                    }
-                }
-
-                if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
-                    const banner = document.getElementById('api-status-banner');
-                    currentEstimatedPayout = parseFloat(data.proposal.payout || 0);
-                    document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
-                    if(banner) {
-                        banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
-                        document.getElementById('api-status-text').innerText = "Successfully updated proposal & payout data from API.";
-                        const badge = document.getElementById('api-status-badge');
-                        badge.innerText = "VERIFIED";
-                        badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
-                    }
-                } else if (data.error && data.msg_type === 'proposal') {
-                    const banner = document.getElementById('api-status-banner');
-                    if(banner) {
-                        banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
-                        document.getElementById('api-status-text').innerText = data.error.message || "API Error occurred.";
-                        const badge = document.getElementById('api-status-badge');
-                        badge.innerText = "ERROR";
-                        badge.className = "font-bold text-[10px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded uppercase";
-                    }
-                }
-            };
-
-            ws.onerror = (err) => {
-                logMsg("WebSocket error encountered.", 'ERR');
-            };
-
-            ws.onclose = () => {
-                isAccountConnected = false;
-                logMsg("WebSocket closed unexpectedly.", 'ERR');
-                updateUiControlState();
-                const statusEl = document.getElementById('conn-status-indicator');
-                if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
-            };
+                }, 50);
+            }
         }
+
+        if (data.msg_type === 'contracts_for') {
+            if (data.contracts_for) {
+                cachedContractsData = Array.isArray(data.contracts_for) ? data.contracts_for : (data.contracts_for.available || []);
+                updateAvailableDurationUnits();
+                updateModalDurationAndRules();
+            }
+        }
+
+        if (data.msg_type === 'proposal' && data.proposal && data.req_id === 4) {
+            const banner = document.getElementById('api-status-banner');
+            currentEstimatedPayout = parseFloat(data.proposal.payout || 0);
+            document.getElementById('payout').innerText = `$${currentEstimatedPayout.toFixed(2)}`;
+            if(banner) {
+                banner.className = "bg-emerald-50 border border-emerald-200 text-emerald-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
+                document.getElementById('api-status-text').innerText = "Successfully updated proposal & payout data from API.";
+                const badge = document.getElementById('api-status-badge');
+                badge.innerText = "VERIFIED";
+                badge.className = "font-bold text-[10px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded uppercase";
+            }
+        } else if (data.error && data.msg_type === 'proposal') {
+            const banner = document.getElementById('api-status-banner');
+            if(banner) {
+                banner.className = "bg-rose-50 border border-rose-200 text-rose-700 px-2.5 py-1.5 rounded-lg flex justify-between items-center text-xs";
+                document.getElementById('api-status-text').innerText = data.error.message || "API Error occurred.";
+                const badge = document.getElementById('api-status-badge');
+                badge.innerText = "ERROR";
+                badge.className = "font-bold text-[10px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded uppercase";
+            }
+        }
+    };
+
+    ws.onerror = (err) => {
+        logMsg("WebSocket error encountered.", 'ERR');
+    };
+
+    ws.onclose = () => {
+        isAccountConnected = false;
+        // Bersihkan interval ping saat koneksi terputus
+        if (authPingInterval) {
+            clearInterval(authPingInterval);
+            authPingInterval = null;
+        }
+        logMsg("WebSocket closed unexpectedly.", 'ERR');
+        updateUiControlState();
+        const statusEl = document.getElementById('conn-status-indicator');
+        if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
+    };
+}
 
         function updateModalDurationAndRules() {
             if (!cachedContractsData || cachedContractsData.length === 0) return;
