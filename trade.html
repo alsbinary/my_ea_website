@@ -920,36 +920,36 @@
         }
 
         // Perbaikan Auto-Reconnect Watcher dengan memperbarui token OTP baru
-        function startAutoReconnectWatcher() {
-            setInterval(async () => {
-                if (isAccountConnected && currentActiveAccountId && accessToken) {
-                    if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
-                        logMsg("WebSocket connection lost. Attempting automated reconnection...", 'ERR');
-                        const statusEl = document.getElementById('conn-status-indicator');
-                        if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
-                        
-                        try {
-                            logMsg(`REQ [REST OTP Reconnect]: Requesting fresh OTP URL for account ${currentActiveAccountId}`, 'REQ');
-                            const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${currentActiveAccountId}/otp`, {
-                                method: "POST",
-                                headers: { "Authorization": `Bearer ${accessToken}` }
-                            });
-                            const otpData = await otpRes.json();
-                            logMsg("RES [REST OTP Reconnect]: " + JSON.stringify(otpData));
-                            
-                            if (otpData.data && otpData.data.url) {
-                                lastWsUrl = otpData.data.url;
-                                connectAuthenticatedWebSocket(lastWsUrl, currentActiveAccountId);
-                            } else {
-                                logMsg("Failed to refresh OTP during reconnection. Retrying...", 'ERR');
-                            }
-                        } catch(err) {
-                            logMsg("Reconnect error: " + err.message, 'ERR');
-                        }
+        // Fungsi Reconnect Otomatis yang Meminta OTP Baru Sesuai Aturan CS
+function startAutoReconnectWatcher() {
+    setInterval(async () => {
+        if (isAccountConnected && currentActiveAccountId && accessToken) {
+            if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+                logMsg("WebSocket terputus. Mengambil OTP baru dan melakukan reconnect...", 'ERR');
+                const statusEl = document.getElementById('conn-status-indicator');
+                if (statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 inline-block mr-1.5"></span> Reconnecting...';
+                
+                try {
+                    // 1. Ambil URL WebSocket OTP fresh terbaru via REST API (Saran CS)
+                    const otpRes = await fetch(`https://api.derivws.com/trading/v1/options/accounts/${currentActiveAccountId}/otp`, {
+                        method: "POST",
+                        headers: { "Authorization": `Bearer ${accessToken}` }
+                    });
+                    const otpData = await otpRes.json();
+                    
+                    if (otpData.data && otpData.data.url) {
+                        // 2. Buat koneksi WebSocket baru menggunakan URL yang fresh
+                        connectAuthenticatedWebSocket(otpData.data.url, currentActiveAccountId);
+                    } else {
+                        logMsg("Gagal memperbarui OTP saat reconnect.", 'ERR');
                     }
+                } catch(err) {
+                    logMsg("Error saat proses reconnect: " + err.message, 'ERR');
                 }
-            }, 4000);
+            }
         }
+    }, 4000);
+}
 
         function initPublicWebSocket() {
             publicWs = new WebSocket(`wss://api.derivws.com/trading/v1/options/ws/public`);
